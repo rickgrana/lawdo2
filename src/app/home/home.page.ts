@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
+import { IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton,
+    IonImg, IonGrid, IonRow, IonCol, IonButton, IonIcon  } from '@ionic/angular/standalone';
 import { AuthenticationService } from '../authentication.service';
 import { Router } from '@angular/router';
 import { getAuth, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
@@ -12,7 +13,9 @@ import { getAuth, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
   standalone: true,
-  imports: [IonicModule, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule]
+  imports: [IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButtons,
+    IonMenuButton, IonImg, IonGrid, IonRow, IonCol, IonButton, IonIcon
+  ]
 })
 export class HomePage implements OnInit {
   user$ = this.authService.getUser();

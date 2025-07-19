@@ -1,0 +1,73 @@
+import { Component, OnInit } from '@angular/core';
+import { IonicModule } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
+import { AuthenticationService } from '../authentication.service';
+import { Router } from '@angular/router';
+import { getAuth, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
+
+@Component({
+  selector: 'app-home',
+  templateUrl: './home.page.html',
+  styleUrls: ['./home.page.scss'],
+  standalone: true,
+  imports: [IonicModule, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule]
+})
+export class HomePage implements OnInit {
+  user$ = this.authService.getUser();
+  usuario: any;
+
+  constructor(private authService: AuthenticationService, private router: Router) {
+    this.user$.subscribe((user) => {
+      console.log(user);
+      this.usuario = user;
+    });
+  }
+
+  ngOnInit() {
+    const auth = getAuth();
+    getRedirectResult(auth)
+      .then((result) => {
+        debugger;
+        console.log(result);
+        if (result) {
+          const credential = GoogleAuthProvider.credentialFromResult(result);
+          const token = credential?.accessToken;
+          const user = result.user;
+        }
+        // ...
+      }).catch((error) => {
+        // Handle Errors here.
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        // The email of the user's account used.
+        const email = error.customData.email;
+        // The AuthCredential type that was used.
+        const credential = GoogleAuthProvider.credentialFromError(error);
+        // ...
+      });
+  }
+
+  login() {
+    //this.messageService.presentLoading('Aguarde...');
+
+    this.authService.login();
+  }
+
+  logout() {
+    this.authService.logout();
+  }
+
+  atendimentos() {
+    this.router.navigate(['/atendimentos']);
+  }
+
+  novoAtendimento() {
+    // this.atendimentoService.model = new Atendimento();
+    // this.atendimentoService.model.isNew = true;
+
+    this.router.navigate(['atendimento/identificacao']);
+  }
+
+}

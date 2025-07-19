@@ -1,2 +1,7 @@
-// For information on how to create your own theme, please see:
-// http://ionicframework.com/docs/theming/
+:root, :root.md {
+  --ion-background-color: #000;
+}
+
+ion-button {
+  font-size: 12px;
+}

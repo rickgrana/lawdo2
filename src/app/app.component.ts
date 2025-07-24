@@ -24,12 +24,14 @@ import { Auth } from '@angular/fire/auth';
   imports: [CommonModule, RouterLink, IonApp, IonSplitPane, IonMenu, IonContent,
       IonList, IonMenuToggle, IonItem, IonIcon, IonLabel, IonItemDivider,
       IonHeader, IonToolbar,IonTitle,
-      IonRouterLink, IonRouterOutlet]
+      IonRouterLink, IonRouterOutlet
+  ]
 })
 export class AppComponent {
   usuario: any;
 
-  constructor(private firebaseAuth: Auth, private authService: AuthenticationService, private router: Router) {
+  constructor(private firebaseAuth: Auth, private authService: AuthenticationService, private router: Router
+  ) {
 
     this.firebaseAuth.onAuthStateChanged((user: any) => {
       this.usuario = user;

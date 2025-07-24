@@ -1,3 +1,4 @@
+import { CorporacaoGerenciarPage } from './corporacao/gerenciar/corporacao-gerenciar.page';
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
 
@@ -28,6 +29,11 @@ export const routes: Routes = [
   {
     path: 'perfil',
     loadComponent: () => import('./perfil/perfil.page').then( m => m.PerfilPage),
+    canActivate: [AuthGuard],
+  },
+   {
+    path: 'corporacao/gerenciar',
+    loadComponent: () => import('./corporacao/gerenciar/corporacao-gerenciar.page').then( m => m.CorporacaoGerenciarPage),
     canActivate: [AuthGuard],
   },
 ];

@@ -31,7 +31,6 @@ export class HomePage implements OnInit {
 
     getRedirectResult(this.auth)
       .then((result) => {
-        console.log(result);
         if (result) {
           const credential = GoogleAuthProvider.credentialFromResult(result);
           const token = credential?.accessToken;

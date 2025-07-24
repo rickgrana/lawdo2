@@ -8,6 +8,7 @@ import { MessageService } from '../services/message.service';
 import { AuthenticationService } from '../authentication.service';
 import { UserService } from '../services/user.service';
 import { Router } from '@angular/router';
+import { CorporacaoService } from '../services/corporacao.service';
 
 @Component({
   selector: 'app-perfil',
@@ -24,7 +25,7 @@ export class PerfilPage implements OnInit {
 
   form?: FormGroup;
 
-  corporacoes = [];
+  corporacoes: any[] = [];
   unidades: any[] = [];
   loaded = false;
 
@@ -33,10 +34,10 @@ export class PerfilPage implements OnInit {
       private formBuilder: FormBuilder,
       private messageService: MessageService,
       private router: Router,
-      //private corporacaoService: CorporacaoService,
+      private corporacaoService: CorporacaoService,
       private unidadeService: UnidadeService) { }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.form = this.formBuilder.group({
       nomeCompleto: [this.auth.user?.fields.nomeCompleto, Validators.required],
       sexo: [this.auth.user?.fields.sexo, Validators.required],
@@ -45,6 +46,8 @@ export class PerfilPage implements OnInit {
       corporacao: [this.auth.user?.fields.corporacao, Validators.required],
       unidade: [this.auth.user?.fields.unidade, Validators.required],
     });
+
+    this.corporacoes = await this.corporacaoService.list();
 
     if(this.form!.get('corporacao')!.value){
       this.loadUnidades();
@@ -56,6 +59,17 @@ export class PerfilPage implements OnInit {
     if (this.form && this.form.get('corporacao')) {
       this.unidades = await this.unidadeService.list(this.form.get('corporacao')!.value);
     }
+  }
+
+  async selecionarCorporacao(event: any) {
+    let idCorporacao = event.detail.value;
+
+    if(idCorporacao  == null) return;
+
+    await this.messageService.presentLoading('Aguarde');
+    this.unidades = await this.unidadeService.list(idCorporacao);
+    this.messageService.hideLoader();
+
   }
 
   updateUser(data: any) {

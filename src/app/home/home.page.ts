@@ -1,12 +1,12 @@
-import { Component, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton,
     IonImg, IonGrid, IonRow, IonCol, IonButton, IonIcon  } from '@ionic/angular/standalone';
 import { AuthenticationService } from '../authentication.service';
 import { Router } from '@angular/router';
-import { getAuth, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
+import { getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
+import { Auth } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-home',
@@ -18,21 +18,19 @@ import { getAuth, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
   ]
 })
 export class HomePage implements OnInit {
-  user$ = this.authService.getUser();
   usuario: any;
+  private auth = inject(Auth);
 
   constructor(private authService: AuthenticationService, private router: Router) {
-    this.user$.subscribe((user) => {
-      console.log(user);
+    this.auth.onAuthStateChanged((user: any) => {
       this.usuario = user;
     });
   }
 
   ngOnInit() {
-    const auth = getAuth();
-    getRedirectResult(auth)
+
+    getRedirectResult(this.auth)
       .then((result) => {
-        debugger;
         console.log(result);
         if (result) {
           const credential = GoogleAuthProvider.credentialFromResult(result);
@@ -71,6 +69,10 @@ export class HomePage implements OnInit {
     // this.atendimentoService.model.isNew = true;
 
     this.router.navigate(['atendimento/identificacao']);
+  }
+
+  perfil() {
+    this.router.navigate(['perfil']);
   }
 
 }

@@ -1,7 +1,10 @@
-:root, :root.md {
-  --ion-background-color: #000;
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap');
+
+:host(ion-label) {
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 12px;
 }
 
-ion-button {
-  font-size: 12px;
+ion-button, ion-label {
+  font-size: 14px !important;
 }

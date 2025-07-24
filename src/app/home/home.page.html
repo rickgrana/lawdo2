@@ -10,7 +10,9 @@
 
       <ion-buttons slot="end">
           <div *ngIf="usuario">
-              <img [src]="usuario.photoURL" height="35">
+              <ion-button>
+                <img  (click)="perfil()" [src]="usuario.photoURL" height="35">
+              </ion-button>
           </div>
       </ion-buttons>
   </ion-toolbar>
@@ -43,7 +45,7 @@
           </ng-template>
         </ion-col>
     </ion-row>
-  
+
     <ion-row class="ion-align-items-end" style="height: 20%; z-index: 0">
       <ion-col>
       </ion-col>

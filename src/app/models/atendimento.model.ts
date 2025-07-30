@@ -2,6 +2,8 @@ import { map } from 'rxjs/operators';
 import { Vitima } from './vitima.model';
 import { Quesito } from './quesito.model';
 import { Veiculo } from './veiculo.model';
+import { Vestigio } from './vestigio.model';
+import { Timestamp } from 'firebase/firestore';
 
 //@TODO: Natureza do Delito (ROUBO, FURTO, DANO
 
@@ -36,7 +38,7 @@ export class Atendimento {
 
         situacao: Atendimento.SIT_ABERTO,
 
-        data:  firestore.Timestamp.fromDate(new Date()),
+        data:  Timestamp.fromDate(new Date()),
         hora: '',
 
         natureza: '',
@@ -118,14 +120,14 @@ export class Atendimento {
 
         dtcriacao: {},
         dtupdate: {},
-        vitimas: [],
-        veiculos: [],
-        vestigios: []
+        vitimas: [] as Vitima[],
+        veiculos: [] as Veiculo[],
+        vestigios: [] as Vestigio[]
 
 
     };
 
-    quesitos = [];
+    quesitos: any[] = [];
 
     imagens: Imagem[] = [];
 
@@ -198,7 +200,7 @@ export class Atendimento {
 
         let retorno =  imagens.get(this.fields.tipoExame);
 
-        return retorno[0];
+        return retorno ? retorno[0] : null;
     }
 
     iconColorTipoExame(){
@@ -206,7 +208,7 @@ export class Atendimento {
 
         let retorno =  imagens.get(this.fields.tipoExame);
 
-        return retorno[1];
+        return retorno ? retorno[1]: null;
     }
 
 
@@ -325,7 +327,7 @@ export class Atendimento {
         return opcoes.get(this.fields.situacao);
     }
 
-    static loadFromDoc(doc) {
+    static loadFromDoc(doc: any) {
         let model = new Atendimento();
         model.isNew = false;
         model.id = doc.id;
@@ -334,7 +336,7 @@ export class Atendimento {
         return model;
     }
 
-    getValue(texto) {
+    getValue(texto: any) {
         if (texto === undefined) {
             return '';
         } else {
@@ -342,7 +344,7 @@ export class Atendimento {
         }
     }
 
-    load(data) {
+    load(data: any) {
 
         this.fields.data           = data.data;
         this.fields.hora        = this.getValue(data.hora);
@@ -402,27 +404,27 @@ export class Atendimento {
         this.fields.vitimas = [];
 
         if(data.vitimas) {
-            data.vitimas.forEach((vitima) => {
+            data.vitimas.forEach((vitima: Vitima) => {
                 this.fields.vitimas.push(Vitima.loadFrom(vitima));
             });
         }
 
         if(data.veiculos) {
-            data.veiculos.forEach((veiculo) => {
+            data.veiculos.forEach((veiculo: Veiculo) => {
                 this.fields.veiculos.push(Veiculo.loadFrom(veiculo));
             });
         }
 
         this.quesitos = [];
         if(data.quesitos) {
-            data.quesitos.forEach((item) => {
+            data.quesitos.forEach((item: Quesito) => {
                 const quesito = Quesito.loadFrom(item);
                 this.quesitos.push(quesito);
             });
         }
 
         if(data.vestigios) {
-            data.vestigios.forEach((vestigio) => {
+            data.vestigios.forEach((vestigio: Vestigio) => {
                 //this.fields.vestigios.push(Vitima.loadFrom(vitima));
             });
         }
@@ -432,11 +434,7 @@ export class Atendimento {
         if(data.imagens) {
             this.imagens = data.imagens;
         }
-
-
     }
-
-
 
     isPossuiConstrucao() {
         return ((this.fields.local.natureza === 'Via Pública') || (this.fields.local.natureza === 'Imóvel'));
@@ -516,23 +514,23 @@ export class Atendimento {
 
     rawData() {
 
-        const vitimas = [];
-        this.fields.vitimas.forEach((vitima) => {
+        const vitimas: any[] = [];
+        this.fields.vitimas.forEach((vitima: Vitima) => {
             vitimas.push(vitima.rawData());
         });
 
 
-        const veiculos = [];
-        this.fields.veiculos.forEach((veiculo) => {
+        const veiculos: any[] = [];
+        this.fields.veiculos.forEach((veiculo: Veiculo) => {
             veiculos.push(veiculo.rawData());
         });
 
-        const quesitos = [];
-        this.quesitos.forEach((quesito) => {
+        const quesitos: any[] = [];
+        this.quesitos.forEach((quesito: Quesito) => {
             quesitos.push(quesito.rawData());
         });
 
-        const imagens = [];
+        const imagens: any[] = [];
         this.imagens.forEach((imagem) => {
             /*if(!imagem.colunas){
                 imagem.colunas = 1;
@@ -603,7 +601,7 @@ export class Atendimento {
     }
 
 
-    static from(json){
+    static from(json: string){
         return Object.assign(new Atendimento(), json);
       }
 

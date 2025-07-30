@@ -19,7 +19,7 @@ export class CorporacaoService {
 
     const q = query(this.getRef(), orderBy('nome', 'asc'));
 
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocs(q) ;
 
     return snapshot.docs.map(doc => {
       return {

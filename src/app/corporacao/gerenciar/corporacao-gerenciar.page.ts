@@ -2,11 +2,9 @@ import { MessageService } from './../../services/message.service';
 import { Component, OnInit } from '@angular/core';
 import { Router, NavigationExtras } from '@angular/router';
 import { CorporacaoService } from '../../services/corporacao.service';
-import { Corporacao } from 'src/app/models/corporacao.model';
-import { IonicStorageModule } from '@ionic/storage-angular';
-import { FormBuilder, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
-import { IonGrid, IonCard, IonList, IonContent, IonHeader, IonInput, IonTitle, IonToolbar, IonButtons, IonItem, IonButton,
-    IonRow, IonCol, IonLabel, IonSelectOption, IonMenuButton, IonFooter, IonSelect } from '@ionic/angular/standalone';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { IonGrid, IonCard, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons,
+    IonRow, IonCol, IonLabel, IonMenuButton } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { Storage } from '@ionic/storage-angular';
 

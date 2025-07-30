@@ -1,3 +1,4 @@
+import { ListAtendimentosPage } from './atendimento/list/atendimento-list.page';
 import { CorporacaoGerenciarPage } from './corporacao/gerenciar/corporacao-gerenciar.page';
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
@@ -31,9 +32,14 @@ export const routes: Routes = [
     loadComponent: () => import('./perfil/perfil.page').then( m => m.PerfilPage),
     canActivate: [AuthGuard],
   },
-   {
+  {
     path: 'corporacao/gerenciar',
     loadComponent: () => import('./corporacao/gerenciar/corporacao-gerenciar.page').then( m => m.CorporacaoGerenciarPage),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'atendimentos',
+    loadComponent: () => import('./atendimento/list/atendimento-list.page').then( m => m.ListAtendimentosPage),
     canActivate: [AuthGuard],
   },
 ];

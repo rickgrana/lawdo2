@@ -4,7 +4,7 @@ export class Quesito extends Base {
     pergunta    = '';
     resposta    = '';
 
-    static override loadFrom(record: any){
+    static override loadFrom(record: any): Quesito{
         const model = new Quesito();
         model.isNew = false;
         model.pergunta = record.pergunta;

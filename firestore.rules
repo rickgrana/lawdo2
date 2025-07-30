@@ -1,0 +1,50 @@
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /veiculos/{veiculo} {
+      allow read, write: if true;
+      allow create: if false;
+    }
+
+    match /corporacoes/{corporacao} {
+      allow read: if ((request.auth != null));
+    }
+
+    match /unidades/{unidades} {
+      allow read, write, create: if ((request.auth != null));
+    }
+
+    match /orgaos/{orgao} {
+      allow read, write, create: if ((request.auth != null));
+    }
+
+    match /requisicoes/{requisicao} {
+      allow read, write, create: if ((request.auth != null));
+    }
+
+    match /conclusoes/{conclusao} {
+      allow read, write: if true;
+      allow create: if false;
+    }
+
+    match /users/{user} {
+      allow read: if ((request.auth != null));
+      allow write: if ((request.auth != null) && (resource.data.uid == request.auth.uid));
+      allow create: if true;
+    }
+
+    match /atendimentos/{atendimento} {
+      allow create: if request.auth != null;
+
+      allow read, write: if (request.auth != null) && (resource.data.perito == path('/databases/(default)/documents/users/' + request.auth.uid));
+    }
+  }
+}
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

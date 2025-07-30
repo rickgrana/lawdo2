@@ -1,0 +1,111 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button routerLink="/home" routerDirection="'root'">
+          <ion-icon color="light" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="novo()">
+          <ion-icon  name="add-circle" color="success"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title>Atendimentos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item button  *ngFor="let item of items" (click)="abrir(item)">
+      <ion-grid>
+        <ion-row>
+          <ion-col >
+            <ion-grid>
+              <ion-row>
+                <ion-col size="9">
+                  <ion-label style="font-size: 24px" color="medium">
+                      <b>PROT #{{item.getNumeroProtocolo()}}</b>
+                  </ion-label>
+                </ion-col>
+
+                <ion-col size="3"c>
+                  <ion-label style="text-align: right; font-size: 22px">
+                      <ion-icon [name]="item.iconTipoExame()" [color]="item.iconColorTipoExame()"></ion-icon>
+                  </ion-label>
+                </ion-col>
+
+                <ion-col size="12" class="long-text">
+                  <b>
+                    <span *ngIf="item.fields.endereco.cidade == 'MANAUS' && item.fields.endereco.bairro" >
+                            {{item.fields.endereco.bairro.toUpperCase()}}
+                    </span>
+
+                    <span *ngIf="item.fields.endereco.cidade !== 'MANAUS'">
+                        ({{item.fields.endereco.cidade}})
+                    </span>
+                  </b>
+
+                  <br/>
+
+                  <span *ngIf="item.fields.endereco.cidade == 'MANAUS' && item.fields.endereco.logradouro" >
+                  {{item.fields.endereco.logradouro}}
+                  </span>
+
+                </ion-col>
+
+                <ion-col size="12">
+                    <ion-label>
+                        <ion-icon name="calendar-outline" color="primary"></ion-icon>
+                        {{item.fields.data.seconds*1000 | date: "dd/MM/yyyy"}}
+                        <ion-icon name="time-outline" color="primary"></ion-icon>
+                            {{item.fields.hora | date: "HH:mm"}}h
+                    </ion-label>
+                </ion-col>
+
+                <ion-col size="12" class="long-text" *ngIf="item.isCrimeVida && (item.fields.vitimas.length > 0)">
+                    <ion-label *ngFor="let vitima of item.fields.vitimas">
+                      <i>
+                      <ion-icon name="body" color="danger"></ion-icon>
+
+                      <span *ngIf="vitima.isIdentificada()" >
+                          {{vitima.nome}}
+                      </span>
+
+                      <span *ngIf="!vitima.isIdentificada()" >
+                          N.I.
+                      </span>
+                      </i>
+                    </ion-label>
+                </ion-col>
+
+
+                <ion-col size="12" class="ion-float-right">
+                    <ion-label class="ion-text-left">
+                      <div *ngIf="item.isAberto()">
+                        <ion-icon name="alert-circle-outline" slot="end" color="danger" *ngIf="item.isAberto()"></ion-icon>
+                        Laudo em Aberto
+                      </div>
+
+                      <div *ngIf="item.isConcluido()">
+                        <ion-icon name="star" slot="end" color="success" *ngIf="item.isConcluido()"></ion-icon>
+                        &nbsp;<b>LAUDO #{{item.getNumeroLaudo()}}</b>
+                      </div>
+                    </ion-label>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-item>
+  </ion-list>
+
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Carregando mais dados...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

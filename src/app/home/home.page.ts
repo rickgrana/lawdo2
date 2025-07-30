@@ -24,6 +24,7 @@ export class HomePage implements OnInit {
   constructor(private authService: AuthenticationService, private router: Router) {
     this.auth.onAuthStateChanged((user: any) => {
       this.usuario = user;
+      console.log('Usuário autenticado:', this.usuario);
     });
   }
 

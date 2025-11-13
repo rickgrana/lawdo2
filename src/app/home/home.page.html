@@ -1,53 +1,55 @@
-<ion-header [translucent]="true" *ngIf="usuario">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-    </ion-buttons>
-
-      <ion-title>
-         <ion-img id="titulo" src="/assets/icone.png" style="height: 40px"></ion-img>
-      </ion-title>
-
-      <ion-buttons slot="end">
-          <div *ngIf="usuario">
-              <ion-button>
-                <img  (click)="perfil()" [src]="usuario.photoURL" height="35">
-              </ion-button>
-          </div>
+<ion-content>
+  <ion-header [translucent]="true" *ngIf="usuario">
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
       </ion-buttons>
-  </ion-toolbar>
-</ion-header>
 
-  <ion-grid style="height: 100%; position: relative">
-    <ion-row style="height: 20%; z-index: 0" class="ion-align-items-start">
-      <ion-col>
-          <ion-img src="/assets/header.png" style="height: 100%"></ion-img>
-      </ion-col>
-    </ion-row>
+        <ion-title>
+          <ion-img id="titulo" src="/assets/icone.png" style="height: 40px"></ion-img>
+        </ion-title>
 
-    <ion-row class="ion-align-items-center ion-justify-content-center"  style="height: 40%; z-index: 1000"  >
-      <ion-col class="ion-justify-content-center"  size-xs="12" size-md="6" style="height:100%">
-          <ion-img src="/assets/titulo.png" style="height: 100%;"></ion-img>
-      </ion-col>
-    </ion-row>
+        <ion-buttons slot="end">
+            <div *ngIf="usuario">
+                <ion-button>
+                  <img  (click)="perfil()" [src]="usuario.photoURL" height="35">
+                </ion-button>
+            </div>
+        </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
 
-    <ion-row class="ion-align-items-center ion-justify-content-center"
-        style="height: 20%; z-index: -1">
-
-        <ion-col class="ion-justify-content-center" size-xs="12" size-md="6" style="height:100%">
-          <span *ngIf="usuario; else noUser">
-            <ion-button  expand="block" (click)="atendimentos()" color="primary">Atendimentos</ion-button>
-            <ion-button  expand="block" (click)="novoAtendimento()" color="success">
-            <ion-icon name="add-circle"></ion-icon> Novo Atendimento</ion-button>
-          </span>
-          <ng-template #noUser>
-            <ion-button  expand="block" (click)="login()" color="danger">ENTRAR</ion-button>
-          </ng-template>
+    <ion-grid style="height: 100%; position: relative">
+      <ion-row style="height: 20%; z-index: 0" class="ion-align-items-start">
+        <ion-col>
+            <ion-img src="/assets/header.png" style="height: 100%"></ion-img>
         </ion-col>
-    </ion-row>
+      </ion-row>
 
-    <ion-row class="ion-align-items-end" style="height: 20%; z-index: 0">
-      <ion-col>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+      <ion-row class="ion-align-items-center ion-justify-content-center"  style="height: 40%; z-index: 1000"  >
+        <ion-col class="ion-justify-content-center"  size-xs="12" size-md="6" style="height:100%">
+            <ion-img src="/assets/titulo.png" style="height: 100%;"></ion-img>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-align-items-center ion-justify-content-center"
+          style="height: 20%; z-index: -1">
+
+          <ion-col class="ion-justify-content-center" size-xs="12" size-md="6" style="height:100%">
+            <span *ngIf="usuario; else noUser">
+              <ion-button  expand="block" (click)="atendimentos()" color="primary">Atendimentos</ion-button>
+              <ion-button  expand="block" (click)="novoAtendimento()" color="success">
+              <ion-icon name="add-circle"></ion-icon> Novo Atendimento</ion-button>
+            </span>
+            <ng-template #noUser>
+              <ion-button  expand="block" (click)="login()" color="danger">ENTRAR</ion-button>
+            </ng-template>
+          </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-align-items-end" style="height: 20%; z-index: 0">
+        <ion-col>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+</ion-content>

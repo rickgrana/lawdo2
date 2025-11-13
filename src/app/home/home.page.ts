@@ -2,7 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton,
-    IonImg, IonGrid, IonRow, IonCol, IonButton, IonIcon  } from '@ionic/angular/standalone';
+    IonImg, IonGrid, IonRow, IonCol, IonButton, IonIcon, IonContent } from '@ionic/angular/standalone';
 import { AuthenticationService } from '../authentication.service';
 import { Router } from '@angular/router';
 import { getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
@@ -13,7 +13,7 @@ import { Auth } from '@angular/fire/auth';
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
   standalone: true,
-  imports: [IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButtons,
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonButtons,
     IonMenuButton, IonImg, IonGrid, IonRow, IonCol, IonButton, IonIcon
   ]
 })

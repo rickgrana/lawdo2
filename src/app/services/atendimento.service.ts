@@ -84,15 +84,15 @@ export class AtendimentoService {
     });
   }
 
-  update(atendimento: Atendimento) {
+  async update(atendimento: Atendimento) {
     //return this.firestore.collection('atendimentos').doc(atendimento.id).update(atendimento.rawData());
   }
 
-  delete(id: string) {
+  async delete(id: string) {
     //return this.firestore.collection('atendimentos').doc(id).delete();
   }
 
-  read(id: string) {
+  async read(id: string) {
     //return this.firestore.collection('atendimentos').doc(id);
   }
 

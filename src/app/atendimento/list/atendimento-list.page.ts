@@ -10,7 +10,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { AuthenticationService } from 'src/app/authentication.service';
 import { AtendimentoService } from 'src/app/services/atendimento.service';
 import { DatePipe } from '@angular/common';
-import { arrowBack, list, addCircle, calendarOutline, timeOutline, body, alertCircleOutline, star } from 'ionicons/icons';
+import { arrowBack, list, addCircle, calendarOutline, timeOutline, body, alertCircleOutline, star, skullOutline, skull } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { BaseData } from 'src/app/interfaces/base-data.interface';
 
@@ -41,7 +41,7 @@ export class ListAtendimentosPage implements OnInit {
 
     this.ultimo = null;
 
-    addIcons({arrowBack,addCircle,calendarOutline,timeOutline,body,alertCircleOutline,star,list});
+    addIcons({arrowBack,addCircle,calendarOutline,timeOutline,body,alertCircleOutline,star,list, skull, skullOutline});
   }
 
   async ngOnInit() {

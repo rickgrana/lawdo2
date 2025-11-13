@@ -132,7 +132,7 @@ export class Atendimento {
     imagens: Imagem[] = [];
 
     getNumeroProtocolo(){
-        let retorno =  this.fields.protocolo.numero + '/'+ this.fields.protocolo.ano.substr(2,2);
+        let retorno = this.fields.protocolo.ano.substr(2,2) + '-' + this.fields.protocolo.numero; 
 
         return retorno;
     }
@@ -180,9 +180,9 @@ export class Atendimento {
 
     get tipos_exame_imagens() {
         return new Map([
-            ['LOCAL DE ENCONTRO DE CADÁVER', ['skull', 'danger']],
+            ['LOCAL DE ENCONTRO DE CADÁVER', ['skull-outline', 'danger']],
             ['LOCAL DE SUICÍDIO', ['sad', 'dark']],
-            ['LOCAL DE CRIME CONTRA A VIDA',['skull', 'danger']],
+            ['LOCAL DE CRIME CONTRA A VIDA',['skull-outline', 'danger']],
             ['LOCAL DE FURTO',['unlock', 'primary']],
             ['LOCAL DE ROUBO',['unlock', 'primary']],
             ['LOCAL DE DISPARO DE ARMA DE FOGO',['locate', 'danger']],

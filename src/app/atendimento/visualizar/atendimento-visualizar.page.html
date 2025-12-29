@@ -1,0 +1,153 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+        <ion-buttons slot="start">
+            <ion-button routerLink="/atendimentos" routerDirection="root">
+                <ion-icon name="arrow-back"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+
+    <ion-title>
+        <span class=" ion-hide-md-down">ATENDIMENTO</span>&nbsp;<b>{{model.fields.protocolo.numero}}/{{model.fields.protocolo.ano}}</b> 
+    </ion-title>
+
+    <ion-buttons slot="end">
+
+        <ion-button (click)="abrirIdentificacao(model)">
+            <ion-icon name="create"></ion-icon>
+        </ion-button>
+
+        <ion-button (click)="concluir()" title="Concluir">
+            <ion-icon name="checkmark-circle" color="success"></ion-icon>
+        </ion-button>
+            
+       
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content style="background-color: black">
+
+        <ion-grid style="background-color: white">
+            <ion-row>
+
+                <ion-col size-xs="12" size-md="12" class="text-center">
+                    <ion-label>
+                        <b>{{model.fields.tipoExame}}</b>       
+                    </ion-label>
+                </ion-col>
+
+                <ion-col size-xs="12" size-md="12" class="text-center">
+                    <ion-label>
+                        <i>
+                            <div *ngIf="model.fields.endereco.cidade == 'MANAUS'">
+                                    ({{model.fields.endereco.bairro.toUpperCase()}}) {{model.fields.endereco.logradouro}}
+                            </div>
+                            <div *ngIf="model.fields.endereco.cidade != 'MANAUS'">
+                                ({{model.fields.endereco.cidade}}) {{model.fields.endereco.logradouro}}
+                            </div>
+                        </i>
+                        </ion-label>
+                </ion-col>
+
+                <ion-col size-xs="12" size-md="12" class="text-center">
+                    <ion-icon name="calendar"></ion-icon>
+                    Exame em {{model.fields.data.toDate() | date: "dd/MM/yyyy"}} às {{model.fields.hora | date: "HH:mm"}}
+                </ion-col>
+
+                <ion-col size-md="12"  class="ion-text-center ion-hide-md-down">
+                    <ion-icon name="document-outline" color="success"></ion-icon> 
+                    <b> {{model.getSituacao().toUpperCase() }}</b>
+                </ion-col>
+
+            </ion-row>
+
+           
+        </ion-grid>
+
+
+        <ion-grid>
+
+            <ion-row>
+                <ion-col>
+
+                    <ion-list>
+                        <ion-item routerLink="/atendimento/requisicao"  detail color="white" class="secao_atendimento">
+
+                            <ion-icon name="clipboard" slot="start" color="medium"></ion-icon> Requisição
+
+                        </ion-item>
+                        
+                        <ion-item button (click)="abrirLocal(model)" detail lines="none" color="white" class="secao_atendimento">
+                           
+                            <ion-icon name="pin" slot="start" color="success"></ion-icon> Local
+
+                        </ion-item>
+
+                        <ion-item button (click)="abrirPreservacao(model)" detail color="white" class="secao_atendimento">
+                          
+                            <ion-icon name="lock-open-outline" slot="start" color="tertiary"></ion-icon> Preservação e Isolamento
+                        
+                            
+                        </ion-item>
+
+                        <ion-item routerLink="/atendimento/vitimas" detail color="white" class="secao_atendimento">
+                          
+                            <ion-icon name="body" slot="start" color="danger"></ion-icon> Vítima(s)
+                            <ion-badge color="primary" slot="end">{{model.fields.vitimas.length}}</ion-badge>
+                            
+                        </ion-item>
+
+                        <ion-item routerLink="/atendimento/veiculos"  detail color="white" class="secao_atendimento">
+
+                            <ion-icon name="car" slot="start" color="primary"></ion-icon> Veículo(s)
+                            <ion-badge color="primary" slot="end">{{model.fields.veiculos.length}}</ion-badge>
+
+                        </ion-item>
+
+                        <ion-item routerLink="/atendimento/vestigios" detail color="white" class="secao_atendimento">
+                            <ion-icon name="footsteps-outline" slot="start" color="danger"></ion-icon> Vestígios
+                            <ion-badge color="primary" slot="end">{{model.fields.vestigios.length}}</ion-badge>
+                        </ion-item>
+
+
+                        
+
+                        <ion-item routerLink="/atendimento/imagens"  detail color="white" class="secao_atendimento">
+                            <ion-icon name="images" slot="start" color="danger"></ion-icon> Imagens
+                             <ion-badge color="primary" slot="end">{{model.imagens.length}}</ion-badge>
+                        </ion-item>
+
+                        <ion-item routerLink="/atendimento/conclusao"  detail color="white" class="secao_atendimento">
+                            <ion-icon name="clipboard" slot="start" color="primary"></ion-icon> Dinâmica e Conclusão
+                        </ion-item>
+
+                        <ion-item routerLink="/atendimento/laudo"  detail color="white" class="secao_atendimento">
+                            <ion-icon name="clipboard" slot="start" color="success"></ion-icon> Laudo
+                        </ion-item>
+
+                    </ion-list>
+
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+        
+        
+
+     
+</ion-content>
+
+
+<ion-footer>
+
+    <ion-toolbar>
+
+            <ion-button (click)="exportar()" expand="block" color="danger">
+                    <ion-icon name="print"></ion-icon> Exportar Laudo
+            </ion-button>
+
+          
+
+    </ion-toolbar>
+
+</ion-footer>

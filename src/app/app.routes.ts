@@ -42,4 +42,8 @@ export const routes: Routes = [
     loadComponent: () => import('./atendimento/list/atendimento-list.page').then( m => m.ListAtendimentosPage),
     canActivate: [AuthGuard],
   },
+  {
+    path: 'atendimento/identificacao',
+    loadComponent: () => import('./atendimento/identificacao/identificacao.page').then( m => m.IdentificacaoPage)
+  },
 ];

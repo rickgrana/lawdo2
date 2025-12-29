@@ -65,9 +65,6 @@ export class HomePage implements OnInit {
   }
 
   novoAtendimento() {
-    // this.atendimentoService.model = new Atendimento();
-    // this.atendimentoService.model.isNew = true;
-
     this.router.navigate(['atendimento/identificacao']);
   }
 

@@ -1,0 +1,19 @@
+<ion-col size="12">
+  <ion-item>
+    <ion-searchbar
+      label="Teste"
+      labelPlacement="floating"
+      [placeholder]="placeholder"
+      (ionInput)="onSearch($event)">
+    </ion-searchbar>
+
+    <ion-list *ngIf="filteredOptions.length > 0">
+      <ion-item
+        button
+        *ngFor="let option of filteredOptions"
+        (click)="onOptionSelected(option)">
+        {{ option }}
+      </ion-item>
+    </ion-list>
+  </ion-item>
+</ion-col>

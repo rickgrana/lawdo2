@@ -1,7 +1,7 @@
 
 export class DateTimeHelper {
 
-  static strToDate(data){
+  static strToDate(data: string){
 
     if(data === null) return null;
 
@@ -13,27 +13,27 @@ export class DateTimeHelper {
     return new Date(ano, mes, dia);
   }
 
-  static strToDateTime(data, hora){
+  static strToDateTime(data: string, hora: string){
     if(data === null) return null;
 
     const dataArray = data.substr(0,10).split('-'); // data em formato ano-mes-dia
     const horaArray = hora.split(':');
 
-    return new Date(dataArray[0], dataArray[1], dataArray[2], horaArray[0], horaArray[1]);
+    return new Date(parseInt(dataArray[0]), parseInt(dataArray[1]), parseInt(dataArray[2]), parseInt(horaArray[0]), parseInt(horaArray[1]));
   }
 
 
-  static dateToYMD(data) {
+  static dateToYMD(data: any) {
     if(data === null) return null;
     return data.getFullYear() + '-' + (data.getMonth() + 1).toString().padStart(2,'0') +  '-' + data.getDate();
   }
 
-  static dateToDMY(data) {
+  static dateToDMY(data: any): string|null {
     if(data === null) return null;
     return data.getDate().toString().padStart(2, '0') + '/' + (data.getMonth() + 1).toString().padStart(2,'0')  + '/' + data.getFullYear();
   }
 
-  static dmyToDate(data){
+  static dmyToDate(data: any){
     if(data === null) return null;
     const dataArray = data.substr(0,10).split('/'); // data em formato ano-mes-dia
     const ano = parseInt(dataArray[2]);
@@ -43,7 +43,7 @@ export class DateTimeHelper {
     return new Date(ano, mes, dia);
   }
 
-  static getMesExtenso(mes) {
+  static getMesExtenso(mes: string) {
     switch (mes) {
       case "01":
         return "janeiro"; break;
@@ -69,11 +69,13 @@ export class DateTimeHelper {
         return "novembro"; break;
       case "12":
         return "dezembro"; break;
+      default:
+        return "";
     }
   }
 
 
-  static getDiaExtenso(dia) {
+  static getDiaExtenso(dia: string) {
     switch (dia) {
         case "01": return "um"; break;
         case "02":
@@ -136,6 +138,8 @@ export class DateTimeHelper {
           return "trinta"; break;
         case "31":
           return "trinta e um"; break;
+        default:
+          return "";
       }
   }
 }

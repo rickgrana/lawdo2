@@ -1,39 +1,45 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
-import { FormControl, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { IonItem, IonGrid, IonSearchbar, IonList, IonCol, IonRow } from "@ionic/angular/standalone";
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { IonItem, IonList, IonCol, IonSearchbar } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'input-autocomplete',
   templateUrl: './input-autocomplete.component.html',
-  imports: [IonCol, CommonModule, IonList, IonSearchbar, IonItem]
+  imports: [IonItem, IonList, IonSearchbar, IonCol, CommonModule]
 })
-export class AutoCompleteComponent {
+export class InputAutoCompleteComponent {
 
-  @Input() label!: string;
-  @Input() placeholder!: string;
+  @Input() label: string = '';
   @Input() options: string[] = [];
-  @Input() allowNew = false;
+  @Input() placeholder = 'Pesquisar...';
 
-  @Input() control!: FormControl;
+  @Output() selected = new EventEmitter<string>();
 
+  searchText = '';
   filteredOptions: string[] = [];
 
-  ngOnInit() {
-    this.filteredOptions = this.options;
-  }
+  onSearch(event: any) {
+    const value = event.target.value?.toLowerCase() || '';
+    this.searchText = value;
 
-  onSearch(value: string) {
-    this.filteredOptions = this.options.filter(opt =>
-      opt.toLowerCase().includes(value.toLowerCase())
-    );
-
-    if (this.allowNew && !this.filteredOptions.includes(value) && value.trim().length > 0) {
-      this.filteredOptions = [value, ...this.filteredOptions];
+    if (!value) {
+      this.filteredOptions = [];
+      return;
     }
+
+    this.filteredOptions = this.options.filter(option =>
+      option.toLowerCase().includes(value)
+    );
   }
 
-  onOptionSelected(value: string) {
-    this.control.setValue(value);
+  onOptionSelected(option: string) {
+    this.searchText = option;
+    this.filteredOptions = [];
+    this.selected.emit(option);
+  }
+
+  clear() {
+    this.searchText = '';
+    this.filteredOptions = [];
   }
 }

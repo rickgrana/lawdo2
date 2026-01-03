@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonDatetime, IonInput,
     IonSelect,
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, IonModal, IonDatetimeButton } from '@ionic/angular/standalone';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthenticationService } from 'src/app/authentication.service';
 import { AtendimentoService } from 'src/app/services/atendimento.service';
 import { map, Observable, startWith } from 'rxjs';
@@ -19,21 +19,20 @@ import { DateTimeHelper } from 'src/app/extensions/dateTimeHelper';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { AutoCompleteComponent } from "src/components/inputs/autocomplete/input-autocomplete.component";
+import { InputAutoCompleteComponent } from "src/components/inputs/autocomplete/input-autocomplete.component";
 
 @Component({
   selector: 'app-identificacao',
   templateUrl: './identificacao.page.html',
   styleUrls: ['./identificacao.page.scss'],
   standalone: true,
-  imports: [IonDatetimeButton, IonModal, IonBackButton, IonItem, IonButton, ReactiveFormsModule,
+  imports: [IonDatetimeButton, IonModal, IonBackButton, IonItem, IonButton, FormsModule, ReactiveFormsModule,
     IonGrid, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar,
     IonRow, IonCol, IonLabel, IonSelectOption, IonFooter, IonModal,
     IonInput, IonDatetime, IonSelect,
-    CommonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatAutocompleteModule, AutoCompleteComponent]
+    CommonModule, InputAutoCompleteComponent,
+    MatAutocompleteModule, MatFormFieldModule, MatInputModule
+  ]
 })
 export class IdentificacaoPage implements OnInit {
 
@@ -182,6 +181,23 @@ export class IdentificacaoPage implements OnInit {
       endereco: new FormControl<string>(f.endereco?.logradouro ?? '', Validators.required),
       pontoref: new FormControl<string>(f.endereco?.pontoref ?? '')
     });
+
+    this.cidadesOptions = this.form.get('cidade')!.valueChanges
+      .pipe(
+        startWith(''),
+        map(value => this.filterCidades(value.toString()))
+      );
+
+    this.bairrosOptions = this.form.get('bairro')!.valueChanges
+      .pipe(
+        startWith(''),
+        map(value => this.filterBairros(value.toString()))
+      );    
+  }
+
+  filterCidades(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.cidades.filter(option => option.toLowerCase().includes(filterValue));
   }
 
   filterBairros(value: string): string[] {

@@ -4,7 +4,7 @@ import { MessageService } from 'src/app/services/message.service';
 import { Atendimento } from 'src/app/models/atendimento.model';
 import { CommonModule } from '@angular/common';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonDatetime, IonInput,
-    IonSelect,
+    IonSelect, IonIcon, IonSpinner,
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, IonModal, IonDatetimeButton } from '@ionic/angular/standalone';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthenticationService } from 'src/app/authentication.service';
@@ -19,7 +19,9 @@ import { DateTimeHelper } from 'src/app/extensions/dateTimeHelper';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { InputAutoCompleteComponent } from "src/components/inputs/autocomplete/input-autocomplete.component";
+import { PlanilhaService } from '../../services/planilha.service';
+import { search } from 'ionicons/icons';
+import { addIcons } from 'ionicons';
 
 @Component({
   selector: 'app-identificacao',
@@ -29,13 +31,12 @@ import { InputAutoCompleteComponent } from "src/components/inputs/autocomplete/i
   imports: [IonDatetimeButton, IonModal, IonBackButton, IonItem, IonButton, FormsModule, ReactiveFormsModule,
     IonGrid, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar,
     IonRow, IonCol, IonLabel, IonSelectOption, IonFooter, IonModal,
-    IonInput, IonDatetime, IonSelect,
-    CommonModule, InputAutoCompleteComponent,
-    MatAutocompleteModule, MatFormFieldModule, MatInputModule
+    IonInput, IonDatetime, IonSelect, IonIcon, IonSpinner,
+    CommonModule,
+    MatAutocompleteModule, MatFormFieldModule, MatInputModule,
   ]
 })
 export class IdentificacaoPage implements OnInit {
-
   form!: FormGroup;
   cidades = Cidades;
   bairros = Bairros;
@@ -106,6 +107,8 @@ export class IdentificacaoPage implements OnInit {
     }
   };
 
+  loadingProtocolo = false;
+
   datePickerObj: any = {
     fromDate: new Date('2019-01-01'), // default null
     toDate: new Date(), // default null
@@ -141,9 +144,11 @@ export class IdentificacaoPage implements OnInit {
     private router: Router,
     private auth: AuthenticationService,
     private navCtrl: NavController,
-    private messageService: MessageService)
+    private messageService: MessageService,
+    private planilhaService: PlanilhaService)
   {
-      this.loadForm();
+    addIcons({ search });
+    this.loadForm();
   }
 
   get model() {
@@ -163,18 +168,21 @@ export class IdentificacaoPage implements OnInit {
     if (!this.model) {
       this.atendimentoService.model = new Atendimento();
       this.atendimentoService.model.isNew = true;
+      this.atendimentoService.model.fields.tipoExame = 'LOCAL DE ENCONTRO DE CADÁVER';
+      this.atendimentoService.model.fields.data = new Date().toISOString();
+      this.atendimentoService.model.fields.protocolo.ano = new Date().getFullYear().toString();
+      this.atendimentoService.model.fields.endereco.cidade = 'MANAUS';
     }
 
     const f = this.model!.fields; // atalho
 
     this.form = this.formBuilder.group({
       tipoExame: new FormControl<string>(f.tipoExame ?? '', Validators.required),
-      data: new FormControl<string|null>(f.data.toDate().toISOString() ?? '', Validators.required),
+      data: new FormControl<string|null>(f.data, Validators.required),
       hora: new FormControl<string>(f.hora ?? '', Validators.required),
 
       protocolo: new FormControl<string>(f.protocolo?.numero ?? '', Validators.required),
-      protocoloAno: new FormControl<string>(f.protocolo?.ano ?? '', Validators.required),
-
+      protocoloAno: new FormControl<string>(f.protocolo.ano, Validators.required),
       cidade: new FormControl<string>(f.endereco?.cidade ?? '', Validators.required),
       bairro: new FormControl<string>(f.endereco?.bairro ?? ''),
 
@@ -207,6 +215,8 @@ export class IdentificacaoPage implements OnInit {
 
   async salvar(record: any) {
 
+    debugger;
+
     Object.entries(this.fields).forEach(([componente, valor]) => {
       const fields = valor.field.split('.');
 
@@ -224,11 +234,11 @@ export class IdentificacaoPage implements OnInit {
 
     });
 
-    const dataAux = DateTimeHelper.dmyToDate(this.model!.fields.data);
-    // this.model!.fields.data = dataAux;
+    //const dataAux = this.model!.fields.data.toDate();
+    //this.model!.fields.data = dataAux;
 
     if (this.model!.isNew) {
-      // this.model!.fields.perito = this.auth!.user.ref;
+      this.model!.fields.perito = this.auth!.user!.ref;
       this.model!.fields.dtcriacao =  new Date();
       this.model!.fields.situacao = Atendimento.SIT_ABERTO;
     } else {
@@ -240,7 +250,7 @@ export class IdentificacaoPage implements OnInit {
 
         await this.presentLoading();
 
-        /*this.atendimentoService.create(this.model!)
+        this.atendimentoService.create(this.model!)
           .then(async (ref) => {
               this.model!.id = ref.id;
               this.model!.isNew = false;
@@ -249,7 +259,7 @@ export class IdentificacaoPage implements OnInit {
 
               await this.hideLoader();
 
-              //this.presentAlertSalvo('Dados salvos com sucesso');
+              this.presentAlertSalvo('Dados salvos com sucesso');
 
               this.voltar();
             })
@@ -260,7 +270,7 @@ export class IdentificacaoPage implements OnInit {
               console.log(error);
 
               this.presentError(error.message);
-          });*/
+          });
 
 
     } else {
@@ -331,5 +341,92 @@ export class IdentificacaoPage implements OnInit {
 
   bairroSelecionado(valor: string) {
     console.log('Selecionado:', valor);
+  }
+
+  async carregarProtocolo() {
+    this.loadingProtocolo = true;
+
+    this.planilhaService.buscarProtocolo(this.form.value.protocolo, this.form.value.protocoloAno.substring(2,4))
+      .subscribe(resp => {
+        if (!resp) {
+          this.loadingProtocolo = false;
+          this.messageService.alert('Protocolo não encontrado na planilha de protocolos');
+        }
+
+        let data = DateTimeHelper.dmyToDate(resp!.data ?? '') ?? new Date();
+        let endereco = resp!.descricao;
+        let enderecoNorm = resp!.descricao!.toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+
+        // localiza o bairro
+        let bairro = Bairros.find(bairro =>
+          enderecoNorm.includes(bairro
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+          )
+        ) ?? null
+
+        if (bairro) {
+          // remove o bairro e cidade do endereço
+          let bairroNorm = bairro!.toLowerCase()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '');
+
+          const index = enderecoNorm.indexOf(bairroNorm);
+
+          if (index >= 0) {
+            endereco = resp!.descricao!.slice(0, index) + resp!.descricao!.slice(index + bairro.length);
+          }
+
+          // remove a cidade
+          enderecoNorm = endereco!.toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+
+          const indexCidade = enderecoNorm.indexOf('manaus');
+          if (indexCidade >= 0) {
+            endereco = endereco!.slice(0, indexCidade) + endereco!.slice(indexCidade + 6);
+          }
+
+          endereco = endereco!
+            .replace(/\s{2,}/g, ' ')
+            .replace(/\s+,/g, ',')
+            .replace(/,\s*,/g, ',')
+            .replace(/\s[-–—]\s/g, '')
+            .replace(/\s*-\s*/g, '')
+            .replace(/\s-\s/g, ' ')
+            .replace(/\s{2,}/g, ' ')
+            .replace(/[\r\n].*$/s, '')
+            .replace(/,+$/g, '')
+            .trim();
+        }
+
+        this.form.patchValue({
+          data: data.toISOString(),
+          hora: resp!.hora,
+          endereco,
+          bairro
+        });
+
+        this.loadingProtocolo = false;
+      }, error => {
+        this.loadingProtocolo = false;
+        this.messageService.alert('Erro ao buscar protocolo: ' + error.message);
+      })
+  }
+
+  completarComZeros(controlName: string) {
+    const control = this.form.get(controlName);
+    if (!control) return;
+
+    const valor = (control.value ?? '').toString().replace(/\D/g, '');
+
+    if (!valor) return;
+
+    const valorFormatado = valor.padStart(6, '0');
+
+    control.setValue(valorFormatado, { emitEvent: false });
   }
 }

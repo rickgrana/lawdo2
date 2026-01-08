@@ -37,6 +37,16 @@ setGlobalOptions({maxInstances: 10});
 export const buscarDadosProtocolo = onRequest(
   {secrets: ["SHEETS_SECRET"]},
   async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET,OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    // Preflight
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
     try {
         const valorBusca = req.query.valor as string;
 
@@ -87,6 +97,7 @@ export const buscarDadosProtocolo = onRequest(
             const ip = rows[i][6]; // H
             const data = rows[i][8]; // J
             const hora = rows[i][9]; // K
+            const descricao = rows[i][15]; // Q
             const vitima = rows[i][17]; // S
             const recebimento = rows[i][26]; // X
 
@@ -98,6 +109,7 @@ export const buscarDadosProtocolo = onRequest(
                     ip,
                     vitima,
                     recebimento,
+                    descricao,
                 });
                 return;
             }

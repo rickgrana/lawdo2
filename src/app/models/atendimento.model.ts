@@ -38,7 +38,7 @@ export class Atendimento {
 
         situacao: Atendimento.SIT_ABERTO,
 
-        data:  Timestamp.fromDate(new Date()),
+        data:  '',
         hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
 
         natureza: '',
@@ -300,7 +300,6 @@ export class Atendimento {
             'Preservado'
         );
     }
-
 
     situacoes = new Map([
         [Atendimento.SIT_ABERTO, 'Aberto'],

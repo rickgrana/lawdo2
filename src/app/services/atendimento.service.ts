@@ -6,7 +6,7 @@ import { Veiculo } from '../models/veiculo.model';
 import { Quesito } from '../models/quesito.model';
 import { map } from 'rxjs/operators';
 import { Firestore } from '@angular/fire/firestore';
-import { collection, getDocs, limit, orderBy, query, startAfter, where, doc } from 'firebase/firestore';
+import { collection, getDocs, limit, orderBy, query, startAfter, where, doc, addDoc, Timestamp } from 'firebase/firestore';
 
 @Injectable({
   providedIn: 'root'
@@ -52,8 +52,24 @@ export class AtendimentoService {
     }
   }
 
-  create(atendimento: Atendimento) {
-   // return this.firestore.collection('atendimentos').add(atendimento.rawData());
+  async create(atendimento: Atendimento) {
+  // return this.firestore.collection('atendimentos').add(atendimento.rawData());'
+    const atendimentosRef = collection(this.firestore, 'atendimentos');
+
+    return await addDoc(atendimentosRef, {
+      perito: atendimento.fields.perito,
+      tipoExame: atendimento.fields.tipoExame,
+      data: atendimento.fields.data,
+      hora: atendimento.fields.hora,
+      protocolo: atendimento.fields.protocolo.numero,
+      ano: atendimento.fields.protocolo.ano,
+      cidade: atendimento.fields.endereco.cidade,
+      bairro: atendimento.fields.endereco.bairro,
+      endereco: atendimento.fields.endereco.logradouro,
+      pontoref: atendimento.fields.endereco.pontoref,
+      dtcriacao: Timestamp.now(),
+      situacao: Atendimento.SIT_ABERTO
+    });
   }
 
   async list(last: any = null) {

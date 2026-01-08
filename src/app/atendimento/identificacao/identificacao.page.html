@@ -13,7 +13,7 @@
     <ion-grid>
       <ion-row>
         <ion-col   size-xs="12" size-md="12">
-          <ion-item>
+          <ion-item lines="none">
             <ion-select label="Tipo de Laudo" labelPlacement="floating"
               okText="Selecionar" cancelText="Fechar"
               interface="action-sheet"
@@ -24,9 +24,41 @@
             </ion-select>
           </ion-item>
         </ion-col>
+      </ion-row>
 
+      <ion-row>
+        <ion-col size-xs="6" size-md="1">
+          <ion-item lines="none">
+            <ion-input label="Ano" labelPlacement="floating" placeholder="XXXX" formControlName="protocoloAno"></ion-input>
+          </ion-item>
+        </ion-col>
+
+        <ion-col  size-xs="6" size-md="3">
+          <ion-item lines="none">
+            <ion-input
+              label="Protocolo"
+              labelPlacement="floating"
+              placeholder="XXXXX"
+              formControlName="protocolo"
+              (ionBlur)="completarComZeros('protocolo')"
+              class="input-protocolo"
+            ></ion-input>
+            
+            <ion-button fill="clear" aria-label="Show/hide" (click)="carregarProtocolo()">
+              <ion-icon slot="icon-only"  name="search" aria-hidden="true" size="large"></ion-icon>
+            </ion-button>
+
+            <ion-spinner name="bubbles" color="primary" *ngIf="loadingProtocolo"></ion-spinner>
+          </ion-item>
+        </ion-col>
+        <ion-col  size-xs="6" size-md="2">
+          
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
         <ion-col size-xs="6" size-md="4">
-          <ion-item>
+          <ion-item lines="none">
             <ion-label position="floating" color="primary">Data da Perícia</ion-label>
             <ion-datetime-button datetime="datetime"></ion-datetime-button>
             <ion-modal [keepContentsMounted]="true">
@@ -38,7 +70,7 @@
         </ion-col>
 
         <ion-col  size-xs="6" size-md="2">
-          <ion-item>
+          <ion-item lines="none">
             <ion-label position="floating" color="primary">Hora Chegada</ion-label>
             <ion-datetime-button datetime="hora"></ion-datetime-button>
               <ion-modal [keepContentsMounted]="true">
@@ -46,18 +78,6 @@
                   <ion-datetime id="hora" formControlName="hora" presentation="time"></ion-datetime>
                 </ng-template>
               </ion-modal>
-          </ion-item>
-        </ion-col>
-
-        <ion-col  size-xs="6" size-md="2">
-          <ion-item>
-            <ion-input label="Protocolo" labelPlacement="floating" placeholder="XXXXX" formControlName="protocolo"></ion-input>
-          </ion-item>
-        </ion-col>
-
-        <ion-col size-xs="6" size-md="2">
-          <ion-item>
-            <ion-input label="Ano" labelPlacement="floating" placeholder="XXXX" formControlName="protocoloAno"></ion-input>
           </ion-item>
         </ion-col>
 

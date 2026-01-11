@@ -9,6 +9,8 @@ import { AuthenticationService } from '../authentication.service';
 import { UserService } from '../services/user.service';
 import { Router } from '@angular/router';
 import { CorporacaoService } from '../services/corporacao.service';
+import { filter } from 'rxjs';
+import { User } from '../models/user.model';
 
 @Component({
   selector: 'app-perfil',
@@ -24,6 +26,7 @@ import { CorporacaoService } from '../services/corporacao.service';
 export class PerfilPage implements OnInit {
 
   form?: FormGroup;
+  user?: User;
 
   corporacoes: any[] = [];
   unidades: any[] = [];
@@ -38,15 +41,21 @@ export class PerfilPage implements OnInit {
       private unidadeService: UnidadeService) { }
 
   async ngOnInit() {
-    this.form = this.formBuilder.group({
-      nomeCompleto: [this.auth.user?.fields.nomeCompleto, Validators.required],
-      sexo: [this.auth.user?.fields.sexo, Validators.required],
-      matricula: [this.auth.user?.fields.matricula, Validators.required],
-      superior: [this.auth.user?.fields.superior, Validators.required],
-      corporacao: [this.auth.user?.fields.corporacao, Validators.required],
-      unidade: [this.auth.user?.fields.unidade, Validators.required],
-    });
 
+    this.auth.user$.pipe(
+      filter(user => !!user)
+    ).subscribe(user => {
+      this.user = user;
+      this.form = this.formBuilder.group({
+        nomeCompleto: [this.user?.fields.nomeCompleto, Validators.required],
+        sexo: [this.user?.fields.sexo, Validators.required],
+        matricula: [this.user?.fields.matricula, Validators.required],
+        superior: [this.user?.fields.superior, Validators.required],
+        corporacao: [this.user?.fields.corporacao, Validators.required],
+        unidade: [this.user?.fields.unidade, Validators.required],
+      });
+    });
+      
     this.corporacoes = await this.corporacaoService.list();
 
     if(this.form!.get('corporacao')!.value){
@@ -82,14 +91,14 @@ export class PerfilPage implements OnInit {
       unidade: data.unidade
     };
 
-    this.auth!.user!.fields.nomeCompleto = userData.nomeCompleto;
-    this.auth!.user!.fields.sexo = userData.sexo;
-    this.auth!.user!.fields.matricula = userData.matricula;
-    this.auth!.user!.fields.superior = userData.superior;
-    this.auth!.user!.fields.corporacao = userData.corporacao;
-    this.auth!.user!.fields.unidade = userData.unidade;
+    this.user!.fields.nomeCompleto = userData.nomeCompleto;
+    this.user!.fields.sexo = userData.sexo;
+    this.user!.fields.matricula = userData.matricula;
+    this.user!.fields.superior = userData.superior;
+    this.user!.fields.corporacao = userData.corporacao;
+    this.user!.fields.unidade = userData.unidade;
 
-    this.userService.update(this.auth!.user!.uid, userData).then(resp => {
+    this.userService.update(this.user!.uid, userData).then(resp => {
         this.messageService.presentToast('Perfil alterado com sucesso');
     }).catch((error: any) => this.messageService.presentError(error.message));
 

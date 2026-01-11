@@ -9,7 +9,7 @@ import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFo
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthenticationService } from 'src/app/authentication.service';
 import { AtendimentoService } from 'src/app/services/atendimento.service';
-import { map, Observable, startWith } from 'rxjs';
+import { filter, map, Observable, startWith } from 'rxjs';
 import { Bairros } from 'src/app/extensions/bairroHelper';
 import { Cidades } from 'src/app/extensions/cidadeHelper';
 import { LoadingController } from '@ionic/angular';
@@ -22,6 +22,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { PlanilhaService } from '../../services/planilha.service';
 import { search } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
+import { User } from 'src/app/models/user.model';
 
 @Component({
   selector: 'app-identificacao',
@@ -38,6 +39,7 @@ import { addIcons } from 'ionicons';
 })
 export class IdentificacaoPage implements OnInit {
   form!: FormGroup;
+  user: User | null = null;
   cidades = Cidades;
   bairros = Bairros;
 
@@ -142,7 +144,7 @@ export class IdentificacaoPage implements OnInit {
     public loadingController: LoadingController,
     public toastController: ToastController,
     private router: Router,
-    private auth: AuthenticationService,
+    private authService: AuthenticationService,
     private navCtrl: NavController,
     private messageService: MessageService,
     private planilhaService: PlanilhaService)
@@ -157,6 +159,13 @@ export class IdentificacaoPage implements OnInit {
 
   ngOnInit() {
     this.loadForm();
+
+    this.authService.user$.pipe(
+      filter(user => !!user)
+    ).subscribe(user => {
+      this.user = user;
+      this.loadForm();
+    });
 
     if(this.model!.isConcluido() || this.model!.isArquivado()){
       this.form.disable();
@@ -215,36 +224,23 @@ export class IdentificacaoPage implements OnInit {
 
   async salvar(record: any) {
 
-    debugger;
-
-    Object.entries(this.fields).forEach(([componente, valor]) => {
-      const fields = valor.field.split('.');
-
-      /*if (fields.length === 1) {
-        this.model!.fields[valor.field] = record[componente];
-      }
-
-      if (fields.length === 2) {
-        this.model!.fields[fields[0]][fields[1]] = record[componente];
-      }
-
-      if (fields.length === 3) {
-        this.model!.fields[fields[0]][fields[1]][fields[2]] = record[componente];
-      }*/
-
-    });
-
-    //const dataAux = this.model!.fields.data.toDate();
-    //this.model!.fields.data = dataAux;
-
     if (this.model!.isNew) {
-      this.model!.fields.perito = this.auth!.user!.ref;
+      this.model!.fields.perito = this.user!.ref;
       this.model!.fields.dtcriacao =  new Date();
       this.model!.fields.situacao = Atendimento.SIT_ABERTO;
     } else {
       this.model!.fields.dtupdate = new Date();
     }
 
+    this.model!.fields.tipoExame = record.tipoExame;
+    this.model!.fields.data = record.data;
+    this.model!.fields.hora = record.hora;
+    this.model!.fields.protocolo.numero = record.protocolo;
+    this.model!.fields.protocolo.ano = record.protocoloAno;
+    this.model!.fields.endereco.cidade = record.cidade;
+    this.model!.fields.endereco.bairro = record.bairro;
+    this.model!.fields.endereco.logradouro = record.endereco;
+    this.model!.fields.endereco.pontoref = record.pontoref;
 
     if (this.model!.isNew) {
 
@@ -254,13 +250,11 @@ export class IdentificacaoPage implements OnInit {
           .then(async (ref) => {
               this.model!.id = ref.id;
               this.model!.isNew = false;
-
               this.atendimentoService.model = this.model;
 
               await this.hideLoader();
 
               this.presentAlertSalvo('Dados salvos com sucesso');
-
               this.voltar();
             })
           .catch(async (error: any) => {
@@ -274,36 +268,32 @@ export class IdentificacaoPage implements OnInit {
 
 
     } else {
+      await this.presentLoading();
 
-        await this.presentLoading();
+      /*this.atendimentoService.update(this.model!).then(resp => {
+        this.hideLoader();
+        this.presentAlertSalvo('Dados alterados com sucesso');
 
-        /*this.atendimentoService.update(this.model!).then(resp => {
+        this.voltar();
+      })
+        .catch(error => {
+
           this.hideLoader();
-          this.presentAlertSalvo('Dados alterados com sucesso');
 
-          this.voltar();
-        })
-          .catch(error => {
+          console.log(error);
 
-            this.hideLoader();
+          this.presentError(error.message);
+        });*/
+    }
 
-            console.log(error);
+    // this.model!.fields.data = firestore.Timestamp.fromDate(dataAux);
 
-            this.presentError(error.message);
-          });*/
-
-      }
-
-      // this.model!.fields.data = firestore.Timestamp.fromDate(dataAux);
-
-      this.loadForm();
-
+    this.loadForm();
   }
 
   voltar(){
     this.atendimentoService.model = this.model;
     this.navCtrl.navigateBack('atendimento/visualizar');
-
   }
 
   async presentAlertSalvo(msg: string) {

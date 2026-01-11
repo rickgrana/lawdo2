@@ -18,7 +18,7 @@
 
 <ion-content>
   <ion-list>
-    <ion-item button  *ngFor="let item of items" (click)="abrir(item)">
+    <ion-item button *ngFor="let item of items" (click)="abrir(item)">
       <ion-grid>
         <ion-row>
           <ion-col >
@@ -58,7 +58,7 @@
                 <ion-col size="12">
                     <ion-label>
                         <ion-icon name="calendar-outline" color="primary"></ion-icon>
-                        {{item.fields.data.seconds*1000 | date: "dd/MM/yyyy"}}
+                        {{item.fields.data | date: "dd/MM/yyyy"}}
                         <ion-icon name="time-outline" color="primary"></ion-icon>
                             {{item.fields.hora | date: "HH:mm"}}h
                     </ion-label>
@@ -90,7 +90,7 @@
 
                       <div *ngIf="item.isConcluido()">
                         <ion-icon name="star" slot="end" color="success" *ngIf="item.isConcluido()"></ion-icon>
-                        &nbsp;<b>LAUDO #{{item.getNumeroLaudo()}}</b>
+                        &nbsp;<b>LAUDO {{item.getNumeroLaudo()}}</b>
                       </div>
                     </ion-label>
                 </ion-col>

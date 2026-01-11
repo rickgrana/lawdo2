@@ -3,9 +3,10 @@ import { Auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signO
     GoogleAuthProvider, signInWithRedirect, getRedirectResult,
     browserSessionPersistence,
     setPersistence,
-    User as FirebaseUser
+    User as FirebaseUser,
+    authState
 } from '@angular/fire/auth';
-import { from, Observable } from 'rxjs';
+import { BehaviorSubject, from, Observable, switchMap } from 'rxjs';
 import { User } from './models/user.model';
 import { UserService } from './services/user.service';
 
@@ -14,12 +15,29 @@ import { UserService } from './services/user.service';
 })
 export class AuthenticationService {
   private auth = inject(Auth);
-  public user: User | null = null;
+  // public user: User | null = null;
+  private _user$ = new BehaviorSubject<User | null>(null);
 
-  constructor(private userService: UserService) {
+  user$ = this._user$.asObservable();
+
+  /*constructor(private userService: UserService) {
     this.auth.onAuthStateChanged((user: any) => {
       console.log('User logged in:', user);
       this.changeUser(user);
+    });
+  }*/
+
+  constructor(private userService: UserService) {
+    authState(this.auth).pipe(
+      switchMap(firebaseUser => {
+        if (!firebaseUser) {
+          this._user$.next(null);
+          return [];
+        }
+        return this.userService.getOne(firebaseUser.uid);
+      })
+    ).subscribe(user => {
+      this._user$.next(user);
     });
   }
 
@@ -56,7 +74,7 @@ export class AuthenticationService {
     });
   }*/
 
-  async changeUser(firebaseUser: FirebaseUser | null) {
+  /*async changeUser(firebaseUser: FirebaseUser | null) {
 
     this.user = null;
 
@@ -65,5 +83,5 @@ export class AuthenticationService {
     }
 
     return null;
-  }
+  }*/
 }

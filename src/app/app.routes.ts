@@ -24,10 +24,6 @@ export const routes: Routes = [
       import('./folder/folder.page').then((m) => m.FolderPage),
   },
   {
-    path: 'home',
-    loadComponent: () => import('./home/home.page').then( m => m.HomePage)
-  },
-  {
     path: 'perfil',
     loadComponent: () => import('./perfil/perfil.page').then( m => m.PerfilPage),
     canActivate: [AuthGuard],
@@ -45,5 +41,9 @@ export const routes: Routes = [
   {
     path: 'atendimento/identificacao',
     loadComponent: () => import('./atendimento/identificacao/identificacao.page').then( m => m.IdentificacaoPage)
+  },
+  {
+    path: 'atendimento/visualizar',
+    loadComponent: () => import('./atendimento/visualizar/atendimento-visualizar.page').then( m => m.AtendimentoVisualizarPage)
   },
 ];

@@ -138,7 +138,7 @@ export class Atendimento {
     }
 
     getNumeroLaudo(){
-        return this.fields.laudo.numero + '/'+ this.fields.laudo.ano.substr(2,2);
+        return this.fields.laudo.ano.substr(2,2) + '-' + this.fields.laudo.numero;
     }
 
 
@@ -310,13 +310,9 @@ export class Atendimento {
 
     constructor() {
         this.isNew = true;
-
-        /*const today = new Date();
-        const dd = String(today.getDate()).padStart(2, '0');
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const yyyy = today.getFullYear();
-
-        this.cidade = 'MANAUS'; */
+        this.fields.tipoExame = 'LOCAL DE ENCONTRO DE CADÁVER';
+        this.fields.data = new Date().toISOString();
+        this.fields.protocolo.ano = new Date().getFullYear().toString();
         this.fields.endereco.cidade = 'MANAUS';
     }
 
@@ -345,7 +341,7 @@ export class Atendimento {
 
     load(data: any) {
 
-        this.fields.data           = data.data;
+        this.fields.data        = data.data.toDate().toISOString();
         this.fields.hora        = this.getValue(data.hora);
 
         this.fields.tipoExame        = this.getValue(data.tipoExame);

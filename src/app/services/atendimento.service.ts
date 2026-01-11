@@ -32,6 +32,13 @@ export class AtendimentoService {
   ) {
   }
 
+  new() {
+    this.model = new Atendimento();
+    
+
+    return this.model;
+  }
+
   getRef() {
     return collection(this.firestore, "atendimentos");
   }
@@ -61,8 +68,10 @@ export class AtendimentoService {
       tipoExame: atendimento.fields.tipoExame,
       data: atendimento.fields.data,
       hora: atendimento.fields.hora,
-      protocolo: atendimento.fields.protocolo.numero,
-      ano: atendimento.fields.protocolo.ano,
+      protocolo: {
+        numero: atendimento.fields.protocolo.numero,
+        ano: atendimento.fields.protocolo.ano
+      },
       cidade: atendimento.fields.endereco.cidade,
       bairro: atendimento.fields.endereco.bairro,
       endereco: atendimento.fields.endereco.logradouro,
@@ -72,11 +81,10 @@ export class AtendimentoService {
     });
   }
 
-  async list(last: any = null) {
+  async list(userId: string, last: any = null) {
+    let peritoRef = userId;
 
-    let peritoRef = this.auth!.user!.uid;
-
-    const peritoDocRef = doc(this.firestore, "users", this.auth!.user!.uid);
+    const peritoDocRef = doc(this.firestore, "users", userId);
 
     let q = query(this.getRef(),
       where('perito', '==', peritoDocRef),

@@ -1,36 +1,42 @@
 import { Component, OnInit } from '@angular/core';
-
 import { ActivatedRoute, Router } from '@angular/router';
 import { Atendimento } from '../../models/atendimento.model';
-
 import { ActionSheetController } from '@ionic/angular';
-
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faHome } from '@fortawesome/free-solid-svg-icons';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { faMale } from '@fortawesome/free-solid-svg-icons';
 import { faFemale } from '@fortawesome/free-solid-svg-icons';
 import { faQuestion } from '@fortawesome/free-solid-svg-icons';
 import { Vitima } from 'src/app/models/vitima.model';
-
 import { ImageService } from 'src/app/services/image.service';
-import { ExportarService } from '../../services/exportar.service';
-
+// import { ExportarService } from '../../services/exportar.service';
 import { AlertController } from '@ionic/angular';
 import { ToastController } from '@ionic/angular';
 import { LoadingController } from '@ionic/angular';
-
 import { AtendimentoService } from '../../services/atendimento.service';
 import { AuthenticationService } from 'src/app/authentication.service';
-
 import Viewer from 'viewerjs';
-import { IonHeader } from "@ionic/angular/standalone";
+import { arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline } from 'ionicons/icons';
+import { addIcons } from 'ionicons';
+import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonBadge, IonNote,
+    IonRow, IonCol, IonLabel, IonInfiniteScroll, IonInfiniteScrollContent, IonIcon, IonButton, IonItem } from '@ionic/angular/standalone';
+import { CommonModule, DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-visualizar',
   templateUrl: './atendimento-visualizar.page.html',
   styleUrls: ['./atendimento-visualizar.page.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    DatePipe,
+    IonContent, IonItem, IonButton, IonIcon, IonToolbar, IonFooter, IonButtons, IonRow, IonCol, IonLabel,
+    IonGrid, IonBadge, IonList, IonTitle, IonHeader, IonNote,
+    FontAwesomeModule
+  ]
 })
-export class VisualizarPage implements OnInit {
+export class AtendimentoVisualizarPage implements OnInit {
 
   faHome = faHome;
   faUser = faUser;
@@ -42,7 +48,7 @@ export class VisualizarPage implements OnInit {
 
   constructor(
     private atendimentoService: AtendimentoService,
-    private exportarService: ExportarService,
+    // private exportarService: ExportarService,
     private router: Router,
     private imageService: ImageService,
     public alertController: AlertController,
@@ -51,7 +57,7 @@ export class VisualizarPage implements OnInit {
     private authenticationService: AuthenticationService,
     public actionSheetController: ActionSheetController
     ) {
-
+      addIcons({ arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline });
     }
 
   get model() {
@@ -73,52 +79,37 @@ export class VisualizarPage implements OnInit {
       this.atendimentoService.update(this.model);
       */
 
-
       // carrega das imagens
       this.imageService.loadAll(this.model); // carrega as imagens
-
     }
-
   }
 
   async abrirIdentificacao(model: any) {
-
     this.atendimentoService.model = model;
-
     this.router.navigate(['atendimento/identificacao']);
   }
 
   async abrirLocal(model: any) {
-
     this.atendimentoService.model = model;
-
     this.router.navigate(['atendimento/local']);
   }
 
   async abrirPreservacao(model: any) {
-
     this.atendimentoService.model = model;
-
     this.router.navigate(['atendimento/preservacao']);
   }
 
   async abrirLaudo(model: any) {
-
     this.atendimentoService.model = model;
-
     this.router.navigate(['atendimento/laudo']);
   }
 
   async abrirRequisicao(model: any) {
-
     this.atendimentoService.model = model;
-
     this.router.navigate(['atendimento/requisicao']);
   }
 
-
   async abrirVitima(index: number) {
-
     const vitima = Vitima.loadFrom(this.atendimentoService.model!.fields.vitimas[index]);
 
     this.atendimentoService.vitima = vitima;
@@ -128,16 +119,12 @@ export class VisualizarPage implements OnInit {
   }
 
   adicionarVitima() {
-
     this.atendimentoService.vitima = new Vitima();
     this.atendimentoService.vitima_selecionada = -1; // nao selecionado
-
     this.router.navigate(['atendimento/vitima']);
   }
 
-
   async removerVitima(event: any, index: number){
-
     event.stopPropagation();
 
     const alert = await this.alertController.create({
@@ -171,10 +158,7 @@ export class VisualizarPage implements OnInit {
     });
 
     await alert.present();
-
   }
-
-
 
   abrirImagens(model: any) {
     this.atendimentoService.imagem_selecionada = -1;
@@ -182,9 +166,7 @@ export class VisualizarPage implements OnInit {
   }
 
   editarImagem(index: number) {
-
     this.atendimentoService.imagem_selecionada = index;
-
     this.router.navigate(['atendimento/image']);
   }
 
@@ -194,12 +176,14 @@ export class VisualizarPage implements OnInit {
 
     let imagem = this.model!.imagens[index];
 
-    this.imageService.remover(this.model!.id, imagem.nome).then(() => {
+    /*this.imageService.remover(this.model!.id, imagem.nome)
+      .then(() => {
 
-    }).catch((error: any) => {
-      this.hideLoader();
-      this.presentError('Erro ao tentar excluir Imagem: '+ error.message);
-    });;
+      }).catch((error: any) => {
+        this.hideLoader();
+        this.presentError('Erro ao tentar excluir Imagem: '+ error.message);
+      });;
+    */
 
     this.model!.imagens.splice(index, 1);
 
@@ -211,9 +195,7 @@ export class VisualizarPage implements OnInit {
       this.hideLoader();
       this.presentError('Erro ao tentar excluir Imagem (1): '+ error.message);
     });
-
   }
-
 
   async presentAlertSalvo(msg: string) {
     const alert = await this.toastController.create({
@@ -234,7 +216,6 @@ export class VisualizarPage implements OnInit {
   }
 
   async presentLoading(msg: string|null = null) {
-
     if(msg === null) msg = 'Processando...';
 
     const loading = await this.loadingController.create({
@@ -242,8 +223,6 @@ export class VisualizarPage implements OnInit {
       showBackdrop: false
     });
     return await loading.present();
-
-    //return loading.onDidDismiss();
   }
 
   async hideLoader() {
@@ -253,35 +232,27 @@ export class VisualizarPage implements OnInit {
   }
 
   async exportar(){
-
     this.presentLoading('Gerando Laudo...');
 
     try{
-      await this.exportarService.getLaudo(this.model!);
-    }catch(error: any){
+      //await this.exportarService.getLaudo(this.model!);
+    } catch(error: any){
       this.hideLoader();
       console.log(error);
-      console.log(error!.message);
-
       this.presentError(error!.message);
       return;
     }
 
       this.hideLoader();
       this.presentAlertSalvo('Laudo gerado. Baixando...');
-
-
   }
 
   async showAlert(msg: string){
     const alert = await this.alertController.create({  message: msg   });
-
     return await alert.present();
   }
 
   async concluir() {
-
-
     if(this.model!.isConcluido()){
       await this.showAlert('Ocorrência já Concluída');
       return;
@@ -334,6 +305,4 @@ export class VisualizarPage implements OnInit {
     });
     await actionSheet.present();
   }
-
-
 }

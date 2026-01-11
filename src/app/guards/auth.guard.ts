@@ -1,14 +1,22 @@
 import { inject, Injectable } from '@angular/core';
-import { CanActivate } from '@angular/router';
-import { Auth } from '@angular/fire/auth';
+import { CanActivate, Router, UrlTree } from '@angular/router';
+import { Auth, authState } from '@angular/fire/auth';
+import { Observable, map } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
+
   private auth = inject(Auth);
-  constructor() {}
+  private router = inject(Router);
 
-  canActivate(): boolean {
-    return this.auth.currentUser !== null;
+  canActivate(): Observable<boolean | UrlTree> {
+    return authState(this.auth).pipe(
+      map(user => {
+        if (user) {
+          return true;
+        }
+        return this.router.createUrlTree(['/home']);
+      })
+    );
   }
-
 }

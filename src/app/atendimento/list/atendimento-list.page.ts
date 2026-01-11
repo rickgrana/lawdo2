@@ -1,8 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from '../../services/message.service';
 import { Atendimento } from '../../models/atendimento.model';
-import { ModalController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons,
     IonRow, IonCol, IonLabel, IonInfiniteScroll, IonInfiniteScrollContent, IonIcon, IonButton, IonItem } from '@ionic/angular/standalone';
@@ -13,6 +12,10 @@ import { DatePipe } from '@angular/common';
 import { arrowBack, list, addCircle, calendarOutline, timeOutline, body, alertCircleOutline, star, skullOutline, skull } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { BaseData } from 'src/app/interfaces/base-data.interface';
+import { Auth, authState } from '@angular/fire/auth';
+import { filter, switchMap, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { User } from 'src/app/models/user.model';
 
 //import { SearchPage } from '../search/search.page';
 
@@ -31,12 +34,13 @@ export class ListAtendimentosPage implements OnInit {
   items: any[] = [];
   ultimo: any = null;
   connectedRef: any;
+  user: User | null = null;
+  private auth = inject(Auth);
   @ViewChild(IonInfiniteScroll) infiniteScroll?: IonInfiniteScroll;
 
   constructor(private router: Router,
     private atendimentoService: AtendimentoService,
     private messageService: MessageService,
-    //private modalController: ModalController,
     private authService: AuthenticationService) {
 
     this.ultimo = null;
@@ -45,14 +49,19 @@ export class ListAtendimentosPage implements OnInit {
   }
 
   async ngOnInit() {
-    this.carregar();
+    this.authService.user$.pipe(
+      filter(user => !!user)
+    ).subscribe(user => {
+      this.user = user;
+      this.carregar(user.uid);
+    });
   }
 
-  async carregar(){
+  async carregar(userId: string){
     try{
       this.messageService.presentLoading('Carregando Dados...');
 
-      const lista: any[] = await this.atendimentoService.list(this.ultimo);
+      const lista: any[] = await this.atendimentoService.list(userId, this.ultimo);
 
       lista.forEach((item: BaseData) => {
         if (item) {
@@ -68,35 +77,27 @@ export class ListAtendimentosPage implements OnInit {
         this.messageService.presentErro(error.message);
       });
     }
-
   }
 
   loadData(event: any) {
     setTimeout(() => {
-
-      console.log('Load Data');
-
       event.target.complete();
 
-      this.carregar();
+      if (this.user) {
+        this.carregar(this.user.uid);
+      }
 
     }, 500);
   }
 
-
-
   async abrir(atendimento: Atendimento) {
-
     this.atendimentoService.model = atendimento;
-
+    console.log(atendimento);
     this.router.navigate(['atendimento/visualizar']);
   }
 
   novo() {
-
     this.atendimentoService.model = new Atendimento();
-    this.atendimentoService.model.isNew = true;
-
     this.router.navigate(['atendimento/identificacao']);
   }
 

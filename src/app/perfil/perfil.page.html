@@ -6,7 +6,7 @@
 
     <ion-title size="large">Perfil do Usuário</ion-title>
 
-    <ion-buttons slot="end" *ngIf="auth.user">
+    <ion-buttons slot="end" *ngIf="auth.user$">
         <ion-button  (click)="logout()">Sair</ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -14,7 +14,7 @@
 
 <ion-content [fullscreen]="true" padding>
 
-  <div *ngIf="auth.user then main else loading">
+  <div *ngIf="auth.user$ then main else loading">
       <!-- template will replace this div -->
   </div>
 

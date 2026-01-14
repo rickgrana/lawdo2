@@ -342,7 +342,12 @@ export class Atendimento {
     load(data: any) {
 
         this.fields.data        = data.data.toDate().toISOString();
-        this.fields.hora        = this.getValue(data.hora);
+
+        if(data.hora.length <=5){
+            this.fields.hora        = this.getValue(data.hora);
+        } else {
+            this.fields.hora        = data.hora.substr(11,5);
+        }
 
         this.fields.tipoExame        = this.getValue(data.tipoExame);
 

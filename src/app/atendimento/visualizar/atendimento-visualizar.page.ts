@@ -20,7 +20,7 @@ import Viewer from 'viewerjs';
 import { arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonBadge, IonNote,
-    IonRow, IonCol, IonLabel, IonInfiniteScroll, IonInfiniteScrollContent, IonIcon, IonButton, IonItem } from '@ionic/angular/standalone';
+    IonRow, IonCol, IonLabel, IonInfiniteScroll, IonInfiniteScrollContent, IonIcon, IonButton, IonItem, IonBackButton } from '@ionic/angular/standalone';
 import { CommonModule, DatePipe } from '@angular/common';
 
 @Component({
@@ -32,7 +32,7 @@ import { CommonModule, DatePipe } from '@angular/common';
     CommonModule,
     DatePipe,
     IonContent, IonItem, IonButton, IonIcon, IonToolbar, IonFooter, IonButtons, IonRow, IonCol, IonLabel,
-    IonGrid, IonBadge, IonList, IonTitle, IonHeader, IonNote,
+    IonGrid, IonBadge, IonList, IonTitle, IonHeader, IonBackButton,
     FontAwesomeModule
   ]
 })
@@ -68,17 +68,6 @@ export class AtendimentoVisualizarPage implements OnInit {
     if(this.model == null){
       this.router.navigate(['/']);
     } else{
-
-      // adiciona nos recentes
-      /*if(!this.authenticationService.userData.recentes){
-        this.authenticationService.userData.recentes = [];
-      }
-
-      this.authenticationService.userData.recentes.unshift(this.model.id);
-
-      this.atendimentoService.update(this.model);
-      */
-
       // carrega das imagens
       this.imageService.loadAll(this.model); // carrega as imagens
     }

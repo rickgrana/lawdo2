@@ -150,7 +150,6 @@ export class IdentificacaoPage implements OnInit {
     private planilhaService: PlanilhaService)
   {
     addIcons({ search });
-    this.loadForm();
   }
 
   get model() {
@@ -158,7 +157,6 @@ export class IdentificacaoPage implements OnInit {
   }
 
   ngOnInit() {
-    this.loadForm();
 
     this.authService.user$.pipe(
       filter(user => !!user)
@@ -166,10 +164,6 @@ export class IdentificacaoPage implements OnInit {
       this.user = user;
       this.loadForm();
     });
-
-    if(this.model!.isConcluido() || this.model!.isArquivado()){
-      this.form.disable();
-    }
   }
 
   loadForm() {
@@ -209,7 +203,13 @@ export class IdentificacaoPage implements OnInit {
       .pipe(
         startWith(''),
         map(value => this.filterBairros(value.toString()))
-      );    
+      );
+      
+    if(this.model!.isConcluido() || this.model!.isArquivado()){
+      this.form.disable();
+    } else {
+      this.form.enable();
+    }
   }
 
   filterCidades(value: string): string[] {
@@ -270,23 +270,16 @@ export class IdentificacaoPage implements OnInit {
     } else {
       await this.presentLoading();
 
-      /*this.atendimentoService.update(this.model!).then(resp => {
+      this.atendimentoService.updateIdentificacao(this.model!).then(resp => {
         this.hideLoader();
         this.presentAlertSalvo('Dados alterados com sucesso');
-
         this.voltar();
-      })
-        .catch(error => {
-
+      }).catch(error => {
           this.hideLoader();
-
           console.log(error);
-
           this.presentError(error.message);
-        });*/
+        });
     }
-
-    // this.model!.fields.data = firestore.Timestamp.fromDate(dataAux);
 
     this.loadForm();
   }

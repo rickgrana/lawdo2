@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { MessageService } from '../../services/message.service';
 import { Atendimento } from '../../models/atendimento.model';
 import { CommonModule } from '@angular/common';
-import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons,
+import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonBackButton,
     IonRow, IonCol, IonLabel, IonInfiniteScroll, IonInfiniteScrollContent, IonIcon, IonButton, IonItem } from '@ionic/angular/standalone';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AuthenticationService } from 'src/app/authentication.service';
@@ -26,7 +26,7 @@ import { User } from 'src/app/models/user.model';
   standalone: true,
   imports: [IonItem, IonButton, ReactiveFormsModule,
     IonGrid, IonList, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar,
-    IonRow, IonCol, IonLabel, IonInfiniteScroll, IonInfiniteScrollContent, IonIcon,
+    IonRow, IonCol, IonLabel, IonInfiniteScroll, IonInfiniteScrollContent, IonIcon, IonBackButton,
     DatePipe, CommonModule
     ]
 })

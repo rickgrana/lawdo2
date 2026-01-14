@@ -1,9 +1,7 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-        <ion-button routerLink="/atendimentos" routerDirection="root">
-            <ion-icon name="arrow-back"></ion-icon>
-        </ion-button>
+        <ion-back-button></ion-back-button>
     </ion-buttons>
 
     <ion-title>
@@ -45,7 +43,7 @@
 
             <ion-col size-xs="12" size-md="12" class="ion-text-center">
                 <ion-icon name="calendar"></ion-icon>
-                Exame em {{ model.fields.data | date: "dd/MM/yyyy"}} às {{model!.fields.hora | date: "HH:mm"}}
+                Exame em {{ model.fields.data | date: "dd/MM/yyyy"}} às {{model!.fields.hora}}
             </ion-col>
 
             <ion-col size-md="12"  class="ion-text-center ion-hide-md-down">

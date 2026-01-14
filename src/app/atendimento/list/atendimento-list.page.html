@@ -1,9 +1,7 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <ion-button routerLink="/home" routerDirection="'root'">
-          <ion-icon color="light" name="arrow-back"></ion-icon>
-      </ion-button>
+        <ion-back-button></ion-back-button>
     </ion-buttons>
 
     <ion-buttons slot="end">
@@ -60,7 +58,7 @@
                         <ion-icon name="calendar-outline" color="primary"></ion-icon>
                         {{item.fields.data | date: "dd/MM/yyyy"}}
                         <ion-icon name="time-outline" color="primary"></ion-icon>
-                            {{item.fields.hora | date: "HH:mm"}}h
+                            {{item.fields.hora}}h
                     </ion-label>
                 </ion-col>
 

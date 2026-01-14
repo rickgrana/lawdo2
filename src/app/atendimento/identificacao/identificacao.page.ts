@@ -33,7 +33,7 @@ import { User } from 'src/app/models/user.model';
     IonGrid, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar,
     IonRow, IonCol, IonLabel, IonSelectOption, IonFooter, IonModal,
     IonInput, IonDatetime, IonSelect, IonIcon, IonSpinner,
-    CommonModule,
+    CommonModule, ReactiveFormsModule,
     MatAutocompleteModule, MatFormFieldModule, MatInputModule,
   ]
 })
@@ -157,6 +157,8 @@ export class IdentificacaoPage implements OnInit {
   }
 
   ngOnInit() {
+
+    this.loadForm();
 
     this.authService.user$.pipe(
       filter(user => !!user)

@@ -14,16 +14,6 @@ export const routes: Routes = [
     loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
   },
   {
-    path: 'folder',
-    redirectTo: 'folder/inbox',
-    pathMatch: 'full',
-  },
-  {
-    path: 'folder/:id',
-    loadComponent: () =>
-      import('./folder/folder.page').then((m) => m.FolderPage),
-  },
-  {
     path: 'perfil',
     loadComponent: () => import('./perfil/perfil.page').then( m => m.PerfilPage),
     canActivate: [AuthGuard],
@@ -40,10 +30,17 @@ export const routes: Routes = [
   },
   {
     path: 'atendimento/identificacao',
-    loadComponent: () => import('./atendimento/identificacao/identificacao.page').then( m => m.IdentificacaoPage)
+    loadComponent: () => import('./atendimento/identificacao/identificacao.page').then( m => m.IdentificacaoPage),
+    canActivate: [AuthGuard]
   },
   {
     path: 'atendimento/visualizar',
-    loadComponent: () => import('./atendimento/visualizar/atendimento-visualizar.page').then( m => m.AtendimentoVisualizarPage)
+    loadComponent: () => import('./atendimento/visualizar/atendimento-visualizar.page').then( m => m.AtendimentoVisualizarPage),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'atendimento/requisicao',
+    loadComponent: () => import('./atendimento/requisicao/requisicao.page').then( m => m.RequisicaoPage),
+    canActivate: [AuthGuard]
   },
 ];

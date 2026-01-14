@@ -76,6 +76,7 @@ export class Atendimento {
 
         requisicao: {
             recebida: false,
+            numero: '',
             origem: '',
             destino: '',
             delegado: '',

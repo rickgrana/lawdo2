@@ -113,7 +113,7 @@ export class AtendimentoService {
   }
 
   async updateIdentificacao(atendimento: Atendimento) {
-    const atendimentoRef = doc(this.firestore, 'atendimentos', atendimento.id);
+    const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
 
     const data = new Date(atendimento.fields.data);
 
@@ -131,6 +131,26 @@ export class AtendimentoService {
         logradouro: atendimento.fields.endereco.logradouro,
         pontoref: atendimento.fields.endereco.pontoref
       },
+      dtupdate: Timestamp.now()
+    });
+  }
+
+  getAtendimentoDoc(id: string) {
+    return doc(this.firestore, 'atendimentos', id);
+  }
+
+  async updateRequisicao(atendimento: Atendimento) {
+    const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
+
+    const recebimento = new Date(atendimento.fields.requisicao.recebimento);
+
+    const dados = {
+      ...atendimento.fields.requisicao,
+      recebimento: Timestamp.fromDate(recebimento)
+    };
+
+    return await updateDoc(atendimentoRef, {
+      requisicao: dados,
       dtupdate: Timestamp.now()
     });
   }

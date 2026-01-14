@@ -57,7 +57,14 @@
         <ion-row>
             <ion-col>
                 <ion-list>
-                    <ion-item [button]="true" routerLink="/atendimento/requisicao" lines="none"  detail color="white" class="secao_atendimento">
+                    <ion-item
+                        button
+                        (click)="abrirRequisicao(model)"
+                        lines="none" 
+                        detail
+                        color="white"
+                        class="secao_atendimento"
+                    >
                         <ion-icon name="clipboard" slot="start" color="medium"></ion-icon> Requisição
                     </ion-item>
                     

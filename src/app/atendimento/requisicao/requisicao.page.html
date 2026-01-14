@@ -1,0 +1,87 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+        <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Requisição</ion-title>
+  </ion-toolbar>
+</ion-header>
+  
+<ion-content *ngIf="form">
+    <form class="form" [formGroup]="form"  (ngSubmit)="salvar(form.value)">
+      <ion-grid>
+        <ion-row>
+          <ion-col  size-xs="12" size-md="12">
+              <ion-item>
+                  <ion-input
+                    label="Número da Requisição"
+                    labelPlacement="floating"
+                    placeholder="XXXX/XX"
+                    formControlName="requisicaoNumero"
+                    ></ion-input>
+              </ion-item>
+          </ion-col>
+          <ion-col  size-xs="12" size-md="6">
+              <ion-item>
+                  <ion-input
+                    label="DIP/Requisitante"
+                    labelPlacement="floating"
+                    placeholder="XXXXX"
+                    formControlName="dipOrigem"
+                    ></ion-input>
+              </ion-item>
+          </ion-col>
+          <ion-col  size-xs="12" size-md="6">
+              <ion-item>
+                  <ion-input
+                    label="DIP de Destino"
+                    labelPlacement="floating"
+                    placeholder="Deixe em branco se mesmo de origem"
+                    formControlName="dipDestino"
+                    ></ion-input>
+              </ion-item>
+          </ion-col>
+          <ion-col  size-xs="12" size-md="4">
+            <ion-item>
+                <ion-label position="floating" color="primary">Data do Recebimento</ion-label>
+                <ion-datetime-button datetime="dtRecebimento"></ion-datetime-button>
+                <ion-modal [keepContentsMounted]="true">
+                    <ng-template>
+                        <ion-datetime id="dtRecebimento" formControlName="dtRecebimento" presentation="date"></ion-datetime>
+                    </ng-template>
+                </ion-modal>
+            </ion-item>
+          </ion-col>
+          <ion-col  size-xs="12" size-md="6">
+              <ion-item>
+                  <ion-input
+                    label="IP"
+                    labelPlacement="floating"
+                    placeholder="IP/BO/RO"
+                    formControlName="ip"
+                    ></ion-input>
+              </ion-item>
+          </ion-col>
+          <ion-col  size-xs="12" size-md="12">
+              <ion-item>
+                  <ion-input
+                    label="Autoridade Policial"
+                    labelPlacement="floating"
+                    placeholder=""
+                    formControlName="delegado"
+                    ></ion-input>
+              </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </form>   
+</ion-content>
+
+<ion-footer>
+    <form class="form" [formGroup]="form"  (ngSubmit)="salvar(form.value)">
+      <ion-button 
+          class="submit-btn" type="submit"  color="primary" expand="block" 
+          [disabled]="!form.valid"> Salvar
+      </ion-button>
+    </form>
+</ion-footer>

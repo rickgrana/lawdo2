@@ -74,6 +74,31 @@
           </ion-col>
         </ion-row>
       </ion-grid>
+
+      <ion-list>
+               
+        <ion-toolbar color="light">
+            <ion-buttons slot="end">
+                <ion-button (click)="adicionarQuesito()">Adicionar</ion-button>
+            </ion-buttons>
+            <ion-title>Quesitos</ion-title>
+        </ion-toolbar>
+
+        <ion-item *ngIf="model!.quesitos.length == 0">
+            Nenhum quesito adicionado.
+        </ion-item>
+
+        <ion-item button *ngFor="let item of model!.quesitos; let i = index" (click)="editarQuesito(item)">
+            <ion-label>{{i+1}}. {{item.pergunta}}</ion-label>
+            <ion-label><i>R: {{item.resposta}}</i></ion-label>
+            <ion-button  
+                fill="clear"
+                (click)="deleteQuesito(i)"
+                    >
+                <ion-icon slot="icon-only" name="trash" color="danger"></ion-icon>
+            </ion-button>
+        </ion-item>
+      </ion-list>
     </form>   
 </ion-content>
 

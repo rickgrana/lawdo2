@@ -128,7 +128,7 @@ export class Atendimento {
 
     };
 
-    quesitos: any[] = [];
+    quesitos: Quesito[] = [];
 
     imagens: Imagem[] = [];
 

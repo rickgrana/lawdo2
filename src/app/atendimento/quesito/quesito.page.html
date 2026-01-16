@@ -1,0 +1,55 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+        <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+        <ion-button (click)="fechar()">Fechar</ion-button>
+    </ion-buttons>
+    <ion-title>Quesito</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content *ngIf="form">
+  <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+    <ion-item lines="none">
+      <ion-label position="stacked">Quesito</ion-label>
+      <ion-searchbar
+        formControlName="pergunta"
+        [debounce]="300"
+        (ionInput)="handleInput($event)"
+        (ionClear)="handleClear()"
+      ></ion-searchbar>
+    </ion-item>
+
+    <ion-list *ngIf="results.length">
+      @for (result of results; track result) {
+      <ion-item button (click)="selectQuesito(result)">
+        <ion-label>{{ result }}</ion-label>
+      </ion-item>
+      }
+    </ion-list>
+
+    <ion-item lines="none">
+      <ion-label position="stacked">Resposta</ion-label>
+      <ion-searchbar
+        formControlName="resposta"
+        [debounce]="300"
+        (ionInput)="handleResposta($event)"
+        (ionClear)="handleClearResposta()"
+      ></ion-searchbar>
+    </ion-item>
+
+    <ion-list *ngIf="respostas.length">
+      @for (result of respostas; track result) {
+      <ion-item button (click)="selectResposta(result)">
+        <ion-label>{{ result }}</ion-label>
+      </ion-item>
+      }
+    </ion-list>
+    
+    <ion-button  
+      class="submit-btn" type="submit"  color="success" expand="block">Salvar
+    </ion-button>
+  </form>
+</ion-content>

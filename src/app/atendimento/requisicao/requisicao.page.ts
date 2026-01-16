@@ -10,12 +10,13 @@ import { Quesito } from 'src/app/models/quesito.model';
 import { CommonModule } from '@angular/common';
 import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonBackButton, IonFooter,
     IonRow, IonCol, IonLabel, IonIcon, IonButton, IonItem,
-    IonDatetime, IonModal, IonInput,
+    IonDatetime, IonModal, IonInput, ModalController ,
   IonDatetimeButton } from '@ionic/angular/standalone';
 import { ReactiveFormsModule } from '@angular/forms';
 import { filter } from 'rxjs';
 import { AuthenticationService } from 'src/app/authentication.service';
 import { User } from 'src/app/models/user.model';
+import { QuesitoPage } from '../quesito/quesito.page';
 
 @Component({
   selector: 'app-requisicao',
@@ -40,6 +41,7 @@ export class RequisicaoPage implements OnInit {
     public toastController: ToastController,
     public loadingController: LoadingController,
     private navCtrl: NavController,
+    private modalCtrl: ModalController,
     private router: Router) { 
   }
 
@@ -151,11 +153,11 @@ export class RequisicaoPage implements OnInit {
   }
 
   async openModal() {
-    /*const modal = await this.modalController.create({
+    const modal = await this.modalCtrl.create({
       component: QuesitoPage
     });
     
-    return await modal.present();*/
+    return await modal.present();
   }
 
   deleteQuesito(index: number){

@@ -1,6 +1,6 @@
 export class Base {
 
-    protected isNew = true;
+    isNew: boolean = true;
 
     id: string = '';
 

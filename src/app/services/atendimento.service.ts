@@ -155,6 +155,17 @@ export class AtendimentoService {
     });
   }
 
+  async updateQuesitos(atendimento: Atendimento) {
+    const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
+
+    let quesitos = atendimento.quesitos.map(q => q.rawData());
+    
+    return await updateDoc(atendimentoRef, {
+      quesitos,
+      dtupdate: Timestamp.now()
+    });
+  }
+
   async update(atendimento: Atendimento) {
     //return this.firestore.collection('atendimentos').doc(atendimento.id).update(atendimento.rawData());
   }

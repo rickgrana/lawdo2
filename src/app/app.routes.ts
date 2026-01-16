@@ -2,6 +2,7 @@ import { ListAtendimentosPage } from './atendimento/list/atendimento-list.page';
 import { CorporacaoGerenciarPage } from './corporacao/gerenciar/corporacao-gerenciar.page';
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
+import { AtendimentoGuard } from './guards/atendimento.guard';
 
 export const routes: Routes = [
   {
@@ -36,11 +37,11 @@ export const routes: Routes = [
   {
     path: 'atendimento/visualizar',
     loadComponent: () => import('./atendimento/visualizar/atendimento-visualizar.page').then( m => m.AtendimentoVisualizarPage),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, AtendimentoGuard]
   },
   {
     path: 'atendimento/requisicao',
     loadComponent: () => import('./atendimento/requisicao/requisicao.page').then( m => m.RequisicaoPage),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, AtendimentoGuard]
   },
 ];

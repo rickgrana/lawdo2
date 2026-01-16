@@ -6,7 +6,6 @@
         <ion-title>Local</ion-title>
     </ion-toolbar>
 </ion-header>
-  
 <ion-content *ngIf="form">
     <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
         <ion-grid>
@@ -145,7 +144,6 @@
         </ion-grid>
     </form>  
 </ion-content>
-
 <ion-footer>
     <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)" >
         <ion-button 

@@ -17,6 +17,7 @@ import { filter } from 'rxjs';
 import { AuthenticationService } from 'src/app/authentication.service';
 import { User } from 'src/app/models/user.model';
 import { QuesitoPage } from '../quesito/quesito.page';
+import { AtendimentoBasePage } from '../atendimento-base.page';
 
 @Component({
   selector: 'app-requisicao',
@@ -29,23 +30,13 @@ import { QuesitoPage } from '../quesito/quesito.page';
     CommonModule, IonDatetimeButton, IonDatetime, IonModal
   ]
 })
-export class RequisicaoPage implements OnInit {
+export class RequisicaoPage extends AtendimentoBasePage implements OnInit {
 
-  user?: User;
-  form!: FormGroup;
-
-  constructor(
-    private authService: AuthenticationService,
-    private atendimentoService: AtendimentoService,
-    private formBuilder: FormBuilder,
-    public toastController: ToastController,
-    public loadingController: LoadingController,
-    private navCtrl: NavController,
-    private modalCtrl: ModalController,
-    private router: Router) { 
+  constructor(private modalCtrl: ModalController) {
+    super();
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     this.loadForm();
 
     this.authService.user$.pipe(
@@ -56,11 +47,7 @@ export class RequisicaoPage implements OnInit {
     });
   }
 
-  get model() {
-    return this.atendimentoService.model;
-  }
-
-  loadForm() {
+  override loadForm() {
 
     let dtRecebimento = new Date().toISOString();
 
@@ -78,7 +65,7 @@ export class RequisicaoPage implements OnInit {
     }
   }
 
-  async salvar(record: any) {
+  override async salvar(record: any) {
     this.model!.fields.requisicao.numero = record.requisicaoNumero;
     this.model!.fields.requisicao.origem = record.dipOrigem;
     this.model!.fields.requisicao.delegado = record.delegado;
@@ -101,40 +88,6 @@ export class RequisicaoPage implements OnInit {
     });
 
     this.loadForm();
-  }
-
-  async presentAlertSalvo(msg: string) {
-    const alert = await this.toastController.create({
-      message: msg,
-      duration: 2000
-    });
-
-    await alert.present();
-  }
-
-  async presentError(msg: string) {
-    const alert = await this.toastController.create({
-      message: 'Erro ao tentar salvar registro: ' + msg,
-      duration: 2000
-    });
-
-    await alert.present();
-  }
-
-  async presentLoading() {
-    const loading = await this.loadingController.create({
-      message: 'Processando...',
-      showBackdrop: false
-    });
-    return await loading.present();
-
-    //return loading.onDidDismiss();
-  }
-
-  async hideLoader() {
-    setTimeout(async () => {
-      await this.loadingController.dismiss();
-    }, 500);
   }
 
   async adicionarQuesito() {

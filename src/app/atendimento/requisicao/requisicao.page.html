@@ -8,7 +8,7 @@
 </ion-header>
   
 <ion-content *ngIf="form">
-    <form class="form" [formGroup]="form"  (ngSubmit)="salvar(form.value)">
+    <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form.value)">
       <ion-grid>
         <ion-row>
           <ion-col  size-xs="12" size-md="12">
@@ -103,10 +103,10 @@
 </ion-content>
 
 <ion-footer>
-    <form class="form" [formGroup]="form"  (ngSubmit)="salvar(form.value)">
+    <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
       <ion-button 
           class="submit-btn" type="submit"  color="primary" expand="block" 
-          [disabled]="!form.valid"> Salvar
+          [disabled]="form!.invalid"> Salvar
       </ion-button>
     </form>
 </ion-footer>

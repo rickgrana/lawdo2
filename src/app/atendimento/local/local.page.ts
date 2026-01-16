@@ -1,23 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { AtendimentoService } from '../../services/atendimento.service';
-import { FormGroup, FormBuilder, Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
-import { ToastController } from '@ionic/angular';
-import { LoadingController } from '@ionic/angular';
-import { NavController } from '@ionic/angular';
-import { Observable } from 'rxjs';
-import { filter, map, startWith } from 'rxjs/operators';
+import { Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { filter } from 'rxjs/operators';
 import { Bairros } from 'src/app/extensions/bairroHelper';
 import { Cidades } from 'src/app/extensions/cidadeHelper';
-import { DateTimeHelper } from 'src/app/extensions/dateTimeHelper';
-import { Router } from '@angular/router';
-import { Atendimento } from '../../models/atendimento.model';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
     IonIcon, IonSpinner, IonTextarea, IonRadio, IonListHeader, IonRadioGroup,
     IonList,
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, IonModal } from '@ionic/angular/standalone';
-import { AuthenticationService } from 'src/app/authentication.service';
 import { CommonModule } from '@angular/common';
-import { User } from 'src/app/models/user.model';
+import { AtendimentoBasePage } from '../atendimento-base.page';
 
 @Component({
   selector: 'app-local',
@@ -32,24 +23,11 @@ import { User } from 'src/app/models/user.model';
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, IonModal
   ]
 })
-export class LocalPage implements OnInit {
-  user?: User;
-  form?: FormGroup;
+export class LocalPage extends AtendimentoBasePage implements OnInit {
   cidades = Cidades;
   bairros = Bairros;
 
-  constructor(
-    private authService: AuthenticationService,
-    private atendimentoService: AtendimentoService,
-    private formBuilder: FormBuilder,
-    public toastController: ToastController,
-    public loadingController: LoadingController,
-    private auth: AuthenticationService,
-    private navCtrl: NavController,
-    private router: Router) { 
-  }
-
-  ngOnInit() {
+  override ngOnInit() {
     this.loadForm();
 
     this.authService.user$.pipe(
@@ -60,12 +38,7 @@ export class LocalPage implements OnInit {
     });
   }
 
-  get model() {
-    return this.atendimentoService.model;
-  }
-
-  loadForm() {
-    const formFields = {};
+  override loadForm() {
 
     this.form = this.formBuilder.group({
       localZona: new FormControl<string>(this.model!.fields.local.zona, Validators.compose([
@@ -89,7 +62,7 @@ export class LocalPage implements OnInit {
     }
   }
 
-  async salvar(record: any) {
+  override async salvar(record: any) {
     this.model!.fields.local.zona = record.localZona;
     this.model!.fields.local.natureza = record.localNatureza;
     this.model!.fields.local.acesso = record.localAcesso;
@@ -113,38 +86,4 @@ export class LocalPage implements OnInit {
 
     this.loadForm();
   }
-
-  async presentAlertSalvo(msg: string) {
-    const alert = await this.toastController.create({
-      message: msg,
-      duration: 2000,
-      position: 'middle'
-    });
-
-    await alert.present();
-  }
-
-  async presentError(msg: string) {
-    const alert = await this.toastController.create({
-      message: 'Erro ao tentar salvar registro: ' + msg,
-      duration: 2000
-    });
-
-    await alert.present();
-  }
-
-  async presentLoading() {
-    const loading = await this.loadingController.create({
-      message: 'Processando...',
-      showBackdrop: false
-    });
-    return await loading.present();
-  }
-
-  async hideLoader() {
-    setTimeout(async () => {
-      await this.loadingController.dismiss();
-    }, 500);
-  }
-
 }

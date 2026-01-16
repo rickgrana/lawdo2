@@ -1,0 +1,161 @@
+<ion-header [translucent]="true">
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
+        <ion-title>Local</ion-title>
+    </ion-toolbar>
+</ion-header>
+  
+<ion-content *ngIf="form">
+    <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+        <ion-grid>
+            <ion-row>
+                <ion-col  size-xs="12" size-md="12">
+                    <ion-icon name="pin"></ion-icon>
+                    <ion-label><i>{{model!.fields.endereco.logradouro}}</i></ion-label>
+                </ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col size-xs="12" size-md="6">
+                    <ion-list>    
+                    <ion-radio-group formControlName="localZona">
+                        <ion-list-header position="floating" color="light">
+                            Zona
+                        </ion-list-header>
+
+                        <ion-row>
+                            <ion-col *ngFor="let item of model!.zonas_local">
+                                <ion-item lines="none">
+                                    <ion-radio labelPlacement="start" value="{{ item }}">{{item}}</ion-radio>
+                                </ion-item>
+                            </ion-col>
+                        </ion-row>
+                    </ion-radio-group>
+                    </ion-list>
+                </ion-col>
+                <ion-col size-xs="12" size-md="12">
+                    <ion-radio-group formControlName="localNatureza">
+                        <ion-list-header position="floating" color="light">
+                                Natureza
+                        </ion-list-header>
+                        <ion-row>
+                            <ion-col *ngFor="let natureza of model!.naturezas_local">
+                                <ion-item>
+                                    <ion-radio labelPlacement="start" value="{{ natureza }}">{{ natureza }}</ion-radio>
+                                </ion-item>
+                            </ion-col>
+                        </ion-row>
+                    </ion-radio-group>
+                </ion-col>
+                <ion-col  size-xs="12" size-md="12" *ngIf="(form.get('localNatureza')!.value == 'Imóvel') || (form.get('localNatureza')!.value == 'Terreno')">               
+                    <ion-radio-group  formControlName="localFuncao">
+                        <ion-list-header position="floating" color="light">
+                            Função
+                        </ion-list-header>
+                        <ion-row *ngIf="(form.get('localNatureza')!.value == 'Imóvel')">
+                            <ion-col *ngFor="let item of model!.funcoes_imovel">
+                                <ion-item>
+                                    <ion-radio labelPlacement="start"  value="{{ item }}">{{item}}</ion-radio>
+                                </ion-item>
+                            </ion-col>
+                        </ion-row>
+                        <ion-row *ngIf="(form.get('localNatureza')!.value == 'Terreno')">
+                            <ion-col *ngFor="let item of model!.funcoes_terreno" >
+                                <ion-item>
+                                    <ion-radio labelPlacement="start"  value="{{ item }}">{{item}}</ion-radio>
+                                </ion-item>
+                            </ion-col>
+                        </ion-row>
+                    </ion-radio-group>
+                </ion-col>
+                <ion-col  size-xs="12" size-md="12"  *ngIf="(form.get('localFuncao')!.value == 'Residencial')">
+                    <ion-radio-group formControlName="localTipo">
+                        <ion-list-header position="floating" color="light">
+                                Tipo de Residência
+                        </ion-list-header>
+                        <ion-row>
+                            <ion-col *ngFor="let item of model!.tipos_residencia">
+                                <ion-item>
+                                    <ion-radio labelPlacement="start"  value="{{ item }}">{{item}}</ion-radio>
+                                </ion-item>
+                            </ion-col>
+                        </ion-row>
+                    </ion-radio-group>
+                </ion-col>
+                <ion-col  size-xs="12" size-md="12"  *ngIf="(form.get('localFuncao')!.value == 'Comercial')">
+                    <ion-radio-group formControlName="localTipo">
+                        <ion-list-header position="floating" color="light">
+                                Tipo de Comércio
+                        </ion-list-header>
+                        <ion-row>
+                            <ion-col *ngFor="let item of model!.tipos_comercial">
+                                <ion-item>
+                                    <ion-radio labelPlacement="start"  value="{{ item }}">{{item}}</ion-radio>
+                                </ion-item>
+                            </ion-col>
+                        </ion-row>
+                    </ion-radio-group>
+                </ion-col>
+                <ion-col  size-xs="12" size-md="12"  *ngIf="(form.get('localNatureza')!.value == 'Via Pública')">
+                    <ion-radio-group formControlName="localConstrucao">
+                        <ion-list-header position="floating" color="light">
+                            Tipo de Construção
+                        </ion-list-header>
+                        <ion-row>
+                            <ion-col *ngFor="let item of model!.construcoes_via">
+                                <ion-item>
+                                    <ion-radio labelPlacement="start" value="{{ item }}">{{item}}</ion-radio>
+                                </ion-item>
+                            </ion-col>
+                        </ion-row>
+                    </ion-radio-group>
+                </ion-col>
+                <ion-col  size-xs="12" size-md="12"  *ngIf="(form.get('localNatureza')!.value == 'Imóvel')">
+                    <ion-radio-group formControlName="localConstrucao">
+                        <ion-list-header position="floating" color="light">
+                            Tipo de Construção
+                        </ion-list-header>
+                        <ion-row>
+                            <ion-col *ngFor="let item of model!.construcoes_imovel">
+                                <ion-item>
+                                    <ion-radio labelPlacement="start" value="{{ item }}">{{item}}</ion-radio>
+                                </ion-item>
+                            </ion-col>
+                        </ion-row>
+                    </ion-radio-group>
+                </ion-col>
+                <ion-col  size="12">
+                    <ion-item>
+                        <ion-label position="floating" color="primary">Meio de Acesso</ion-label>
+                        <ion-textarea
+                            formControlName="localAcesso" placeholder="Entradas e saídas de imóvel ou vias de acesso em logradouro" >
+                        </ion-textarea>
+                    </ion-item>
+                </ion-col>
+                <ion-col  size="12">
+                    <ion-item>
+                        <ion-label position="floating" color="primary">Descrição</ion-label>
+                        <ion-textarea
+                            formControlName="descricao" autoGrow="true">
+                        </ion-textarea>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+    </form>  
+</ion-content>
+
+<ion-footer>
+    <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)" >
+        <ion-button 
+            class="submit-btn"
+            type="submit"
+            color="primary"
+            slot="end"
+            expand="block"
+            [disabled]="form!.invalid"
+        >Salvar            
+        </ion-button>
+    </form>
+</ion-footer>

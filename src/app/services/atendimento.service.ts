@@ -166,6 +166,15 @@ export class AtendimentoService {
     });
   }
 
+  async updateLocal(atendimento: Atendimento) {
+    const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
+    
+    return await updateDoc(atendimentoRef, {
+      local: atendimento.fields.local,
+      dtupdate: Timestamp.now()
+    });
+  }
+
   async update(atendimento: Atendimento) {
     //return this.firestore.collection('atendimentos').doc(atendimento.id).update(atendimento.rawData());
   }

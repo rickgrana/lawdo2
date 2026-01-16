@@ -5,7 +5,7 @@ import { Quesito } from 'src/app/models/quesito.model';
 import { Observable } from 'rxjs';
 import { LoadingController } from '@ionic/angular';
 import { ToastController } from '@ionic/angular';
-import { IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonBackButton, IonFooter,
+import { IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonBackButton,
     IonLabel, IonButton, IonItem,
      IonModal, ModalController, PopoverController, IonSearchbar,
  } from '@ionic/angular/standalone';
@@ -16,7 +16,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './quesito.page.html',
   styleUrls: ['./quesito.page.scss'],
   standalone: true,
-  imports: [IonItem, IonButton, ReactiveFormsModule, IonFooter, IonSearchbar,
+  imports: [IonItem, IonButton, ReactiveFormsModule, IonSearchbar,
       IonList, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar,
       IonLabel, IonBackButton,
       CommonModule

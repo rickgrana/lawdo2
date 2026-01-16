@@ -48,10 +48,6 @@ export class RequisicaoPage implements OnInit {
   ngOnInit() {
     this.loadForm();
 
-    if(this.model == null){
-      this.router.navigate(['/']);
-    }
-
     this.authService.user$.pipe(
       filter(user => !!user)
     ).subscribe(user => {

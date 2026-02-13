@@ -3,10 +3,10 @@ import { Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { filter } from 'rxjs/operators';
 import { Bairros } from 'src/app/extensions/bairroHelper';
 import { Cidades } from 'src/app/extensions/cidadeHelper';
-import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
-    IonIcon, IonSpinner, IonTextarea, IonRadio, IonListHeader, IonRadioGroup,
+import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter,
+    IonIcon, IonTextarea, IonRadio, IonListHeader, IonRadioGroup,
     IonList,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, IonModal } from '@ionic/angular/standalone';
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { AtendimentoBasePage } from '../atendimento-base.page';
 
@@ -17,10 +17,10 @@ import { AtendimentoBasePage } from '../atendimento-base.page';
   standalone: true,
   imports: [
     ReactiveFormsModule, CommonModule,
-    IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
-    IonIcon, IonSpinner, IonTextarea, IonRadio, IonListHeader, IonRadioGroup,
+    IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter,
+    IonIcon, IonTextarea, IonRadio, IonListHeader, IonRadioGroup,
     IonList,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, IonModal
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton
   ]
 })
 export class LocalPage extends AtendimentoBasePage implements OnInit {

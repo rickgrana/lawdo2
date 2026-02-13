@@ -49,4 +49,9 @@ export const routes: Routes = [
     loadComponent: () => import('./atendimento/local/local.page').then( m => m.LocalPage),
     canActivate: [AuthGuard, AtendimentoGuard]
   },
+  {
+    path: 'atendimento/preservacao',
+    loadComponent: () => import('./atendimento/preservacao/preservacao.page').then( m => m.PreservacaoPage),
+    canActivate: [AuthGuard, AtendimentoGuard]
+  },
 ];

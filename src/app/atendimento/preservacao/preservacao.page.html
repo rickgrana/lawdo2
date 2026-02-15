@@ -17,26 +17,22 @@
                     <ion-row>
                         <ion-col  size-xs="12" size-md="6">
                             <ion-item>
-                                <ion-label  position="floating" color="primary">Delegado</ion-label>
-                                <ion-input placeholder="" formControlName="eqp_pc_delta" ></ion-input>
+                                <ion-input label="Delegado" labelPlacement="floating" placeholder="" formControlName="eqp_pc_delta" ></ion-input>
                             </ion-item>
                         </ion-col>
                         <ion-col  size-xs="6" size-md="4">
                             <ion-item>
-                                <ion-label  position="floating" color="primary">Origem</ion-label>
-                                <ion-input placeholder="DIP" formControlName="eqp_pc_origem" ></ion-input>
+                                <ion-input label="Origem" labelPlacement="floating" placeholder="DIP" formControlName="eqp_pc_origem" ></ion-input>
                             </ion-item>
                         </ion-col>
                         <ion-col  size-xs="6" size-md="2">
                             <ion-item>
-                                <ion-label  position="floating" color="primary">VTR</ion-label>
-                                <ion-input placeholder="" formControlName="eqp_pc_vtr" ></ion-input>
+                                <ion-input label="VTR" labelPlacement="floating" placeholder="" formControlName="eqp_pc_vtr" ></ion-input>
                             </ion-item>
                         </ion-col>
                         <ion-col  size-xs="12" size-md="12">
                             <ion-item>
-                                <ion-label  position="floating" color="primary">Investigador(es)</ion-label>
-                                <ion-input placeholder="" formControlName="eqp_pc" ></ion-input>
+                                <ion-input label="Investigador(es)" labelPlacement="floating" placeholder="" formControlName="eqp_pc" ></ion-input>
                             </ion-item>
                         </ion-col>
                     </ion-row>
@@ -48,8 +44,7 @@
                     <ion-row>
                         <ion-col  size-xs="12" size-md="6">
                             <ion-item>
-                                <ion-label  position="floating" color="primary">Representante</ion-label>
-                                <ion-input placeholder="" formControlName="eqp_pm" ></ion-input>
+                                <ion-input label="Representante" labelPlacement="floating" placeholder="" formControlName="eqp_pm" ></ion-input>
                             </ion-item>
                         </ion-col>
                         <ion-col  size-xs="6" size-md="4">
@@ -62,8 +57,7 @@
                         </ion-col>
                         <ion-col  size-xs="6" size-md="2">
                             <ion-item>
-                                <ion-label  position="floating" color="primary">VTR</ion-label>
-                                <ion-input placeholder="" formControlName="eqp_pm_vtr" ></ion-input>
+                                <ion-input label="VTR" labelPlacement="floating" placeholder="" formControlName="eqp_pm_vtr" ></ion-input>
                             </ion-item>
                         </ion-col>
                     </ion-row>
@@ -77,8 +71,11 @@
                     <ion-row>
                         <ion-col   size-xs="12" size-md="6">
                             <ion-item>
-                                <ion-label  color="primary">Preservação</ion-label>
-                                <ion-select okText="Selecionar" cancelText="Fechar"
+                                <ion-select
+                                    label="Preservação"
+                                    labelPlacement="floating"
+                                    okText="Selecionar"
+                                    cancelText="Fechar"
                                     formControlName="preservacao">
                                     <ion-select-option *ngFor="let item of model!.preservacoes" [value]="item">{{item}}</ion-select-option>
                                 </ion-select>
@@ -86,8 +83,11 @@
                         </ion-col>
                         <ion-col   size-xs="12" size-md="6">
                             <ion-item>
-                                <ion-label  color="primary">Isolamento</ion-label>
-                                <ion-select okText="Selecionar" cancelText="Fechar" 
+                                <ion-select
+                                    label="Isolamento"
+                                    labelPlacement="floating"
+                                    okText="Selecionar"
+                                    cancelText="Fechar" 
                                     formControlName="isolamento" >
                                     <ion-select-option *ngFor="let item of model!.isolamentos" [value]="item">{{item}}</ion-select-option>
                                 </ion-select>

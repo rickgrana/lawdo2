@@ -175,6 +175,28 @@ export class AtendimentoService {
     });
   }
 
+  async updatePreservacao(atendimento: Atendimento) {
+    const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
+    
+    return await updateDoc(atendimentoRef, {
+      dtupdate: Timestamp.now(),
+      local: atendimento.fields.local,
+      equipes: atendimento.fields.equipes
+    });
+  }
+
+  async updateVitimas(atendimento: Atendimento) {
+    const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
+
+    const vitimas = atendimento.fields.vitimas.map(v => v.rawData());
+    
+    return await updateDoc(atendimentoRef, {
+      dtupdate: Timestamp.now(),
+      vitimas
+    });
+  }
+
+
   async update(atendimento: Atendimento) {
     //return this.firestore.collection('atendimentos').doc(atendimento.id).update(atendimento.rawData());
   }

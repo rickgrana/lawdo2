@@ -98,6 +98,11 @@ export class AtendimentoVisualizarPage implements OnInit {
     this.router.navigate(['atendimento/requisicao']);
   }
 
+  async abrirVitimas(model: any) {
+    this.atendimentoService.model = model;
+    this.router.navigate(['atendimento/vitimas']);
+  }
+
   async abrirVitima(index: number) {
     const vitima = Vitima.loadFrom(this.atendimentoService.model!.fields.vitimas[index]);
 

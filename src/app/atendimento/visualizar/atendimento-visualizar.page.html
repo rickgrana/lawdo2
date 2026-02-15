@@ -76,7 +76,7 @@
                         <ion-icon name="lock-open-outline" slot="start" color="tertiary"></ion-icon> Preservação e Isolamento 
                     </ion-item>
 
-                    <ion-item  [button]="true" routerLink="/atendimento/vitimas" lines="none" detail color="white" class="secao_atendimento">    
+                    <ion-item button (click)="abrirVitimas(model)" lines="none" detail color="white" class="secao_atendimento">    
                         <ion-icon name="body" slot="start" color="danger"></ion-icon> Vítima(s)
                         <ion-badge color="primary" slot="end">{{ model.fields.vitimas.length }}</ion-badge>
                     </ion-item>

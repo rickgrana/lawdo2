@@ -1,0 +1,59 @@
+<ion-header>
+    <ion-toolbar>
+  
+        <ion-buttons slot="start">
+            <ion-button (click)="voltar()">&lt; Vítima</ion-button>
+        </ion-buttons>
+
+      <ion-title>Porte</ion-title>
+
+      <ion-buttons slot="end">
+          <ion-button (click)="proximo()">Compleição &gt;</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+<ion-content>
+
+    <form class="form" [formGroup]="form"  (ngSubmit)="salvar(form.value)">
+
+      <ion-list-header position="floating" color="light">
+          Informe o porte da vítima
+      </ion-list-header>
+
+      <ion-radio-group formControlName="porte">
+   
+        <ion-grid>
+          <ion-row>
+
+            <ion-col size="6">
+
+              <ion-item>
+                  <ion-label class="ion-text-center">
+                    <fa-icon [icon]="faMale"></fa-icon><br/> 
+                    Adulto
+                  </ion-label>
+
+                  <ion-radio slot="start" value="Adulto"></ion-radio>
+              </ion-item>
+            </ion-col>
+
+            <ion-col size="6">
+              <ion-item>
+                  <ion-label class="ion-text-center">
+                    <fa-icon [icon]="faBaby"></fa-icon> <br/> 
+                    Criança
+                  </ion-label>
+                  
+                  <ion-radio slot="start" value="Criança"></ion-radio>
+              </ion-item>
+            </ion-col>
+
+          </ion-row>
+        </ion-grid>
+    
+      </ion-radio-group>
+
+    </form>
+
+</ion-content>

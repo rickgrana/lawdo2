@@ -54,4 +54,15 @@ export const routes: Routes = [
     loadComponent: () => import('./atendimento/preservacao/preservacao.page').then( m => m.PreservacaoPage),
     canActivate: [AuthGuard, AtendimentoGuard]
   },
+  {
+    path: 'atendimento/vitimas',
+    loadComponent: () => import('./atendimento/vitimas/vitimas.page').then( m => m.VitimasPage),
+    canActivate: [AuthGuard, AtendimentoGuard]
+  },
+  { 
+    path: 'atendimento/vitima',   
+    loadComponent: () => import('./atendimento/vitima/vitima.page').then(m => m.VitimaPage),
+    canActivate: [AuthGuard, AtendimentoGuard]
+  },
+
 ];

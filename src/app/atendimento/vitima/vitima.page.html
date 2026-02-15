@@ -1,0 +1,384 @@
+<ion-header [translucent]="true">
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
+        <ion-title>Vítima</ion-title>
+    </ion-toolbar>
+</ion-header>
+  
+<ion-content>
+    <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+        <ion-grid>
+            <ion-row>
+                <ion-col  size-xs="12" size-md="12">
+                    <ion-item lines="none">
+                        <ion-select label="Identificação" labelPlacement="floating"
+                            okText="Selecionar"
+                            cancelText="Fechar"
+                            formControlName="identificada"
+                        >
+                            <ion-select-option value="Não reconhecida">Não reconhecida</ion-select-option>
+                            <ion-select-option value="Reconhecida">Reconhecida</ion-select-option>
+                            <ion-select-option value="Identificada">Identificada</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col  size="12" *ngIf="form!.get('identificada')?.value !== 'Não reconhecida'">
+                    <ion-item>
+                        <ion-input 
+                            label="Nome"
+                            labelPlacement="floating"
+                            formControlName="nome"></ion-input>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col   size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-select
+                            label="Sexo"
+                            labelPlacement="floating"
+                            okText="Selecionar"
+                            cancelText="Fechar"
+                            formControlName="sexo"
+                            ionChange="onChangeSexo($event)"
+                        >
+                            <ion-select-option value="M">Masculino</ion-select-option>
+                            <ion-select-option value="F">Feminino</ion-select-option>
+                            <ion-select-option value="X">Indefinido</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col  size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-input 
+                            label="RG"
+                            labelPlacement="floating"
+                            id="rg"
+                            placeholder=""
+                            formControlName="rg"
+                        ></ion-input>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col  size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-input
+                            label="Idade"
+                            labelPlacement="floating"
+                            placeholder=""
+                            formControlName="idade"
+                        ></ion-input>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+
+            <ion-button (click)="editarPorte()">Editar Porte</ion-button>
+
+            <ion-row>
+                <ion-col   size-xs="12" size-md="4">
+                    <ion-item> 
+                        <ion-select
+                            label="Porte"
+                            labelPlacement="floating"
+                            okText="Selecionar"
+                            cancelText="Fechar"  
+                            formControlName="porte"
+                            (ionChange)="onChangePorte($event)"
+                        >
+                            <ion-select-option *ngFor="let item of vitima!.portes" [value]="item">{{item}}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+
+            <ion-row>
+                <ion-col   size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-select #compleicao
+                            label="Compl. Física"
+                            labelPlacement="floating"
+                            okText="Selecionar"
+                            cancelText="Fechar" 
+                            formControlName="complfisica"
+                            (ionChange)="onChangeCompl($event)"
+                        >
+                            <ion-select-option *ngFor="let item of vitima!.compleicoes" [value]="item">{{item}}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col   size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-select #estatura
+                            label="Estatura"
+                            labelPlacement="floating"
+                            okText="Selecionar"
+                            cancelText="Fechar" 
+                            formControlName="estatura"
+                            (ionChange)="onChangeEstatura($event)"
+                        >
+                            <ion-select-option *ngFor="let item of vitima!.estaturas" [value]="item">{{item}}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col   size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-select #etnia
+                            label="Etnia"
+                            labelPlacement="floating"
+                            okText="Selecionar"
+                            cancelText="Fechar" 
+                            formControlName="etnia"
+                            (ionChange)="onChangeEtnia($event)"
+                        >
+                            <ion-select-option *ngFor="let item of vitima!.etnias" [value]="item">{{item}}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col   size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-select #tipoCabelo
+                            label="Tipo de Cabelo"
+                            labelPlacement="floating"
+                            okText="Selecionar"
+                            cancelText="Fechar"
+                            formControlName="cabeloTipo"
+                            (ionChange)="onChangeTipo($event)"
+                        >
+                            <ion-select-option *ngFor="let item of vitima!.cabelo.tipos" [value]="item">{{item}}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col size-xs="12" size-md="4" [hidden]="form!.get('cabeloTipo')?.value == 'Sem Cabelos'">
+                    <ion-item>
+                        <ion-select #corCabelo
+                            label="Cor de Cabelo"
+                            labelPlacement="floating"
+                            okText="Selecionar"
+                            cancelText="Fechar"
+                            formControlName="cabeloCor"
+                            (ionChange)="onChangeCor($event)"
+                        >
+                            <ion-select-option *ngFor="let item of vitima!.cabelo.cores" [value]="item">{{item}}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col   size-xs="12" size-md="4" [hidden]="form!.get('cabeloTipo')?.value == 'Sem Cabelos'">
+                    <ion-item>
+                        <ion-select #comprCabelo
+                            label="Comprimento Cabelo"
+                            labelPlacement="floating"
+                            okText="Selecionar"
+                            cancelText="Fechar"
+                            formControlName="cabeloCompr"
+                            (ionChange)="onChangeCompr($event)"
+                        >
+                            <ion-select-option *ngFor="let item of vitima!.cabelo.comprimentos" [value]="item">{{item}}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col   size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-select #posicao
+                            label="Posição"
+                            labelPlacement="floating"
+                            label="Posição"
+                            labelPlacement="floating"
+                            okText="Selecionar"
+                            cancelText="Fechar"
+                            formControlName="posicao"
+                            (ionChange)="onChangePosicao($event)"
+                        >
+                            <ion-select-option *ngFor="let item of vitima!.posicoes" [value]="item">{{item}}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col   size-xs="12" size-md="8">
+                    <ion-item>
+                        <ion-select #estado
+                            label="Estado"
+                            labelPlacement="floating"
+                            okText="Selecionar"
+                            cancelText="Fechar"
+                            (ionChange)="onChangeEstado($event)"
+                            formControlName="estado"
+                        >
+                            <ion-select-option *ngFor="let item of vitima!.estados" [value]="item">{{item}}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col  size-xs="12" size-md="12">
+                    <ion-item>
+                        <ion-input #localizacao
+                            label="Localização"
+                            labelPlacement="floating"
+                            placeholder="Descreva aonde o corpo se situava no local" formControlName="localizacao"></ion-input>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col  size-sm="12" size-md="12">
+                    <ion-list>
+                        <ion-list-header position="floating" color="light">
+                                Vestimentas
+                        </ion-list-header>
+
+                        <ion-row>
+                            <ion-col  size-xs="12" size-md="6">
+                                <ion-item>
+                                    <ion-input
+                                        label="Vestimenta inferior"
+                                        labelPlacement="floating"
+                                        placeholder="" formControlName="vestInferior"></ion-input>
+                                </ion-item>
+                            </ion-col>
+
+                            <ion-col  size-xs="12" size-md="6">
+                                <ion-item>
+                                    <ion-input
+                                        label="Vestimenta Superior"
+                                        labelPlacement="floating"
+                                        placeholder="" formControlName="vestSuperior"></ion-input>
+                                </ion-item>
+                            </ion-col>
+
+                            <ion-col  size-xs="12" size-md="6">
+                                <ion-item>
+                                    <ion-input
+                                        label="Calçados"
+                                        labelPlacement="floating"
+                                        placeholder="Deixe em branco para descalço" formControlName="vestCalcados" ></ion-input>
+                                </ion-item>
+                            </ion-col>
+
+                            <ion-col  size-xs="12" size-md="6">
+                                <ion-item>
+                                    <ion-input
+                                        label="Cabeça"
+                                        labelPlacement="floating"
+                                        placeholder="" formControlName="vestCabeca"></ion-input>
+                                </ion-item>
+                            </ion-col>    
+                        </ion-row>
+                    </ion-list>
+                </ion-col>
+
+                <ion-list-header position="floating" color="light">
+                    Perinecroscopia
+                </ion-list-header>
+
+                <ion-col  size="12">
+                    <ion-item>
+                        <ion-textarea
+                            label="Condições"
+                            labelPlacement="floating"
+                            formControlName="condicoes">
+                        </ion-textarea>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col size="12">
+                    <ion-item>
+                        <ion-textarea
+                            label="Pertences"
+                            labelPlacement="floating"
+                            formControlName="pertences"
+                            placeholder="Você pode digitar 'nada' caso queira informar que a vítima não tinha pertences.">
+                        </ion-textarea>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col  size="12">
+                    <ion-item>
+                        <ion-textarea
+                            label="Tatuagens"
+                            labelPlacement="floating"
+                            formControlName="tatuagens"
+                            placeholder="Informe as regiões das tatuagens, separando-as por vírgulas">
+                        </ion-textarea>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col  size="12">
+                    <ion-item>
+                        <ion-textarea
+                            label="Regiões de PAF (FRENTE)"
+                            labelPlacement="floating"
+                            formControlName="paf_frente"
+                            placeholder="Informe as regiões de PAF separadas por virgulas">
+                        </ion-textarea>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col  size="12">
+                    <ion-item>
+                        <ion-textarea
+                            label="Regiões de PAF (COSTAS)"
+                            labelPlacement="floating"
+                            formControlName="paf_costas"
+                            placeholder="Informe as regiões de PAF separadas por virgulas">
+                        </ion-textarea>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col  size="12">
+                    <ion-item>
+                        <ion-textarea
+                            label="Observações"
+                            labelPlacement="floating"
+                            formControlName="observacoes"
+                            placeholder="Utilize ponto-e-vírgula para separar diferentes anotações">
+                        </ion-textarea>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+
+        <ion-grid>
+            <ion-row>
+                <ion-col size="3">
+                    <ion-item (click)="abrir_cabeca_posterior()">
+                        <ion-img src="/assets/cabeca-posterior.png" title="Cabeça (Posterior)"></ion-img>
+                    </ion-item>      
+                </ion-col>
+
+                <ion-col size="3">
+                    <ion-item (click)="abrir_cabeca()">
+                        <ion-img src="/assets/cabeca-anterior.png" title="Cabeça (Anterior)"></ion-img>
+                    </ion-item>     
+                </ion-col>
+
+                <ion-col size="3">
+                    <ion-item (click)="abrir_cabeca_lateral()">
+                        <ion-img src="/assets/cabeca-lateral.png" title="Cabeça (Lateral)"></ion-img>
+                    </ion-item>     
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+    </form>
+</ion-content>
+
+
+<ion-footer>
+    <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+        <ion-toolbar>
+            <ion-button  routerLink="/atendimento/vitimas"  routerDirection="backward" slot="start" fill="flat">
+                &lt; Vítimas
+            </ion-button>
+        
+            <ion-button 
+                class="submit-btn" type="submit"  color="success" expand="" slot="end"  fill="flat"
+                [disabled]="form!.invalid" >Salvar
+            </ion-button>
+        </ion-toolbar>
+    </form>
+</ion-footer>

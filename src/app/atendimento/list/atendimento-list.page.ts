@@ -12,12 +12,9 @@ import { DatePipe } from '@angular/common';
 import { arrowBack, list, addCircle, calendarOutline, timeOutline, body, alertCircleOutline, star, skullOutline, skull } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { BaseData } from 'src/app/interfaces/base-data.interface';
-import { Auth, authState } from '@angular/fire/auth';
-import { filter, switchMap, tap } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { Auth } from '@angular/fire/auth';
+import { filter } from 'rxjs/operators';
 import { User } from 'src/app/models/user.model';
-
-//import { SearchPage } from '../search/search.page';
 
 @Component({
   selector: 'app-atendimentos',

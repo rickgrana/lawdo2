@@ -7,7 +7,7 @@ export class Vitima extends Base {
 
     index: any; // apenas para exportacao
 
-    identificada = 'Não reconhecida';
+    identificada: string|boolean = 'Não reconhecida';
     nome  = '';
     sexo     = 'M';
     idade    = 0;

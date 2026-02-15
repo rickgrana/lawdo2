@@ -1,0 +1,53 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Laudo</ion-title>
+  </ion-toolbar>
+</ion-header>
+  
+<ion-content *ngIf="form">
+    <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+    
+        <ion-row>
+            <ion-col  size-xs="6" size-md="2">
+                <ion-item>
+                    <ion-input label="Nº Laudo" labelPlacement="floating" placeholder="XXXXX" formControlName="numero" ></ion-input>
+                </ion-item>
+            </ion-col>
+
+            <ion-col  size-xs="6" size-md="2">
+                <ion-item>
+                    <ion-input label="Ano" labelPlacement="floating" placeholder="XXXX" formControlName="ano" ></ion-input>
+                </ion-item>
+            </ion-col>
+
+            <ion-col  size-xs="12" size-md="4">
+            <ion-item>
+                <ion-label position="floating" color="primary">Data da Emissão</ion-label>
+                <ion-datetime-button datetime="dtEmissao"></ion-datetime-button>
+                <ion-modal [keepContentsMounted]="true">
+                    <ng-template>
+                        <ion-datetime id="dtEmissao" formControlName="data" presentation="date"></ion-datetime>
+                    </ng-template>
+                </ion-modal>
+            </ion-item>
+          </ion-col>
+    </ion-row>
+
+  </form>
+        
+</ion-content>
+  
+<ion-footer>
+
+    <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+
+        <ion-button 
+            class="submit-btn" type="submit"  color="primary" expand="block"
+            [disabled]="form!.invalid" >Salvar
+        </ion-button>
+        
+    </form>
+</ion-footer>

@@ -95,7 +95,7 @@
                         <ion-icon name="clipboard" slot="start" color="primary"></ion-icon> Dinâmica e Conclusão
                     </ion-item>
 
-                    <ion-item button routerLink="/atendimento/laudo" lines="none" detail color="white" class="secao_atendimento">
+                    <ion-item  button (click)="abrirLaudo(model)" lines="none" detail color="white" class="secao_atendimento">
                         <ion-icon name="clipboard" slot="start" color="success"></ion-icon> Laudo
                     </ion-item>
                 </ion-list>

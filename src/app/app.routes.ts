@@ -66,5 +66,10 @@ export const routes: Routes = [
     path: 'atendimento/conclusao',
     loadComponent: () => import('./atendimento/conclusao/conclusao.page').then(m => m.ConclusaoPage),
     canActivate: [AuthGuard, AtendimentoGuard]
+  },
+  {
+    path: 'atendimento/laudo',
+    loadComponent: () => import('./atendimento/laudo/laudo.page').then(m => m.LaudoPage),
+    canActivate: [AuthGuard, AtendimentoGuard]
   }
 ];

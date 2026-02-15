@@ -5,8 +5,10 @@ import { Vitima } from '../models/vitima.model';
 import { Veiculo } from '../models/veiculo.model';
 import { Quesito } from '../models/quesito.model';
 import { map } from 'rxjs/operators';
-import { Firestore } from '@angular/fire/firestore';
+import { collectionData, Firestore } from '@angular/fire/firestore';
 import { collection, getDocs, limit, orderBy, query, startAfter, where, doc, addDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import { Conclusao } from '../interfaces/conclusao.interface';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -196,6 +198,15 @@ export class AtendimentoService {
     });
   }
 
+  async updateConclusao(atendimento: Atendimento) {
+    const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
+    
+    return await updateDoc(atendimentoRef, {
+      dtupdate: Timestamp.now(),
+      dinamica: atendimento.fields.dinamica,
+      conclusao: atendimento.fields.conclusao
+    });
+  }
 
   async update(atendimento: Atendimento) {
     //return this.firestore.collection('atendimentos').doc(atendimento.id).update(atendimento.rawData());
@@ -210,7 +221,16 @@ export class AtendimentoService {
   }
 
   getConclusoes() {
-    //return this.firestore.collection('conclusoes').valueChanges();
+    const conclusoesRef = collection(this.firestore, 'conclusoes');
+    return collectionData(conclusoesRef, { idField: 'id' });
+  }
+
+  getDinamicas(): Observable<Conclusao[]> {
+    const ref = collection(this.firestore, 'dinamicas');
+
+    return collectionData(ref, {
+      idField: 'id'
+    }) as Observable<Conclusao[]>;
   }
 
 }

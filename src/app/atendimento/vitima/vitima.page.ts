@@ -1,14 +1,8 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AtendimentoService } from '../../services/atendimento.service';
-import { MessageService } from '../../services/message.service';
-import { ToastController } from '@ionic/angular';
-import { LoadingController } from '@ionic/angular';
-import { Vitima } from '../../models/vitima.model';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
     IonTextarea, IonListHeader, IonImg, IonList,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+    IonRow, IonCol, IonButton, IonItem, IonBackButton, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { AtendimentoBasePage } from '../atendimento-base.page';
 
@@ -21,7 +15,7 @@ import { AtendimentoBasePage } from '../atendimento-base.page';
       ReactiveFormsModule, CommonModule,
       IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
       IonTextarea, IonListHeader, IonImg, IonList,
-      IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelect, IonSelectOption
+      IonRow, IonCol, IonButton, IonItem, IonBackButton, IonSelect, IonSelectOption
     ]
 })
 export class VitimaPage extends AtendimentoBasePage implements OnInit {

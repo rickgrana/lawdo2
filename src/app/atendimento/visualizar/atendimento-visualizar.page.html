@@ -91,7 +91,7 @@
                             <ion-badge color="primary" slot="end">{{ model.imagens.length }}</ion-badge>
                     </ion-item>
 
-                    <ion-item [button]="true" routerLink="/atendimento/conclusao" lines="none" detail color="white" class="secao_atendimento">
+                    <ion-item  button (click)="abrirConclusao(model)" lines="none" detail color="white" class="secao_atendimento">
                         <ion-icon name="clipboard" slot="start" color="primary"></ion-icon> Dinâmica e Conclusão
                     </ion-item>
 

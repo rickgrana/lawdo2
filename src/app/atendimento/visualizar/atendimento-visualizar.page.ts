@@ -98,6 +98,11 @@ export class AtendimentoVisualizarPage implements OnInit {
     this.router.navigate(['atendimento/requisicao']);
   }
 
+  async abrirConclusao(model: any) {
+    this.atendimentoService.model = model;
+    this.router.navigate(['atendimento/conclusao']);
+  }
+
   async abrirVitimas(model: any) {
     this.atendimentoService.model = model;
     this.router.navigate(['atendimento/vitimas']);

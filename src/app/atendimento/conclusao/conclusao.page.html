@@ -1,0 +1,66 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Dinâmica e Conclusão</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content *ngIf="form">
+  <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+    <ion-item>
+      <ion-select
+        label="Tipo de Dinâmica"
+        labelPlacement="floating"
+        okText="Selecionar"
+        cancelText="Fechar" 
+        class="ion-text-wrap select-text"
+        formControlName="tipoDinamica"
+        (ionChange)="selecionarDinamica($event);"
+      >
+        <ion-select-option *ngFor="let item of dinamicas$ | async; let i = index" [value]="item.template" >{{item.titulo}}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-textarea
+        label="Dinâmica"
+        labelPlacement="floating"
+        formControlName="dinamica" autoGrow="true"
+        aria-placeholder="Lembre sempre de revisar a dinâmica sugerida">
+      </ion-textarea>
+    </ion-item>
+
+    <ion-item style="margin-top: 30px">
+      <ion-select
+        label="Tipo de Conclusão"
+        labelPlacement="floating"
+        okText="Selecionar"
+        cancelText="Fechar"
+        formControlName="tipo"
+        (ionChange)="selecionar($event);"
+      >
+        <ion-select-option *ngFor="let item of conclusoes | async; let i = index" [value]="item.texto" >{{item.titulo}}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-textarea
+        label="Texto"
+        labelPlacement="floating"
+        aria-placeholder="Lembre sempre de revisar o texto sugerido"
+        formControlName="texto" autoGrow="true">
+      </ion-textarea>
+    </ion-item>
+  </form>
+</ion-content>
+
+<ion-footer>
+  <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+    <ion-button 
+      class="submit-btn" type="submit"  color="primary" expand="block" 
+      [disabled]="form!.invalid" >Salvar
+    </ion-button>
+  </form>
+</ion-footer>

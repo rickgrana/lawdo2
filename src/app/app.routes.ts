@@ -1,5 +1,3 @@
-import { ListAtendimentosPage } from './atendimento/list/atendimento-list.page';
-import { CorporacaoGerenciarPage } from './corporacao/gerenciar/corporacao-gerenciar.page';
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
 import { AtendimentoGuard } from './guards/atendimento.guard';
@@ -64,5 +62,9 @@ export const routes: Routes = [
     loadComponent: () => import('./atendimento/vitima/vitima.page').then(m => m.VitimaPage),
     canActivate: [AuthGuard, AtendimentoGuard]
   },
-
+  {
+    path: 'atendimento/conclusao',
+    loadComponent: () => import('./atendimento/conclusao/conclusao.page').then(m => m.ConclusaoPage),
+    canActivate: [AuthGuard, AtendimentoGuard]
+  }
 ];

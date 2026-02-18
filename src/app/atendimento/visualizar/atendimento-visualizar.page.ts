@@ -159,6 +159,11 @@ export class AtendimentoVisualizarPage implements OnInit {
     await alert.present();
   }
 
+  async abrirVeiculos(model: any) {
+    this.atendimentoService.model = model;
+    this.router.navigate(['atendimento/veiculos']);
+  }
+
   abrirImagens(model: any) {
     this.atendimentoService.imagem_selecionada = -1;
     this.router.navigate(['atendimento/image']);

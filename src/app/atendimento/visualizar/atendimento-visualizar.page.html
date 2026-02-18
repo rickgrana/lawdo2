@@ -81,7 +81,7 @@
                         <ion-badge color="primary" slot="end">{{ model.fields.vitimas.length }}</ion-badge>
                     </ion-item>
 
-                    <ion-item  [button]="true" routerLink="/atendimento/veiculos" lines="none" detail color="white" class="secao_atendimento">
+                    <ion-item button (click)="abrirVeiculos(model)" lines="none" detail color="white" class="secao_atendimento">
                         <ion-icon name="car" slot="start" color="primary"></ion-icon> Veículo(s)
                         <ion-badge color="primary" slot="end">{{ model.fields.veiculos.length }}</ion-badge>
                     </ion-item>

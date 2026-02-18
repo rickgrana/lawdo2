@@ -1,7 +1,7 @@
 
 export class NumberHelper {
   
-  static getExtenso(num, genero = 'M') { // extenso até 99
+  static getExtenso(num: number, genero = 'M') { // extenso até 99
 
     const unidades = [
       'zero', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez',
@@ -28,7 +28,7 @@ export class NumberHelper {
     return dezenas[dezena] + ' e ' + unidades[unidade];
   }
 
-  static getRomano(numero){
+  static getRomano(numero: number){
     switch(numero){
       case 1: return 'I'; break;
       case 2: return 'II'; break;

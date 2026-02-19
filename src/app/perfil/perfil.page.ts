@@ -27,6 +27,7 @@ export class PerfilPage implements OnInit {
 
   form!: FormGroup;
   user?: User;
+  state: any;
 
   corporacoes: any[] = [];
   unidades: any[] = [];
@@ -48,7 +49,9 @@ export class PerfilPage implements OnInit {
       this.user = user;
       this.loadForm();
     });
-    
+
+    this.state = history.state;
+    console.log(this.state);
     this.corporacoes = await this.corporacaoService.list();
   }
 
@@ -106,7 +109,9 @@ export class PerfilPage implements OnInit {
     this.auth.user$.next(this.user!);
 
     this.userService.update(this.user!.uid, userData).then(resp => {
-        this.messageService.presentToast('Perfil alterado com sucesso');
+        this.messageService.presentToast('Perfil alterado com sucesso').then(() => {
+          this.router.navigate(['/home'], { replaceUrl: true });
+        });
     }).catch((error: any) => this.messageService.presentError(error.message));
 
   }
@@ -114,7 +119,7 @@ export class PerfilPage implements OnInit {
   logout() {
     this.auth.logout().subscribe({
       next: () => {
-        this.router.navigate(['/home']);
+        this.router.navigate(['/home'], { replaceUrl: true });
       }
     });
   }

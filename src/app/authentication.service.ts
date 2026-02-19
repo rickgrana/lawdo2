@@ -16,9 +16,6 @@ import { Router } from '@angular/router';
 })
 export class AuthenticationService {
   private auth = inject(Auth);
-  //private _user$ = new BehaviorSubject<any | null>(null);
-  //user$ = this._user$.asObservable();
-  //user?: User;
   public user$ = new BehaviorSubject<User | null>(null);
 
   constructor(private userService: UserService, private router: Router) {
@@ -41,7 +38,9 @@ export class AuthenticationService {
           this.user$.next(novoUsuario);
           console.log('Usuário criado e autenticadocom sucesso:', novoUsuario);
 
-          this.router.navigate(['perfil']);
+          this.router.navigate(['perfil'], {
+            state: { novoUsuario: true }
+          });
         }
       }
     });

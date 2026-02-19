@@ -217,6 +217,15 @@ export class AtendimentoService {
     });
   }
 
+  async updateVeiculos(atendimento: Atendimento) {
+    const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
+    
+    return await updateDoc(atendimentoRef, {
+      dtupdate: Timestamp.now(),
+      veiculos: atendimento.fields.veiculos.map(v => v.rawData())
+    });
+  }
+
   async update(atendimento: Atendimento) {
     //return this.firestore.collection('atendimentos').doc(atendimento.id).update(atendimento.rawData());
   }

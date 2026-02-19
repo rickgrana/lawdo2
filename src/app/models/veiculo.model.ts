@@ -9,7 +9,7 @@ export class Veiculo extends Base {
     tipo    =   '';
     especie = '';
     carroceria = '';
-    marca   = 'Não reconhecida';
+    marca   = '';
     modelo  = '';
     ano     = '';
 
@@ -216,7 +216,6 @@ export class Veiculo extends Base {
             tracao: this.tracao,
             tipo: this.tipo,
             especie: this.especie,
-            carroceria: this.carroceria,
             marca: this.marca,
             modelo: this.modelo,
             ano: this.ano,

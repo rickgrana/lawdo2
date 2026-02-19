@@ -1,0 +1,134 @@
+<ion-header>
+  <ion-toolbar>
+      <ion-buttons slot="start">
+          <ion-back-button></ion-back-button>
+        </ion-buttons>
+
+    <ion-title>Veículo</ion-title>
+
+    <ion-buttons slot="end">
+        <ion-button routerLink="/atendimento/veiculo-form"  routerDirection="forward" color="primary" fill="flat">
+            <ion-icon name="create"> </ion-icon>
+        </ion-button>
+        
+        <ion-button (click)="excluir($event)" color="danger">
+            <ion-icon name="trash"> </ion-icon>
+        </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content *ngIf="form">
+    <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+        <ion-grid>
+            <ion-row>
+                 <ion-col size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-input 
+                            label="PLACA" labelPlacement="floating"
+                            formControlName="placa"></ion-input>
+                    </ion-item>
+                </ion-col>
+                <ion-col   size-xs="12" size-md="5">
+                    <ion-item>
+                        <ion-input 
+                            label="Cor" labelPlacement="floating"
+                            formControlName="cor"></ion-input>
+                    </ion-item>
+                </ion-col>
+                <ion-col   size-xs="12" size-md="3">
+                    <ion-item>
+                        <ion-input 
+                            label="Ano" labelPlacement="floating"
+                            formControlName="ano"></ion-input>
+                    </ion-item>
+                </ion-col>
+                <ion-col size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-input label="Marca" labelPlacement="floating"
+                            #marcaInput
+                            okText="Selecionar" cancelText="Fechar" 
+                            formControlName="marca">
+                        </ion-input>
+                        <datalist id="marcas">
+                            <option *ngFor="let item of marcas" [value]="item.nome">{{item.nome}}</option>
+                        </datalist>
+                    </ion-item>       
+                </ion-col>
+
+                <ion-col  size-xs="12" size-md="8">
+                    <ion-item>
+                        <ion-input 
+                            label="Modelo" labelPlacement="floating"
+                            formControlName="modelo"></ion-input>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col   size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-select
+                            label="Tipo" labelPlacement="floating"
+                            required #compleicao okText="Selecionar" cancelText="Fechar" 
+                            formControlName="tipo">
+                            <ion-select-option *ngFor="let item of veiculo!.tipos" [value]="item">{{item}}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col   size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-select label="Tração" labelPlacement="floating"
+                                okText="Selecionar" cancelText="Fechar"  
+                                formControlName="tracao">
+                            <ion-select-option *ngFor="let item of veiculo!.tracoes" [value]="item">{{item}}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col   size-xs="12" size-md="4">
+                    <ion-item>
+                        <ion-select label="Espécie" labelPlacement="floating"
+                            #compleicao okText="Selecionar" cancelText="Fechar" 
+                            formControlName="especie">
+                            <ion-select-option *ngFor="let item of veiculo!.especies" [value]="item">{{item}}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col size-xs="12" size-md="12">
+                    <ion-item>
+                        <ion-input 
+                            label="Responsável" labelPlacement="floating"
+                            placeholder="Quem apresentou o veículo"
+                            formControlName="responsavel"></ion-input>
+                    </ion-item>
+                </ion-col>
+
+                <ion-col size-xs="12" size-md="12">
+                    <ion-item>
+                        <ion-input 
+                            label="Documento" labelPlacement="floating"
+                            placeholder="Documento de quem apresentou o veículo"
+                            formControlName="doc_responsavel"></ion-input>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+    </form>
+
+</ion-content>
+
+<ion-footer *ngIf="form">
+    <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/atendimento/veiculos">&lt; Veículos</ion-back-button>
+        </ion-buttons>
+        <ion-button 
+            class="submit-btn" type="submit"  color="success" expand="" slot="end"  fill="flat"
+            >Salvar
+        </ion-button>
+    </ion-toolbar>
+    </form>
+</ion-footer>

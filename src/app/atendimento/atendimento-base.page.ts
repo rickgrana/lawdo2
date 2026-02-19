@@ -9,6 +9,8 @@ import { Router } from '@angular/router';
 import { AuthenticationService } from 'src/app/authentication.service';
 import { User } from 'src/app/models/user.model';
 import { CommonModule } from '@angular/common';
+import { AlertController } from '@ionic/angular/standalone';
+
 
 @Directive()
 export abstract class AtendimentoBasePage implements OnInit {
@@ -18,6 +20,7 @@ export abstract class AtendimentoBasePage implements OnInit {
   protected authService = inject(AuthenticationService);
   protected atendimentoService = inject(AtendimentoService);
   protected formBuilder = inject(FormBuilder);
+  protected alertController = inject(AlertController);
   protected toastController = inject(ToastController);
   protected loadingController = inject(LoadingController);
   protected navCtrl = inject(NavController);

@@ -2,15 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonInput, IonTitle, IonToolbar, IonButtons, IonItem, IonButton,
-    IonRow, IonCol, IonLabel, IonSelectOption, IonMenuButton, IonFooter, IonSelect } from '@ionic/angular/standalone';
+    IonRow, IonCol, IonSelectOption, IonMenuButton, IonFooter, IonSelect } from '@ionic/angular/standalone';
 import { UnidadeService } from '../services/unidade.service';
 import { MessageService } from '../services/message.service';
 import { AuthenticationService } from '../authentication.service';
 import { UserService } from '../services/user.service';
 import { Router } from '@angular/router';
 import { CorporacaoService } from '../services/corporacao.service';
-import { filter } from 'rxjs';
 import { User } from '../models/user.model';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-perfil',
@@ -19,13 +19,13 @@ import { User } from '../models/user.model';
   standalone: true,
   imports: [ReactiveFormsModule,
     IonFooter, IonButtons, IonContent, IonItem, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule,
-    IonButton, IonRow, IonCol, IonLabel, IonSelectOption, IonMenuButton, IonFooter, IonInput,
+    IonButton, IonRow, IonCol, IonSelectOption, IonMenuButton, IonFooter, IonInput,
     IonSelect
   ]
 })
 export class PerfilPage implements OnInit {
 
-  form?: FormGroup;
+  form!: FormGroup;
   user?: User;
 
   corporacoes: any[] = [];
@@ -46,17 +46,21 @@ export class PerfilPage implements OnInit {
       filter(user => !!user)
     ).subscribe(user => {
       this.user = user;
-      this.form = this.formBuilder.group({
-        nomeCompleto: [this.user?.fields.nomeCompleto, Validators.required],
-        sexo: [this.user?.fields.sexo, Validators.required],
-        matricula: [this.user?.fields.matricula, Validators.required],
-        superior: [this.user?.fields.superior, Validators.required],
-        corporacao: [this.user?.fields.corporacao, Validators.required],
-        unidade: [this.user?.fields.unidade, Validators.required],
-      });
+      this.loadForm();
     });
-      
+    
     this.corporacoes = await this.corporacaoService.list();
+  }
+
+  async loadForm() {
+    this.form = this.formBuilder.group({
+      nomeCompleto: [this.user?.fields.nomeCompleto ?? '', Validators.required],
+      sexo: [this.user?.fields.sexo ?? '', Validators.required],
+      matricula: [this.user?.fields.matricula ?? '', Validators.required],
+      superior: [this.user?.fields.superior ?? '', Validators.required],
+      corporacao: [this.user?.fields.corporacao ?? '', Validators.required],
+      unidade: [this.user?.fields.unidade ?? '', Validators.required],
+    });
 
     if(this.form!.get('corporacao')!.value){
       this.loadUnidades();
@@ -82,6 +86,7 @@ export class PerfilPage implements OnInit {
   }
 
   updateUser(data: any) {
+
     const userData = {
       nomeCompleto: data.nomeCompleto,
       sexo: data.sexo,
@@ -97,6 +102,8 @@ export class PerfilPage implements OnInit {
     this.user!.fields.superior = userData.superior;
     this.user!.fields.corporacao = userData.corporacao;
     this.user!.fields.unidade = userData.unidade;
+
+    this.auth.user$.next(this.user!);
 
     this.userService.update(this.user!.uid, userData).then(resp => {
         this.messageService.presentToast('Perfil alterado com sucesso');

@@ -32,7 +32,6 @@ export class AppComponent {
 
   constructor(private firebaseAuth: Auth, private authService: AuthenticationService, private router: Router
   ) {
-
     this.firebaseAuth.onAuthStateChanged((user: any) => {
       this.usuario = user;
     });

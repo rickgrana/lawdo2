@@ -7,6 +7,7 @@ import { AuthenticationService } from '../authentication.service';
 import { Router } from '@angular/router';
 import { getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { Auth } from '@angular/fire/auth';
+import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-home',
@@ -21,38 +22,18 @@ export class HomePage implements OnInit {
   usuario: any;
   private auth = inject(Auth);
 
-  constructor(private authService: AuthenticationService, private router: Router) {
+  constructor(private authService: AuthenticationService,
+    private userService: UserService,
+    private router: Router
+  ) {
     this.auth.onAuthStateChanged((user: any) => {
       this.usuario = user;
-      console.log('Usuário autenticado:', this.usuario);
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {}
 
-    getRedirectResult(this.auth)
-      .then((result) => {
-        if (result) {
-          const credential = GoogleAuthProvider.credentialFromResult(result);
-          const token = credential?.accessToken;
-          const user = result.user;
-        }
-        // ...
-      }).catch((error) => {
-        // Handle Errors here.
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // The email of the user's account used.
-        const email = error.customData.email;
-        // The AuthCredential type that was used.
-        const credential = GoogleAuthProvider.credentialFromError(error);
-        // ...
-      });
-  }
-
-  login() {
-    //this.messageService.presentLoading('Aguarde...');
-
+  async login() {
     this.authService.login();
   }
 

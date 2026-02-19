@@ -1,97 +1,102 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
+
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
 
     <ion-title size="large">Perfil do Usuário</ion-title>
 
-    <ion-buttons slot="end" *ngIf="auth.user$">
-        <ion-button  (click)="logout()">Sair</ion-button>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()">Sair</ion-button>
     </ion-buttons>
+
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" padding>
+<ion-content [fullscreen]="true" *ngIf="auth.user$ | async as user; else loading">
 
-  <div *ngIf="auth.user$ then main else loading">
-      <!-- template will replace this div -->
-  </div>
+  <form *ngIf="form" class="form" [formGroup]="form" (ngSubmit)="updateUser(form.value)">
+    <ion-row>
+      <ion-col size="12">
+        <ion-item>
+          <ion-input label="Nome Completo" labelPosition="floating" formControlName="nomeCompleto"></ion-input>
+        </ion-item>
+      </ion-col>
 
-  <ng-template #loading>
-      Aguarde. Carregando....
-  </ng-template>
+      <ion-col size-md="4" size-xs="12">
+        <ion-item>
+          <ion-input label="Matrícula" labelPosition="floating" formControlName="matricula"></ion-input>
+        </ion-item>
+      </ion-col>
 
-  <ng-template #main>
+      <ion-col size-md="3" size-xs="12">
+        <ion-item>
+          <ion-select label="Sexo" labelPosition="floating" formControlName="sexo">
+            <ion-select-option value="M">Masculino</ion-select-option>
+            <ion-select-option value="F">Feminino</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-col>
 
-    <form class="form" [formGroup]="form!"  (ngSubmit)="updateUser(form!.value)">
-      <ion-row>
-        <ion-col size="12">
-          <ion-item>
-            <ion-label  position="floating" color="primary">Nome Completo</ion-label>
-            <ion-input placeholder="" formControlName="nomeCompleto"></ion-input>
-          </ion-item>
-        </ion-col>
+      <ion-col size-md="12" size-xs="12">
+        <ion-item>
+          <ion-select label="Corporação" labelPosition="floating" formControlName="corporacao"
+                      (ionChange)="selecionarCorporacao($event)">
+            <ion-select-option
+              *ngFor="let item of corporacoes"
+              [value]="item.id">
+              [{{item.uf}}] {{item.sigla}}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-col>
 
-        <ion-col size-md="4" size-xs="12">
-          <ion-item>
-            <ion-label  position="floating" color="primary">Matrícula</ion-label>
-            <ion-input placeholder="" formControlName="matricula"></ion-input>
-          </ion-item>
-        </ion-col>
+      <ion-col size-md="12" size-xs="12" *ngIf="unidades.length > 0">
+        <ion-item>
+          <ion-select label="Unidade Pericial" labelPosition="floating" formControlName="unidade">
+            <ion-select-option
+              *ngFor="let item of unidades"
+              [value]="item.id">
+              {{item.sigla}}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-col>
 
-        <ion-col size-md="3"size-xs="12">
-          <ion-item>
-            <ion-label  position="floating"  color="primary">Sexo</ion-label>
-            <ion-select okText="Selecionar" cancelText="Fechar"
-                    formControlName="sexo">
-                <ion-select-option value="M">Masculino</ion-select-option>
-                <ion-select-option value="F">Feminino</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </ion-col>
+      <ion-col size-md="12" size-xs="12">
+        <ion-item>
+          <ion-input label="Superior" labelPosition="floating" formControlName="superior"></ion-input>
+        </ion-item>
+      </ion-col>
 
-        <ion-col size-md="12"size-xs="12">
-          <ion-item>
-            <ion-label  position="floating"  color="primary">Corporação</ion-label>
-            <ion-select okText="Selecionar" cancelText="Fechar"
-                    formControlName="corporacao" (ionChange)="selecionarCorporacao($event);">
-                <ion-select-option *ngFor="let item of corporacoes" [value]="item.id">[{{item.uf}}] {{item.sigla}}</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </ion-col>
+    </ion-row>
 
-        <ion-col size-md="12"size-xs="12" *ngIf="unidades.length > 0">
-          <ion-item>
-            <ion-label  position="floating"  color="primary">Unidade Pericial</ion-label>
-            <ion-select okText="Selecionar" cancelText="Fechar"
-                    formControlName="unidade">
-                <ion-select-option *ngFor="let item of unidades" [value]="item.id">{{item.sigla}}</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </ion-col>
+  </form>
 
-        <ion-col size-md="12" size-xs="12">
-          <ion-item>
-            <ion-label  position="floating" color="primary">Superior</ion-label>
-            <ion-input type="text" placeholder="Gerente, Diretor ou outro superior" formControlName="superior"></ion-input>
-          </ion-item>
-        </ion-col>
-      </ion-row>
-
-    </form>
-  </ng-template>
 </ion-content>
 
-<ion-footer>
-    <ion-toolbar>
-      <form class="form" [formGroup]="form!"  (ngSubmit)="updateUser(form!.value)">
-        <ion-button
-            class="submit-btn" type="submit" expand="block"  color="success"
-            [disabled]="!form!.valid" >Salvar
-        </ion-button>
-      </form>
-  </ion-toolbar>
+<ng-template #loading>
+  <ion-content class="ion-padding">
+    Aguarde. Carregando...
+  </ion-content>
+</ng-template>
 
+
+<ion-footer *ngIf="form">
+  <ion-toolbar>
+
+    <ion-button
+      type="submit"
+      expand="block"
+      color="success"
+      [disabled]="form.invalid"
+      (click)="updateUser(form.value)">
+
+      Salvar
+
+    </ion-button>
+
+  </ion-toolbar>
 </ion-footer>
 

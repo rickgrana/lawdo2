@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { collection, doc, docData, Firestore, getDoc, updateDoc } from '@angular/fire/firestore';
-
-import { map, tap, first, take } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { User } from '../models/user.model';
-import { firstValueFrom, Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
+import { collection, doc, addDoc, updateDoc, Timestamp, where, query, setDoc } from 'firebase/firestore';
+import { collectionData, docData, Firestore } from '@angular/fire/firestore';
+
 
 @Injectable({
   providedIn: 'root'
@@ -13,23 +14,51 @@ export class UserService {
   constructor(private firestore: Firestore) {
   }
 
-  private getRef() {
-    return collection(this.firestore, "users");
+  async create(uid: string, data: any) {
+    const userRef = doc(this.firestore, 'users', uid);
+
+    const userData = {
+      uid,
+      email: data.email,
+      nomeCompleto: data.nomeCompleto,
+      dtcriacao: Timestamp.now()
+    };
+
+    await setDoc(userRef, userData);
+
+    return User.loadFromDb(userRef, userData);
   }
 
   getOne(uid: string): Observable<User | null> {
     const ref = doc(this.firestore, 'users', uid);
     return docData(ref, { idField: 'uid' })
       .pipe(
-        tap(data => console.log('docData:', data)),
         map(data => data ? User.loadFromDb(ref, data) : null),
         take(1)
       );
   }
 
+  async findByEmail(email: string): Promise<User | null> {
+    const ref = collection(this.firestore, 'users');
+    const q = query(ref, where('email', '==', email));
+    return await firstValueFrom(
+      collectionData(q, { idField: 'uid' })
+        .pipe(
+          take(1),
+          map((data: any[]) => {
+            if (!data || data.length === 0) {
+              return null;
+            }
+            return User.loadFromDb(ref, data[0]);
+          })
+        )
+      );
+  }
+
   async update(id: string, data: any) {
     const docRef = doc(this.firestore, "users", id);
-    await updateDoc(docRef, data);
+    return await updateDoc(docRef, data);
+      
   }
 }
 

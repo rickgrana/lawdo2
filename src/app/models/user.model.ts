@@ -56,21 +56,6 @@ export class User {
 
       user.uid = data.uid;
       user.ref = data.ref;
-
-      /*user.fields.photoURL       = data.photoURL;
-      user.fields.displayName       = data.displayName;
-      user.fields.favoriteColor       = data.favoriteColor;
-      user.fields.nomeCompleto       = data.nomeCompleto;
-      user.fields.sexo                = data.sexo;
-      user.fields.matricula               = data.matricula;
-      user.fields.parcerias               = data.parcerias;
-      user.fields.uf                      = data.uf;
-      user.fields.corporacao              = data.corporacao;
-      user.fields.unidade                 = data.unidade;
-      user.fields.superior                = data.superior;
-      user.fields.parceriaAuthCode       = data.parceriaAuthCode;
-      user.fields.parceriaAuthDate       = data.parceriaAuthDate;*/
-
       user.fields = data.fields;
 
       if(data.corporacao){

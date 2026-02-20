@@ -16,7 +16,7 @@ import { Router } from '@angular/router';
 })
 export class AuthenticationService {
   private auth = inject(Auth);
-  public user$ = new    <User | null>(null);
+  public user$ = new BehaviorSubject<User | null>(null);
 
   constructor(private userService: UserService, private router: Router) {
     authState(this.auth).subscribe(async user => {

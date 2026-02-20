@@ -69,9 +69,9 @@ export abstract class AtendimentoBasePage implements OnInit {
     await alert.present();
   }
 
-  async presentLoading() {
+  async presentLoading(message: string = 'Processando...') {
     const loading = await this.loadingController.create({
-      message: 'Processando...',
+      message: message,
       showBackdrop: false
     });
     return await loading.present();

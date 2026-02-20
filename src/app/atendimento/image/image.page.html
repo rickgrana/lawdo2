@@ -1,0 +1,76 @@
+<ion-header>
+  <ion-toolbar>
+      <ion-buttons slot="start">
+          <ion-back-button></ion-back-button>
+      </ion-buttons>
+      
+    <ion-title>{{titulo}}</ion-title>
+
+    <ion-buttons slot="end">
+
+      <ion-button (click)="crop()" *ngIf="imageLoaded && !cropperEnabled">
+          <ion-icon name="cut-outline"></ion-icon>
+      </ion-button>
+
+      <ion-button (click)="rotate()" *ngIf="imageLoaded && !cropperEnabled">
+          <ion-icon name="sync-outline"></ion-icon>
+      </ion-button>
+
+      <ion-button (click)="doCrop()" *ngIf="cropperEnabled">
+          <ion-label>OK</ion-label>
+      </ion-button>
+
+      <ion-button (click)="destroyCrop()" *ngIf="cropperEnabled">
+          <ion-label >Desfazer</ion-label>
+      </ion-button>
+
+      <ion-button (click)="remover()" *ngIf="this.imagem !== null">
+          <ion-label><ion-icon name="trash"></ion-icon> Remover</ion-label>
+      </ion-button>
+
+    </ion-buttons>
+
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+    <div class="file-input-container ion-text-center">
+      <label>
+        <input type="file" (change)="onSelectFile($event)" id="arquivo" accept='image/*'/>
+        Selecionar Imagem
+      </label>
+    </div>
+    
+    <ion-item>
+      <div class="img-container">
+          <img #image [src]="imageSource"  id="imageSource" crossorigin 
+            alt="Adicionar Imagem" width="100%" height="100%"
+            style="object-fit: contain">
+      </div>
+      
+    </ion-item>
+
+    <ion-progress-bar color="primary" [value]="progresso" *ngIf="progresso > 0"></ion-progress-bar>
+
+    <ion-grid>
+        <ion-row>
+          <ion-col size="12">
+            <ion-item>
+                <ion-label>Legenda</ion-label>
+                <ion-input [(ngModel)]="legenda"></ion-input>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+    </ion-grid>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+      <ion-button expand="block" color="success" (click)="salvar()" *ngIf="enableSalvar">Salvar</ion-button>
+    
+      <ion-button expand="" slot="end"  color="primary" (click)="nova()" *ngIf="enableNovaImagem">
+        Nova Imagem <ion-icon name="chevron-forward-outline"></ion-icon>
+      </ion-button>
+  </ion-toolbar>
+</ion-footer>

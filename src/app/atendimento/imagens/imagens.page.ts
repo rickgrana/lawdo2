@@ -3,7 +3,7 @@ import { ImageService } from '../../services/image.service';
 import { AtendimentoBasePage } from '../atendimento-base.page';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonSpinner, IonReorder,
     IonReorderGroup,
-    IonRow, IonList, IonCol, IonLabel, IonButton, IonItem, IonBackButton } from '@ionic/angular/standalone';
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './imagens.page.html',
   styleUrls: ['./imagens.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonList,
+  imports: [CommonModule,
     IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonReorder,
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSpinner, IonReorderGroup
   ]

@@ -164,9 +164,9 @@ export class AtendimentoVisualizarPage implements OnInit {
     this.router.navigate(['atendimento/veiculos']);
   }
 
-  abrirImagens(model: any) {
+  abrirImagens() {
     this.atendimentoService.imagem_selecionada = -1;
-    this.router.navigate(['atendimento/image']);
+    this.router.navigate(['atendimento/imagens']);
   }
 
   editarImagem(index: number) {

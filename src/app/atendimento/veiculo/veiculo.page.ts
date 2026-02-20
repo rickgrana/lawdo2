@@ -7,7 +7,7 @@ import { VeiculoService } from 'src/app/services/veiculo.service';
 import { AtendimentoBasePage } from '../atendimento-base.page';
 import { CommonModule } from '@angular/common';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
-    IonSelect, IonIcon, IonText,
+    IonSelect, IonIcon,
     IonRow, IonCol, IonButton, IonItem, IonBackButton, IonSelectOption } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { trash } from 'ionicons/icons';
@@ -20,7 +20,7 @@ import { trash } from 'ionicons/icons';
   imports: [
       ReactiveFormsModule, CommonModule,
       IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
-      IonIcon, IonText,
+      IonIcon,
       IonRow, IonCol, IonButton, IonItem, IonBackButton, IonSelect, IonSelectOption
     ]
 })

@@ -64,12 +64,13 @@ export class MessageService {
       });
 
       return await this.loading.present();
-
-      //return loading.onDidDismiss();
     }
 
     async hideLoader() {
-      if(this.loading == null) return null;
+      if(this.loading == null){
+        console.log('Nenhum loader ativo para ser ocultado.');
+        return null;
+      }
       await this.loading.dismiss();
       this.loading = null;
       return true;

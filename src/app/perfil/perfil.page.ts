@@ -45,7 +45,7 @@ export class PerfilPage implements OnInit {
 
     this.auth.user$.pipe(
       filter(user => !!user)
-    ).subscribe(user => {
+    ).subscribe((user: User) => {
       this.user = user;
       this.loadForm();
     });

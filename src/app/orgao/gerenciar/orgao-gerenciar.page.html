@@ -4,15 +4,20 @@
         <ion-menu-button></ion-menu-button>
       </ion-buttons>
 
-    <ion-title>Corporações</ion-title>
+    <ion-title>Órgãos</ion-title>
   </ion-toolbar>
 </ion-header>
   
 <ion-content>
   <ion-list>
-    <ion-item class="ion-align-items-center" *ngIf="!loading && ((items == null) || (items.length == 0))">
+    <ion-item class="ion-align-items-center" *ngIf="this.corporacao == null">
         <ion-text   class="ion-text-center">
-          Nenhum órgão cadastrado na UF do Usuário.
+          Usuário não possui Corporação cadastrada.
+        </ion-text>
+    </ion-item>
+    <ion-item class="ion-align-items-center" *ngIf="this.corporacao && ((items == null) || (items.length == 0))">
+        <ion-text   class="ion-text-center">
+          Nenhum órgão cadastrado na UF da Corporação do Usuário.
         </ion-text>
     </ion-item>
 

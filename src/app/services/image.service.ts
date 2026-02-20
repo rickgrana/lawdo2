@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Atendimento } from '../models/atendimento.model';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 @Injectable({
   providedIn: 'root'
@@ -8,48 +9,37 @@ export class ImageService {
 
   constructor() { }
 
-  async upload(atendimento_id: string, fileName: string, blobData: any){
+  async upload(atendimento_id: string, fileName: string, blobData: Blob) {
+    const storage = getStorage();
 
-      /*let storageRef = firebase.storage().ref();
+    const imageRef = ref(storage, `${atendimento_id}/${fileName}`);
 
-      let ocorrenciaRef = storageRef.child(atendimento_id);
+    console.log('Salvando', blobData);
 
-      let imageRef = ocorrenciaRef.child(fileName);
+    const snapshot = await uploadBytes(imageRef, blobData);
 
-      console.log('Salvando', blobData);
-
-      return imageRef.put(blobData);*/
+    return snapshot;
   }
 
-  async loadAll(atendimento: Atendimento){
+  async loadAll(atendimento: Atendimento) {
+    const storage = getStorage();
 
-      /*let storageRef = firebase.storage().ref();
+    const promises = atendimento.imagens.map(async (img) => {
+      const imageRef = ref(storage, `${atendimento.id}/${img.nome}`);
 
-      let ocorrenciaRef = storageRef.child(atendimento.id);
+      const url = await getDownloadURL(imageRef);
 
-      let promises = [];
+      img.imagem = url;
+    });
 
-      for(const index in atendimento.imagens){
-
-        let promise = ocorrenciaRef.child(atendimento.imagens[index].nome).getDownloadURL().then(async(url) => {
-          atendimento.imagens[index].imagem = url;
-        });
-
-        promises.push(promise);
-
-      }
-
-      return Promise.all(promises);*/
+    return Promise.all(promises);
   }
 
   remover(atendimento_id: string, nome: string){
-    /*let storageRef = firebase.storage().ref();
+    const storage = getStorage();
 
-    let ocorrenciaRef = storageRef.child(atendimento_id);
+    const imageRef = ref(storage, `${atendimento_id}/${nome}`);
 
-    let imageRef = ocorrenciaRef.child(nome);
-
-
-    return imageRef.delete();*/
+    return deleteObject(imageRef);
   }
 }

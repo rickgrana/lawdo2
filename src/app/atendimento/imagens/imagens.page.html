@@ -1,0 +1,68 @@
+<ion-header [translucent]="true">
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button></ion-back-button>
+        </ion-buttons>
+        <ion-title>Imagens</ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="toggleOrdem()" color="success" *ngIf="(model!.imagens && model!.imagens.length > 0) && !reorder">
+                Reordenar
+            </ion-button>
+
+            <ion-button (click)="toggleOrdem()" color="success" *ngIf="(model!.imagens && model!.imagens.length > 0) && reorder">
+                Concluir
+            </ion-button>
+        </ion-buttons> 
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" *ngIf="model">
+    <div *ngIf="reorder && model!.imagens && model!.imagens.length > 0">
+        <ion-reorder-group #reorderGroup (ionItemReorder)="doReorder($event)" disabled="false">
+            <ion-reorder *ngFor="let item of model!.imagens; let i = index">
+                <ion-item>
+                    <div class="ion-text-center" style="width:100%; margin-bottom: 10px; margin-top: 10px">
+                        <img [src]="item.imagem" class="img-preview" *ngIf="item.imagem" height="150px"><br>
+                        <ion-spinner name="circles"  *ngIf="!item.imagem"></ion-spinner>          
+                        <ion-label>{{item.legenda}}</ion-label>
+                    </div>
+
+                    <ion-reorder slot="end"></ion-reorder>
+                </ion-item>
+            </ion-reorder>
+        </ion-reorder-group>
+    </div>
+
+    <div *ngIf="!reorder && model!.imagens && model!.imagens.length > 0">
+        <ion-grid>
+            <ion-row>
+                <ion-col size="6" *ngFor="let item of model.imagens; let i = index">
+                    <ion-item  (click)="editarImagem(i)" >
+                        <div class="ion-text-center" style="width:100%; margin-bottom: 10px; margin-top: 10px">
+                            <img [src]="item.imagem" class="img-preview" *ngIf="item.imagem" height="150px"><br>
+                            <ion-spinner name="circles"  *ngIf="!item.imagem"></ion-spinner>
+                            
+                            <ion-label>{{item.legenda}}</ion-label>
+                        </div>
+                    </ion-item>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+    </div>
+
+    <ion-row class="ion-align-items-center" style="height: 100%">
+        <ion-col>
+            <div *ngIf="!model.imagens || model.imagens.length == 0" id="txt-imagens">
+                Nenhuma imagem cadastrada para este caso. 
+            </div>
+        </ion-col>
+    </ion-row>
+
+    <input type="file" (change)="onSelectFile($event)" id="arquivo" multiple="multiple" style="visibility: hidden"/>
+</ion-content>
+
+<ion-footer>
+    <ion-button *ngIf="!reorder" (click)="selecionarImagens()" color="primary" title="Selecionar Vários"  expand="block">
+        Adicionar
+    </ion-button>
+</ion-footer>

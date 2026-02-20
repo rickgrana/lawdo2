@@ -86,7 +86,7 @@
                         <ion-badge color="primary" slot="end">{{ model.fields.veiculos.length }}</ion-badge>
                     </ion-item>
 
-                    <ion-item [button]="true" routerLink="/atendimento/imagens" lines="none" detail color="white" class="secao_atendimento">
+                    <ion-item button (click)="abrirImagens()" lines="none" detail color="white" class="secao_atendimento">
                         <ion-icon name="images" slot="start" color="danger"></ion-icon> Imagens
                             <ion-badge color="primary" slot="end">{{ model.imagens.length }}</ion-badge>
                     </ion-item>

@@ -7,6 +7,7 @@ import { IonGrid, IonCard, IonList, IonContent, IonHeader, IonTitle, IonToolbar,
     IonRow, IonCol, IonLabel, IonMenuButton, IonText, IonItem } from '@ionic/angular/standalone';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-orgao-gerenciar',
@@ -22,7 +23,7 @@ export class OrgaoGerenciarPage implements OnInit {
 
   items: any[] = [];
   loading = true;
-  corporacao = null;
+  corporacao?: any = null;
 
   constructor(private orgaoService: OrgaoService, 
     private messageService: MessageService,
@@ -31,18 +32,23 @@ export class OrgaoGerenciarPage implements OnInit {
       console.log('Orgão Gerenciar Page');
   }
 
-  ngOnInit() {
-    this.messageService.presentLoading('Carregando...');
+  async ngOnInit() {
+    await this.messageService.presentLoading('Carregando...');
 
-    this.authService.user$.subscribe(async user => {
-      if (user && user.fields.corporacao) {
-        const corporacao = await this.corporacaoService.read(user.fields.corporacao);
-        if (corporacao) {
-          this.items = await this.orgaoService.list(corporacao['uf']);
+    this.authService.user$.pipe(
+        filter(user => !!user)
+      ).subscribe(async (user: any) => {
+        await this.messageService.hideLoader();
+        if (user && user.fields.corporacao) {
+          this.corporacao = await this.corporacaoService.read(user.fields.corporacao);
+          if (this.corporacao) {
+            this.items = await this.orgaoService.list(this.corporacao['uf']);
+          }
+        } else {
+          this.corporacao = null;
+          this.items = [];
         }
-        this.messageService.hideLoader();
-      }
-    })   
+    });   
   }
 
   adicionar() {

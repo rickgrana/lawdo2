@@ -31,7 +31,7 @@ export abstract class AtendimentoBasePage implements OnInit {
 
     this.authService.user$.pipe(
       filter(user => !!user)
-    ).subscribe(user => {
+    ).subscribe((user: User) => {
       this.user = user;
       this.loadForm();
     });

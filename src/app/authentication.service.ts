@@ -16,18 +16,19 @@ import { Router } from '@angular/router';
 })
 export class AuthenticationService {
   private auth = inject(Auth);
-  public user$ = new BehaviorSubject<User | null>(null);
+  public user$ = new    <User | null>(null);
 
   constructor(private userService: UserService, private router: Router) {
     authState(this.auth).subscribe(async user => {
       if (!user) {
         this.user$.next(null);
+        console.log('Sem Usuário!');
       } else {
         const usuario = await this.userService.findByEmail(user.email ?? '');
 
         if (usuario) {
           this.user$.next(usuario);
-           console.log('Usuario autenticado::', usuario);
+          console.log('Usuario autenticado::', usuario);
         } else {
           // cria usuario se não existir e redireciona para perfil
           const novoUsuario = await this.userService.create(user.uid, {

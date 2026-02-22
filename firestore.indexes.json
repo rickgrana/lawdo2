@@ -1,4 +1,34 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionId": "atendimentos",
+      "queryScope": "COLLECTION",
+      "density": "SPARSE_ALL",
+      "fields": [
+        { "fieldPath": "perito", "order": "ASCENDING" },
+        { "fieldPath": "data", "order": "DESCENDING" },
+        { "fieldPath": "hora", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionId": "orgaos",
+      "queryScope": "COLLECTION",
+      "density": "SPARSE_ALL",
+      "fields": [
+        { "fieldPath": "uf", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "sigla", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionId": "unidades",
+      "queryScope": "COLLECTION",
+      "density": "SPARSE_ALL",
+      "fields": [
+        { "fieldPath": "corporacao", "order": "ASCENDING" },
+        { "fieldPath": "sigla", "order": "ASCENDING" }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }

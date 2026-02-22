@@ -48,7 +48,7 @@ export class SecaoPreambulo extends Secao{
                     }),
 
                     new TextRun(
-                        ((this.documento.atendimento.fields.requisicao.recebimento.length > 0)?
+                        ((this.documento.atendimento.fields.requisicao.numero.length > 0)?
                             ', a fim de descrever com veracidade e com ' +
                             'todas as minúcias o que encontrar, bem como responder aos quesitos formulados pela autoridade policial ' +
                             'requisitante, os quais se encontram transcritos e respondidos em tópico específico deste documento.'

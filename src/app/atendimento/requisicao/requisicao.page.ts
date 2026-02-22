@@ -14,10 +14,10 @@ import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButto
   IonDatetimeButton } from '@ionic/angular/standalone';
 import { ReactiveFormsModule } from '@angular/forms';
 import { filter } from 'rxjs';
-import { AuthenticationService } from 'src/app/authentication.service';
-import { User } from 'src/app/models/user.model';
 import { QuesitoPage } from '../quesito/quesito.page';
 import { AtendimentoBasePage } from '../atendimento-base.page';
+import { add, trash } from 'ionicons/icons';
+import { addIcons } from 'ionicons';
 
 @Component({
   selector: 'app-requisicao',
@@ -34,6 +34,7 @@ export class RequisicaoPage extends AtendimentoBasePage implements OnInit {
 
   constructor(private modalCtrl: ModalController) {
     super();
+    addIcons({ trash });
   }
 
   override ngOnInit() {
@@ -50,12 +51,16 @@ export class RequisicaoPage extends AtendimentoBasePage implements OnInit {
   override loadForm() {
 
     let dtRecebimento = new Date().toISOString();
+    if(this.model!.fields.requisicao.recebimento){
+      console.log(this.model!.fields.requisicao.recebimento);
+      dtRecebimento = new Date(this.model!.fields.requisicao.recebimento).toISOString();
+    }
 
     this.form = this.formBuilder.group({
       requisicaoNumero: new FormControl<string>(this.model!.fields.requisicao.numero, Validators.required),
       dipOrigem: new FormControl<string>(this.model!.fields.requisicao.origem, Validators.required),
       delegado: new FormControl<string>(this.model!.fields.requisicao.delegado ?? ''),
-      dtRecebimento: new FormControl<string>(this.model!.fields.requisicao.recebimento.length ? this.model!.fields.requisicao.recebimento : dtRecebimento),
+      dtRecebimento: new FormControl<string>(dtRecebimento),
       ip: new FormControl<string>(this.model!.fields.requisicao.ip ?? ''),
       dipDestino: new FormControl<string>(this.model!.fields.requisicao.destino ?? ''),
     });

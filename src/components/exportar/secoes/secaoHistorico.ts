@@ -15,6 +15,7 @@ export class SecaoHistorico extends SecaoNumerada{
         let artigo = this.documento.perito.getArtigo();
 
         const dataAux = DateTimeHelper.dateToDMY(new Date(model.fields.data));
+        //const hora = (model.fields.hora.toDate().toLocaleTimeString('pt-BR')
 
         let retorno = [
             
@@ -22,7 +23,7 @@ export class SecaoHistorico extends SecaoNumerada{
                 style: 'padrao',
                 children: [
                     new TextRun({
-                        text: 'Às ' + model.fields.hora.substr(11, 2) + 'h' + model.fields.hora.substr(14, 2) + 'min do dia ' +
+                        text: 'Às ' + model.fields.hora.substr(0, 2) + 'h' + model.fields.hora.substr(3, 2) + 'min do dia ' +
                         dataAux +
                         ', atendendo ao protocolo supracitado via chamado da radiofonia, ' + artigo + 
                         ' perit' + artigo + ' compareceu ao local ' +
@@ -30,7 +31,7 @@ export class SecaoHistorico extends SecaoNumerada{
                         'termos do presente laudo'
                     }),
     
-                    (model.fields.requisicao.recebimento.length > 0)?
+                    (model.fields.requisicao.numero.length > 0)?
                         new TextRun(''):
                         new TextRun({text: ', emitido sem que a Requisição de Perícia correspondente tenha sido recebida até a presente data', bold: true}),
                     
@@ -39,16 +40,17 @@ export class SecaoHistorico extends SecaoNumerada{
             }),
         ];
     
-        if(model.fields.requisicao.recebimento.length){
+        if(model.fields.requisicao.numero.length){
+            const dtRecebimento = DateTimeHelper.dateToDMY(new Date(model.fields.requisicao.recebimento)) || '';
             retorno = retorno.concat([
                 new Paragraph ({
                     style: 'padrao',
                     children: [
                         new TextRun({
-                            text: 'Este laudo visa responder à Requisição de Perícia S/N, ' +
+                            text: 'Este laudo visa responder à Requisição de Perícia ' +
+                            (model.fields.requisicao.numero ?? 'S/N') + ', ' +
                             'recebida pel' + artigo + ' perit' + artigo + ' em ' +
-                            model.fields.requisicao.recebimento.substr(0, 2) + '/' + model.fields.requisicao.recebimento.substr(3, 2) + '/' +
-                            model.fields.requisicao.recebimento.substr(6, 4) +
+                            dtRecebimento + 
                             ', expedida pela ' + model.fields.requisicao.origem +
                             ' e assinada pelo(a) Delegado(a) de Polícia Civil ' + model.fields.requisicao.delegado + '.',
                         }),

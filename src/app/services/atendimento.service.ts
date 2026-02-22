@@ -144,11 +144,9 @@ export class AtendimentoService {
   async updateRequisicao(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
 
-    const recebimento = new Date(atendimento.fields.requisicao.recebimento);
-
     const dados = {
       ...atendimento.fields.requisicao,
-      recebimento: Timestamp.fromDate(recebimento)
+      recebimento: atendimento.fields.requisicao.recebimento
     };
 
     return await updateDoc(atendimentoRef, {

@@ -1,26 +1,26 @@
-import { Component, OnInit, ViewChild, Input, ElementRef, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, ElementRef, inject, CUSTOM_ELEMENTS_SCHEMA  } from '@angular/core';
 import { AtendimentoBasePage } from '../atendimento-base.page';
 import { ImageService } from 'src/app/services/image.service';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
-    IonIcon, IonProgressBar,
+    IonIcon,
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
-import Cropper from "cropperjs";
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { chevronForwardOutline, syncOutline, cutOutline, trash } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
-
-// import Jimp from 'jimp';
+import 'cropperjs';
+import Cropper from 'cropperjs';
 
 @Component({
   selector: 'app-image',
   templateUrl: './image.page.html',
   styleUrls: ['./image.page.scss'],
   standalone: true,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     ReactiveFormsModule, CommonModule, FormsModule,
     IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
-    IonIcon, IonProgressBar,
+    IonIcon,
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton
   ]
 })
@@ -35,20 +35,14 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
   titulo = "";
 
   cropperEnabled = false;
-
-  progresso = 0;
-
   enableSalvar = false;
-  enableNovaImagem = false;
   imageLoaded = false;
 
 
-  @ViewChild("image", { static: true }) public imageElement!: ElementRef;
+  @ViewChild("image", { static: true }) public imageElement!: ElementRef<HTMLImageElement>;
 
-  @Input("src") public imageSource: string = '';
+  @Input("src") public imageSource: string = 'assets/no-image.jpg';
 
-  public imageDestination?: string;
-  public cropper?: Cropper;
   protected imageService = inject(ImageService);
 
   constructor() {
@@ -68,14 +62,11 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
     this.load();
   }
 
-  load() {
+  async load() {
     if(this.imagem) {
       this.legenda = this.imagem.legenda;
-      this.enableNovaImagem = false;
       this.enableSalvar = true;
     }
-
-    this.imageDestination = "";
 
     if(this.imagem){
       this.sequencia = (this.atendimentoService.imagem_selecionada + 1).toString().padStart(2, "0");
@@ -89,20 +80,39 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
 
     if(this.imagem) {
 
-      /*Jimp.read(this.imagem.imagem).then((image) => {
-        image.resize(Jimp.AUTO, 500) // resize
-          .getBase64Async(Jimp.MIME_JPEG).then((src) => { // para jpeg
-            
-            this.imageElement.nativeElement.src = src;
+      await this.presentLoading('Carregando Imagem...');
 
-            this.imageLoaded = true;
-          });
-      })*/
+      const response = await fetch(this.imagem.imagem);
+      const blob = await response.blob();
+
+      const img = new Image();
+      img.src = URL.createObjectURL(blob);
+
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+
+        // mantém proporção
+        const targetHeight = 500;
+        const scale = targetHeight / img.height;
+        const targetWidth = img.width * scale;
+
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+        // JPEG base64
+        const src = canvas.toDataURL('image/jpeg', 0.9);
+
+        this.imageLoaded = true;
+        this.imageSource = src;
+        await this.hideLoader();
+      };
 
     } else {
-      console.log('Zarou imagem');
-
-      this.imageElement.nativeElement.src = '/assets/no-image.jpg';
+      console.log('Nenhuma imagem a carregar  ');
+      this.imageSource = 'assets/no-image.jpg';
     }
   }
 
@@ -112,77 +122,16 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
 
   destroyCrop(){
       this.cropperEnabled = false;
-      this.cropper!.destroy();
   }
 
   crop(){
-    this.cropper = new Cropper('imageSource');
     this.cropperEnabled = true;
   }
 
-  doCrop(){
-    //const canvas = this.cropper!.getCropperCanvas() as HTMLCanvasElement;
-    //this.imageElement.nativeElement.src = canvas!.toDataURL("image/jpeg", 1);
-
-    this.destroyCrop();
-
-    this.enableSalvar = true;
-  }
-
-
-  onSelectFile(event: any) {
-    if (event.target.files && event.target.files[0]) {
-        var filesAmount = event.target.files.length;
-        for (let i = 0; i < filesAmount; i++) {
-          this.progresso = 0;
-
-          var reader = new FileReader();
-
-          reader.onprogress = (evt: any) => {
-            if (evt.lengthComputable) {
-              this.progresso = (evt.loaded / evt.total);
-              console.log(this.progresso, evt.loaded, evt.total);      
-            }
-          };
-
-          this.presentLoading('Carregando Imagem...');
-
-          reader.onload = (event:any) => {
-
-            try{
-
-              /*Jimp.read(event.target.result).then((image) => {
-                image
-                  //.resize(Jimp.AUTO, 500) // resize
-                  .getBase64Async(Jimp.MIME_JPEG)
-                  .then((src) => { // para jpeg
-                    //this.cropper.replace(src);
-                    this.imageElement.nativeElement.src = src;
-                    //this.crop();
-
-                    this.messageService.hideLoader();
-
-                    this.progresso = 0;
-
-                    this.enableSalvar = true;
-
-                    this.imageLoaded = true;
-
-                    // deixa o resize em background
-                    image.resize(Jimp.AUTO, 500).getBase64Async(Jimp.MIME_JPEG).then((src) => {
-                      this.imageElement.nativeElement.src = src;
-                    });
-                  });
-              });*/
-
-            }catch(error){
-              this.hideLoader();
-              throw error;
-            }
-          }
-          reader.readAsDataURL(event.target.files[i]);
-        }
-    }
+  async doCrop(){
+    const canvas = await (document.getElementById("cropperSelection") as any).$toCanvas();
+    this.imageSource = canvas!.toDataURL("image/jpeg", 1);
+    this.cropperEnabled = false;
   }
 
   override async salvar(){
@@ -192,50 +141,57 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
     await this.presentLoading();
     
     try{
+      const img = new Image();
+      img.src = this.imageSource;
 
-      /*Jimp.read(this.imageElement.nativeElement.src).then((image) => {
-        // faz o resize da imagem
-        image.resize(Jimp.AUTO, 500).getBase64Async(Jimp.MIME_JPEG).then((src) => { 
-            fetch(src).then(async(response) => {
+      img.onload = async () => {
 
-              const record = {
-                imagem: src,
-                legenda:  this.legenda,
-                nome: ((this.imagem)? this.imagem.nome:new Date().getTime().toString()),
-                colunas: this.colunas
-              }; 
+        const maxHeight = 500;
+        const scale = maxHeight / img.height;
 
-              if(!this.imagem){
-                this.model.imagens.push(record);
-      
-                this.atendimentoService.imagem_selecionada = this.model.imagens.length-1;
-      
-                this.load();
+        const canvas = document.createElement('canvas');
+        canvas.height = maxHeight;
+        canvas.width = img.width * scale;
 
-                this.enableNovaImagem = true;
-              }else{
-                this.model.imagens[this.atendimentoService.imagem_selecionada] = record;
-              }
+        const ctx = canvas.getContext('2d');
+        ctx!.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-              let blob = await response.blob();
+        // base64 jpeg
+        const src = canvas.toDataURL('image/jpeg', 1);
 
-              this.imageService.upload(this.model.id, record.nome, blob).then(() => {
-      
-                this.atendimentoService.update(this.model).then(resp => {
-                  this.messageService.hideLoader();
-                  this.messageService.presentToast('Imagem salva com sucesso');
-                });
-      
-              }) .catch(error => {
-                console.log(error);
-                this.messageService.presentError(error.message);
-              });
-                
+        const record = {
+          imagem: src,
+          legenda: this.legenda,
+          nome: (this.imagem ? this.imagem.nome : new Date().getTime().toString()),
+          colunas: this.colunas
+        };
+
+        if (!this.imagem) {
+          this.model!.imagens.push(record);
+          this.atendimentoService.imagem_selecionada = this.model!.imagens.length - 1;
+        } else {
+          this.model!.imagens[this.atendimentoService.imagem_selecionada] = record;
+        }
+
+        // blob para upload
+        const blob: Blob = await new Promise(resolve =>
+          canvas.toBlob(b => resolve(b!), 'image/jpeg', 1)
+        );
+
+        this.imageService.upload(this.model!.id, record.nome, blob)
+          .then(() => {
+            this.atendimentoService.updateImagens(this.model!).then(() => {
+              this.hideLoader();
+              this.presentAlertSalvo('Imagem salva com sucesso');
             });
-        });
-      });*/
-
-    }catch(error){
+          })
+          .catch(error => {
+            console.log(error);
+            this.presentError('Erro ao tentar salvar Imagem: '+ error.message);
+            return;
+          });
+      };
+    } catch(error){
       this.enableSalvar = true;
       this.hideLoader();
       throw error;
@@ -244,18 +200,51 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
 
   async rotate(){
 
-    await this.presentLoading();
+    await this.presentLoading('Rotacionando Imagem...');
 
     try{
-      /*Jimp.read(this.imageElement.nativeElement.src).then((image) => {
-        image.resize(Jimp.AUTO, 500).rotate(-90).getBase64Async(Jimp.MIME_JPEG).then((src) => { 
-          this.imageElement.nativeElement.src = src;
-          this.messageService.hideLoader();
+      const img = new Image();
+      img.src = this.imageSource;
+      
+      img.onload = () => {
 
-          this.enableSalvar = true;
-          this.enableNovaImagem = false;
-        });
-      });*/
+        const maxHeight = 500;
+        const scale = maxHeight / img.height;
+
+        const newWidth = img.width * scale;
+        const newHeight = maxHeight;
+
+        const canvas = document.createElement('canvas');
+
+        // inverter dimensões por causa da rotação -90
+        canvas.width = newHeight;
+        canvas.height = newWidth;
+
+        const ctx = canvas.getContext('2d')!;
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // mover origem para centro
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+
+        // rotacionar -90 graus
+        ctx.rotate(-90 * Math.PI / 180);
+
+        // desenhar imagem centralizada
+        ctx.drawImage(
+          img,
+          -newWidth / 2,
+          -newHeight / 2,
+          newWidth,
+          newHeight
+        );
+
+        const src = canvas.toDataURL('image/jpeg', 1);
+
+        this.imageSource = src;
+        this.hideLoader();
+      };
 
     }catch(error){
       this.hideLoader();
@@ -293,13 +282,4 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
 
     this.model!.imagens.splice(index, 1);
   }
-
-  nova() {
-    this.enableNovaImagem = false;
-    this.atendimentoService.imagem_selecionada = -1;
-    this.imageLoaded = false;
-    this.load();
-    document.getElementById("arquivo")!.click();
-  }
-
 }

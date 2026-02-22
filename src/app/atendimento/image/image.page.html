@@ -34,43 +34,48 @@
 </ion-header>
 
 <ion-content>
-
-    <div class="file-input-container ion-text-center">
-      <label>
-        <input type="file" (change)="onSelectFile($event)" id="arquivo" accept='image/*'/>
-        Selecionar Imagem
-      </label>
-    </div>
-    
-    <ion-item>
+    <ion-item  *ngIf="!cropperEnabled">
       <div class="img-container">
-          <img #image [src]="imageSource"  id="imageSource" crossorigin 
+          <img #image [src]="imageSource"  id="imageSource" crossorigin="anonymous"
             alt="Adicionar Imagem" width="100%" height="100%"
             style="object-fit: contain">
       </div>
-      
     </ion-item>
 
-    <ion-progress-bar color="primary" [value]="progresso" *ngIf="progresso > 0"></ion-progress-bar>
-
-    <ion-grid>
+    <ion-grid  *ngIf="!cropperEnabled">
         <ion-row>
           <ion-col size="12">
             <ion-item>
-                <ion-label>Legenda</ion-label>
-                <ion-input [(ngModel)]="legenda"></ion-input>
+                <ion-input label="Legenda" labelPosition="floating" [(ngModel)]="legenda"></ion-input>
             </ion-item>
           </ion-col>
         </ion-row>
     </ion-grid>
+
+    <div class="cropper-container" *ngIf="cropperEnabled">
+      <cropper-canvas background style="height: 100%">
+        <cropper-image [src]="imageSource" alt="Picture" rotatable scalable skewable translatable></cropper-image>
+        <cropper-shade hidden></cropper-shade>
+        <cropper-handle action="select" plain></cropper-handle>
+        <cropper-selection id="cropperSelection" initial-coverage="0.5" movable resizable>
+          <cropper-grid role="grid" covered></cropper-grid>
+          <cropper-crosshair centered></cropper-crosshair>
+          <cropper-handle action="move" theme-color="rgba(255, 255, 255, 0.35)"></cropper-handle>
+          <cropper-handle action="n-resize"></cropper-handle>
+          <cropper-handle action="e-resize"></cropper-handle>
+          <cropper-handle action="s-resize"></cropper-handle>
+          <cropper-handle action="w-resize"></cropper-handle>
+          <cropper-handle action="ne-resize"></cropper-handle>
+          <cropper-handle action="nw-resize"></cropper-handle>
+          <cropper-handle action="se-resize"></cropper-handle>
+          <cropper-handle action="sw-resize"></cropper-handle>
+        </cropper-selection>
+      </cropper-canvas>
+    </div>
 </ion-content>
 
 <ion-footer>
   <ion-toolbar>
-      <ion-button expand="block" color="success" (click)="salvar()" *ngIf="enableSalvar">Salvar</ion-button>
-    
-      <ion-button expand="" slot="end"  color="primary" (click)="nova()" *ngIf="enableNovaImagem">
-        Nova Imagem <ion-icon name="chevron-forward-outline"></ion-icon>
-      </ion-button>
+      <ion-button expand="block" color="success" (click)="salvar()">Salvar</ion-button>
   </ion-toolbar>
 </ion-footer>

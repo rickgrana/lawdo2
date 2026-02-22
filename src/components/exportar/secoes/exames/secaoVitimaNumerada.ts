@@ -6,15 +6,15 @@ import { Vitima } from 'src/app/models/vitima.model';
 
 export class SecaoVitimaNumerada extends SecaoNumerada{
 
-    private vitima: Vitima;
+    private vitima!: Vitima;
 
-    protected estiloTitulo = 'titulo2';
+    protected override estiloTitulo = 'titulo2';
 
-    getNivel(){
+    override getNivel(){
         return 2;
     }
 
-    getTitulo(){
+    override getTitulo(){
         return this.getVitima().index;
     }
 
@@ -28,7 +28,7 @@ export class SecaoVitimaNumerada extends SecaoNumerada{
         return this.vitima;
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
         return await (new SecaoVitimaIndividual(this.documento)
                         .setVitima(this.getVitima())
                         .run()

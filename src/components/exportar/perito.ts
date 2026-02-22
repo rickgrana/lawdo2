@@ -1,7 +1,4 @@
-import { ThrowStmt } from '@angular/compiler';
-
 export class Perito{
-
     data: any;
 
     corporacao: any;

@@ -16,12 +16,9 @@ export const NUMBERING =
                             left: convertMillimetersToTwip(0),
                             hanging: convertMillimetersToTwip(0) 
                         }
-                    }
-
-                    
+                    } 
                 },
             },
-
             {
                 level: 1,
                 format: LevelFormat.UPPER_LETTER,
@@ -33,7 +30,6 @@ export const NUMBERING =
                     },
                 },
             },
-
             {
                 level: 2,
                 format: LevelFormat.DECIMAL,

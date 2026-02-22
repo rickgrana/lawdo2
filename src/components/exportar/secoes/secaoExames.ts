@@ -7,17 +7,15 @@ import { SecaoVeiculos } from './exames/secaoVeiculos';
 
 export class SecaoExames extends SecaoNumerada{
 
-    capitulo: String;
+    capitulo: String = '';
 
-    getTitulo(){
+    override getTitulo(){
         return 'EXAMES';
     }
 
-    
+    override async runInternal(): Promise<any[]> {
 
-    async runInternal(){
-
-        let secoes = [];
+        let secoes: any[] = [];
 
         secoes = secoes.concat(await (new SecaoLocal(this.documento, this).run())); 
 

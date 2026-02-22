@@ -5,19 +5,18 @@ import { Atendimento } from 'src/app/models/atendimento.model';
 
 export class SecaoIsolamento extends SecaoSubExames{
 
-    getTitulo(){
+    override getTitulo(){
         return 'ISOLAMENTO E PRESERVAÇÃO DO LOCAL';
     }
 
-    isSecaoDisponivel(){
+    override isSecaoDisponivel(){
 
         let local = this.documento.atendimento.fields.local;
 
         return (local.isolamento.length > 0) || (local.preservacao.length > 0);
     }
 
-    async runInternal(){
-
+    override async runInternal(): Promise<any[]> {
 
         let model = this.documento.atendimento;
 
@@ -52,7 +51,7 @@ export class SecaoIsolamento extends SecaoSubExames{
         }
 
 
-        let equipe_pc = [];
+        let equipe_pc: any[] = [];
 
         if(model.fields.equipes.pc.delegado.length > 0){
 

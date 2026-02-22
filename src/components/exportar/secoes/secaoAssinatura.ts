@@ -1,12 +1,10 @@
+import { DateTimeHelper } from 'src/app/extensions/dateTimeHelper';
 import { Secao } from '../secao'; 
-
 import { Paragraph, TextRun, PageNumber} from 'docx';
-
-import { DateTimeHelper } from 'src/extensions/dateTimeHelper';
 
 export class SecaoAssinatura extends Secao{
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
         let model = this.documento.atendimento;
         let artigo = this.documento.perito.getArtigo();

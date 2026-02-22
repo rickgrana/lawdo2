@@ -1,21 +1,17 @@
 import { Secao } from '../secao'; 
-
 import { Paragraph, TextRun, PageNumber} from 'docx';
 import { SecaoNumerada } from '../secaoNumerada';
 
 export class SecaoOutros extends SecaoNumerada{
 
-    getTitulo(){
+    override getTitulo(){
         return 'OUTROS ELEMENTOS';
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
         let model = this.documento.atendimento;
-
         const qtde = model.fields.vitimas.length;
-
-        
 
         return [
             new Paragraph ({
@@ -32,8 +28,5 @@ export class SecaoOutros extends SecaoNumerada{
                     ]),
             })
         ];
-        
-
     }
-
 }

@@ -6,34 +6,25 @@ import { Atendimento } from 'src/app/models/atendimento.model';
 
 export class SecaoPerinecroscopia extends SecaoSubExames{
 
-    getTitulo(){
+    override getTitulo(){
         return 'PERINECROSCOPIA';
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
-        let retorno = [];
+        let retorno: any[] = [];
 
         let model = this.documento.atendimento;
 
         for (var vitima of model.fields.vitimas){
-
-            console.log(vitima);
-
             retorno = retorno.concat(
                 await (new SecaoPerinecroVitima(this.documento).setVitima(vitima).run())
             );
-
-            console.log(retorno);
         }
-
-
-        console.log(retorno);
 
         retorno = retorno.concat([
             new Paragraph ('')
         ]);
-    
     
         retorno = retorno.concat([
             new Paragraph ({
@@ -97,10 +88,6 @@ export class SecaoPerinecroscopia extends SecaoSubExames{
     
         ]);
 
-        
-
         return retorno;
-
     }
-
 }

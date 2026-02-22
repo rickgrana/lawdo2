@@ -1,25 +1,23 @@
 import { SecaoSubExames } from './secaoSubExames'; 
 import { INDICE_NUMERADO } from '../../secaoNumerada';
-
-import { NumberHelper } from 'src/extensions/numberHelper';
-
 import { SecaoVitimaIndividual } from './secaoVitimaIndividual'; 
 import { SecaoVitimaNumerada } from './secaoVitimaNumerada';
+import { NumberHelper } from 'src/app/extensions/numberHelper';
 
 export class SecaoVitimas extends SecaoSubExames{
 
-    capitulo: String;
+    capitulo?: String;
 
-    protected subIndices = INDICE_NUMERADO;
+    protected override subIndices = INDICE_NUMERADO;
 
-    getTitulo(){
+    override getTitulo(){
         if(this.documento.atendimento.fields.vitimas.length > 1)
             return 'CADÁVERES EXAMINADOS';
         else 
             return 'CADÁVER EXAMINADO';
     }
 
-    isSecaoDisponivel(){
+    override isSecaoDisponivel(){
         return (this.documento.atendimento.fields.vitimas.length > 0);
     }
 
@@ -27,7 +25,7 @@ export class SecaoVitimas extends SecaoSubExames{
         return this.documento.atendimento.fields.vitimas.length > 1;
     }
 
-    async runInternal(){
+    override async runInternal(){
         
         // UNICA VITIMA
         if(!this.isMultiplasVitimas()){
@@ -38,7 +36,7 @@ export class SecaoVitimas extends SecaoSubExames{
             return await (new SecaoVitimaIndividual(this.documento).setVitima(vitima).run());
         }
 
-        let retorno = [];
+        let retorno: any[] = [];
         let index = 0;
     
         // MULTIPLAS VITIMAS
@@ -53,9 +51,6 @@ export class SecaoVitimas extends SecaoSubExames{
 
             retorno = retorno.concat(textoVitima);
         };
-
-        console.log(retorno);
-    
     
         return retorno;
     }

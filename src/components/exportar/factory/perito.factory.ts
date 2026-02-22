@@ -1,25 +1,27 @@
+import { Injectable } from '@angular/core';
 import { Perito } from '../perito';
+import { CorporacaoService } from 'src/app/services/corporacao.service';
+import { UnidadeService } from 'src/app/services/unidade.service';
+import { User } from 'src/app/models/user.model';
 
-import { AuthenticationService } from 'src/app/services/authentication.service';
-import { CorporacaoService } from 'src/app/cadastros/corporacao/corporacao.service';
-import { UnidadeService } from 'src/app/cadastros/unidade/unidade.service';
+@Injectable({ providedIn: 'root' })
+export class PeritoFactory{
 
-export abstract class PeritoFactory{
-
-    constructor() 
+    constructor(private corporacaoService: CorporacaoService,
+        private unidadeService: UnidadeService) 
     { 
     }
 
-    static async create(auth: AuthenticationService,
-            corporacaoService: CorporacaoService,
-            unidadeService: UnidadeService
-    ){
-        let perito = new Perito;
-        perito.data = await auth.user.fields;
+    async create(user: User): Promise<Perito>{
+        let perito = new Perito();
+        perito.data = user.fields;
 
-        perito.corporacao     = await corporacaoService.read(perito.data.corporacao);
-        perito.unidade        = await unidadeService.read(perito.data.unidade);
-
+        if (!perito.data.corporacao || !perito.data.unidade) {
+            throw new Error('Perito deve conter corporacao e unidade nas configurações da Conta');
+        }
+        
+        perito.corporacao   = await this.corporacaoService.read(perito.data.corporacao);
+        perito.unidade      = await this.unidadeService.read(perito.data.unidade);
         return perito;
     }
 

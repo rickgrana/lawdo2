@@ -1,25 +1,23 @@
 import { SecaoSubExames } from './secaoSubExames'; 
 import { INDICE_NUMERADO } from '../../secaoNumerada';
-
-import { NumberHelper } from 'src/extensions/numberHelper';
-
 import { SecaoVeiculoIndividual } from './secaoVeiculoIndividual'; 
 import { SecaoVeiculoNumerado } from './secaoVeiculoNumerado';
+import { NumberHelper } from 'src/app/extensions/numberHelper';
 
 export class SecaoVeiculos extends SecaoSubExames{
 
-    capitulo: String;
+    capitulo: String = '';
 
-    protected subIndices = INDICE_NUMERADO;
+    protected override subIndices = INDICE_NUMERADO;
 
-    getTitulo(){
+    override getTitulo(){
         if(this.documento.atendimento.fields.veiculos.length > 1)
             return 'VEÍCULOS EXAMINADOS';
         else 
             return 'VEÍCULO EXAMINADO';
     }
 
-    isSecaoDisponivel(){
+    override isSecaoDisponivel(){
         return (this.documento.atendimento.fields.veiculos.length > 0);
     }
 
@@ -27,7 +25,7 @@ export class SecaoVeiculos extends SecaoSubExames{
         return this.documento.atendimento.fields.veiculos.length > 1;
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
         
         // UNICA VITIMA
         if(!this.isMultiplosVeiculos()){
@@ -38,7 +36,7 @@ export class SecaoVeiculos extends SecaoSubExames{
             return await (new SecaoVeiculoIndividual(this.documento).setVeiculo(veiculo).run());
         }
 
-        let retorno = [];
+        let retorno: any[] = [];
         let index = 0;
     
         // MULTIPLOS VEICULOS

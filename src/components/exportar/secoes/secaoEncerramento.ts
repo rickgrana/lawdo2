@@ -4,9 +4,8 @@ import { Paragraph, TextRun, PageNumber} from 'docx';
 
 export class SecaoEncerramento extends Secao{
 
-    async run(){
+    override async run(): Promise<any[]> {
         return [
-
             new Paragraph ({
                 style: 'titulo',
                 children: [
@@ -30,5 +29,4 @@ export class SecaoEncerramento extends Secao{
             })
         ];
     }
-
 }

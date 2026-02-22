@@ -1,13 +1,11 @@
+import { DateTimeHelper } from 'src/app/extensions/dateTimeHelper';
 import { Secao } from '../secao'; 
-
-import { DateTimeHelper } from 'src/extensions/dateTimeHelper';
-
 import { Paragraph, TextRun} from 'docx';
 
 export class SecaoPreambulo extends Secao{
 
-    async runInternal(){
-        const data = DateTimeHelper.dateToDMY(this.documento.atendimento.fields.data.toDate());
+    override async runInternal(): Promise<any[]> {
+        const data = DateTimeHelper.dateToDMY(new Date(this.documento.atendimento.fields.data)) || '';
 
         const diaReceb = data.substr(0, 2);
         const mesReceb = data.substr(3, 2);
@@ -61,7 +59,5 @@ export class SecaoPreambulo extends Secao{
                 ],
             })
         ];
-
     }
-
 }

@@ -5,15 +5,15 @@ import { SecaoNumerada } from '../secaoNumerada';
 
 export class SecaoQuesitos extends SecaoNumerada{
 
-    getTitulo(){
+    override getTitulo(){
         return 'QUESITOS E RESPOSTAS';
     }
 
-    isSecaoDisponivel(){
+    override isSecaoDisponivel(){
         return (this.documento.atendimento.quesitos.length > 0);
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
         let model = this.documento.atendimento;
         let artigo = this.documento.perito.getArtigo();

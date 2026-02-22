@@ -24,7 +24,7 @@ export class UserService {
       dtcriacao: Timestamp.now()
     };
 
-    await setDoc(userRef, userData);
+    await setDoc(userRef, userData, { merge: false });
 
     return User.loadFromDb(userRef, userData);
   }

@@ -2,21 +2,18 @@ import { Atendimento } from 'src/app/models/atendimento.model';
 import { Secao } from './secao'; 
 import { Perito } from './perito'; 
 
-import { CorporacaoService } from 'src/app/cadastros/corporacao/corporacao.service';
-import { UnidadeService } from 'src/app/cadastros/unidade/unidade.service';
-
-
 export class Documento{
 
     public docx: any;
     public atendimento: Atendimento;
-
-    public secoes: Secao[];
     public perito: Perito;
-    public corporacao: any;
-    public unidade: any;
+    public secoes: Secao[] = [];
+    public capitulos = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 
-    capitulos = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+    constructor(atendimento: Atendimento, perito: Perito){
+        this.atendimento = atendimento;
+        this.perito = perito;
+    }
 
     criarSecao(secao: Secao){
         secao.documento = this;
@@ -24,7 +21,6 @@ export class Documento{
     }
 
     getCreator(){
-        return 'Polícia Civil do Amazonas';
         return this.perito.corporacao.nome;
     }
 
@@ -33,13 +29,11 @@ export class Documento{
     }
 
     getConteudo(){
-
     }
 
     getProximoCapitulo(){
-        return this.capitulos.shift();
+        return this.capitulos.shift() ?? '';
     }
-
 
     getNomeArquivo(){
         return this.atendimento.fields.laudo.ano + '-' + this.atendimento.fields.laudo.numero + 

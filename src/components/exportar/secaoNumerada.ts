@@ -8,26 +8,25 @@ export const INDICE_LETRADO     = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 
 
 interface SecaoArguments{
     documento: Documento;
-    secaoUperior?: SecaoNumerada;
+    secaoSuperior?: SecaoNumerada|null;
 }
 
 export class SecaoNumerada extends Secao{
 
-    protected secaoSuperior: SecaoNumerada;
+    protected secaoSuperior: SecaoNumerada|null;
     protected separadorSubItens = '.';
-    protected indice;
+    protected indice: string = '';
     protected subIndices = INDICE_LETRADO;
     protected estiloTitulo = 'titulo';
 
-    constructor(documento: Documento, secaoUperior?: SecaoNumerada){
+    constructor(documento: Documento, secaoSuperior?: SecaoNumerada){
         super(documento);
 
-        if(!secaoUperior){
+        if(!secaoSuperior){
             this.secaoSuperior = null;
         }else{
-            this.secaoSuperior = secaoUperior;
+            this.secaoSuperior = secaoSuperior;
         }
-        
     }
 
     // Titulo da Seçao
@@ -36,10 +35,10 @@ export class SecaoNumerada extends Secao{
     }
 
     getProximoIndice(){
-        return this.subIndices.shift();
+        return this.subIndices.shift() ?? '';
     }
 
-    getIndiceCompleto(){
+    getIndiceCompleto(): string{
         let indice = this.indice;
 
         if(this.secaoSuperior != null){
@@ -76,9 +75,7 @@ export class SecaoNumerada extends Secao{
         });
     }
 
-    
-
-    async run(){
+    override async run(): Promise<any[]> {
 
         if(!this.isSecaoDisponivel()){
             return [];
@@ -99,7 +96,7 @@ export class SecaoNumerada extends Secao{
         return secoes;
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
         return [];
     }
 

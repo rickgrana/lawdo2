@@ -10,18 +10,19 @@ import { faFemale } from '@fortawesome/free-solid-svg-icons';
 import { faQuestion } from '@fortawesome/free-solid-svg-icons';
 import { Vitima } from 'src/app/models/vitima.model';
 import { ImageService } from 'src/app/services/image.service';
-// import { ExportarService } from '../../services/exportar.service';
 import { AlertController } from '@ionic/angular';
 import { ToastController } from '@ionic/angular';
 import { LoadingController } from '@ionic/angular';
 import { AtendimentoService } from '../../services/atendimento.service';
 import { AuthenticationService } from 'src/app/authentication.service';
-import Viewer from 'viewerjs';
 import { arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonBadge, IonNote,
     IonRow, IonCol, IonLabel, IonInfiniteScroll, IonInfiniteScrollContent, IonIcon, IonButton, IonItem, IonBackButton } from '@ionic/angular/standalone';
 import { CommonModule, DatePipe } from '@angular/common';
+import { ExportarService } from 'src/app/services/exportar.service';
+import { filter } from 'rxjs';
+import { User } from 'src/app/models/user.model';
 
 @Component({
   selector: 'app-visualizar',
@@ -43,18 +44,18 @@ export class AtendimentoVisualizarPage implements OnInit {
   faMale = faMale;
   faFemale = faFemale;
   faQuestion = faQuestion;
-
   gallery = null;
+  user: User | null = null;
 
   constructor(
     private atendimentoService: AtendimentoService,
-    // private exportarService: ExportarService,
+    private exportarService: ExportarService,
     private router: Router,
     private imageService: ImageService,
     public alertController: AlertController,
     public toastController: ToastController,
     public loadingController: LoadingController,
-    private authenticationService: AuthenticationService,
+    private authService: AuthenticationService,
     public actionSheetController: ActionSheetController
     ) {
       addIcons({ arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline });
@@ -64,12 +65,23 @@ export class AtendimentoVisualizarPage implements OnInit {
     return this.atendimentoService.model;
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     if(this.model == null){
       this.router.navigate(['/']);
     } else{
+      this.authService.user$.pipe(
+        filter(user => !!user)
+      ).subscribe((user: User) => {
+        this.user = user;
+      });
+
       // carrega das imagens
-      this.imageService.loadAll(this.model); // carrega as imagens
+      this.presentLoading('Carregando imagens...');
+      try{
+        await this.imageService.loadAll(this.model); // carrega as imagens
+      } finally {
+        this.hideLoader();
+      }
     }
   }
 
@@ -239,7 +251,7 @@ export class AtendimentoVisualizarPage implements OnInit {
     this.presentLoading('Gerando Laudo...');
 
     try{
-      //await this.exportarService.getLaudo(this.model!);
+      await this.exportarService.getLaudo(this.model!, this.user!);
     } catch(error: any){
       this.hideLoader();
       console.log(error);

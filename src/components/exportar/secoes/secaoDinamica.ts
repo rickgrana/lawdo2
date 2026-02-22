@@ -5,15 +5,15 @@ import { Paragraph, TextRun} from 'docx';
 
 export class SecaoDinamica extends SecaoNumerada{
 
-    getTitulo(){
+    override getTitulo(){
         return 'POSSÍVEL DINÂMICA DO EVENTO';
     }
 
-    isSecaoDisponivel(){
+    override isSecaoDisponivel(){
         return (this.documento.atendimento.fields.dinamica.length > 0);
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
         let model = this.documento.atendimento;
         let artigo = this.documento.perito.getArtigo();

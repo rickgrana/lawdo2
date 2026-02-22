@@ -5,12 +5,12 @@ import { Paragraph, TextRun, TableCell, VerticalAlign, BorderStyle} from 'docx';
 const noBorder = {
     style: BorderStyle.NIL,
     size: 1,
-    color: '#F00',
+    color: '#FF0000',
 };
 
 export class ImageCell{
 
-    static async get(imageParagraph, columnSpan) {
+    static async get(imageParagraph: any, columnSpan: number) {
     
         return new TableCell({
             children: imageParagraph,

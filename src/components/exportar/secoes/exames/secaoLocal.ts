@@ -5,11 +5,11 @@ import { Atendimento } from 'src/app/models/atendimento.model';
 
 export class SecaoLocal extends SecaoSubExames{
 
-    getTitulo(){
+    override getTitulo(){
         return 'LOCAL';
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
         const texto = [];
 

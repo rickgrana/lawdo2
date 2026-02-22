@@ -1,21 +1,20 @@
+import { DateTimeHelper } from 'src/app/extensions/dateTimeHelper';
 import { SecaoNumerada } from '../secaoNumerada'; 
 
 import { Paragraph, TextRun} from 'docx';
 
-import { DateTimeHelper } from 'src/extensions/dateTimeHelper';
-
 export class SecaoHistorico extends SecaoNumerada{
 
-    getTitulo(){
+    override getTitulo(){
         return 'HISTÓRICO';
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
         let model = this.documento.atendimento;
         let artigo = this.documento.perito.getArtigo();
 
-        const dataAux = DateTimeHelper.dateToDMY(model.fields.data.toDate());
+        const dataAux = DateTimeHelper.dateToDMY(new Date(model.fields.data));
 
         let retorno = [
             

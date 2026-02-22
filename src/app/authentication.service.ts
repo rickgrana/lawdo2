@@ -25,7 +25,6 @@ export class AuthenticationService {
         console.log('Sem Usuário!');
       } else {
         const usuario = await this.userService.findByEmail(user.email ?? '');
-
         if (usuario) {
           this.user$.next(usuario);
           console.log('Usuario autenticado::', usuario);

@@ -1,11 +1,11 @@
 import { Secao } from '../../secao'; 
 import { Paragraph, TextRun} from 'docx';
+import { NumberHelper } from 'src/app/extensions/numberHelper';
 import { Vitima } from 'src/app/models/vitima.model';
-import { NumberHelper } from 'src/extensions/numberHelper';
 
 export class SecaoPerinecroVitima extends Secao{
 
-    private vitima: Vitima;
+    private vitima!: Vitima;
     
     setVitima(vitima: Vitima){
         this.vitima = vitima;
@@ -17,13 +17,13 @@ export class SecaoPerinecroVitima extends Secao{
         return this.vitima;
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
-        let retorno = [];
+        let retorno: any[] = [];
 
         let model = this.documento.atendimento;
     
-        retorno = retorno.concat([
+        retorno = retorno!.concat([
             new Paragraph ({
                 style: 'padrao',
                 children: [
@@ -219,9 +219,9 @@ export class SecaoPerinecroVitima extends Secao{
 
     }
 
-    async getParagrafoFerimentos() {
+    async getParagrafoFerimentos(): Promise<any[]> {
 
-        let secoes = [];
+        let secoes: any[] = [];
     
         var pafs_frente = new Map();
         var pafs_costas = new Map();
@@ -346,7 +346,7 @@ export class SecaoPerinecroVitima extends Secao{
        
         for await(let [regiao, qtde] of pafs_frente){
         
-            regiao_traduzida = regioes_frontal.get(regiao.trim());
+            regiao_traduzida = regioes_frontal!.get(regiao.trim())!;
 
             if(regiao_traduzida) {
     
@@ -373,7 +373,7 @@ export class SecaoPerinecroVitima extends Secao{
         // exibe os registros por região (COSTAS)
         for await(let [regiao, qtde] of pafs_costas){
        
-            regiao_traduzida = regioes_costas.get(regiao.trim());
+            regiao_traduzida = regioes_costas!.get(regiao.trim())!;
     
             if(regiao_traduzida) {
     

@@ -5,7 +5,7 @@ import { Vitima } from 'src/app/models/vitima.model';
 
 export class SecaoVitimaIndividual extends Secao{
 
-    private vitima: Vitima;
+    private vitima!: Vitima;
     
     setVitima(vitima: Vitima){
         this.vitima = vitima;
@@ -17,13 +17,13 @@ export class SecaoVitimaIndividual extends Secao{
         return this.vitima;
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
         let model = this.documento.atendimento;
         let artigo = this.documento.perito.getArtigo();
 
         // CADAVER
-        const retorno = [];
+        const retorno: any[] = [];
 
         retorno.push(new TextRun({ text: 'O cadáver doravante denominado de '}));
 
@@ -35,7 +35,7 @@ export class SecaoVitimaIndividual extends Secao{
             if (this.getVitima().identificada == 'Não reconhecida') {
                 retorno.push(new TextRun({ text: ', sem reconhecimento no momento da realização do exame', bold: true}));
             }else{
-            retorno.push(new TextRun({ text: ', ' + this.getVitima().identificada.toLowerCase() + 
+            retorno.push(new TextRun({ text: ', ' + (this.getVitima()!.identificada as string)!.toLowerCase() + 
                         ' no local como sendo referente a '}));
             retorno.push(new TextRun({ text: this.getVitima().nome.toUpperCase(), bold: true}));
             }
@@ -101,7 +101,7 @@ export class SecaoVitimaIndividual extends Secao{
             retorno.push(new TextRun({ text: 'com os pés descalços.'}));
         }
 
-        let secoes = [];
+        let secoes: any[] = [];
 
         secoes = secoes.concat([
 

@@ -4,7 +4,7 @@ import { Paragraph, TextRun} from 'docx';
 
 export class SecaoTitulo extends Secao{
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
         return [
 
             new Paragraph ({

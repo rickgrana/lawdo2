@@ -5,7 +5,7 @@ import { Veiculo } from 'src/app/models/veiculo.model';
 
 export class SecaoVeiculoIndividual extends Secao{
 
-    private veiculo: Veiculo;
+    private veiculo!: Veiculo;
     
     setVeiculo(veiculo: Veiculo){
         this.veiculo = veiculo;
@@ -17,9 +17,9 @@ export class SecaoVeiculoIndividual extends Secao{
         return this.veiculo;
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
-        let paragrafos = [];
+        let paragrafos: any[] = [];
 
         let texto = [];
 

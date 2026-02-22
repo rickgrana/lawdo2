@@ -9,27 +9,34 @@ import { CorporacaoService } from 'src/app/services/corporacao.service';
 import { UnidadeService } from 'src/app/services/unidade.service';
 import { Packer } from 'docx';
 import { AuthenticationService } from 'src/app/authentication.service';
+import { Perito } from 'src/components/exportar/perito';
+import { User } from '../models/user.model';
+import { PeritoFactory } from 'src/components/exportar/factory/perito.factory';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExportarService {
 
-
-
   constructor(
     private auth: AuthenticationService,
     private corporacaoService: CorporacaoService,
     private unidadeService: UnidadeService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private peritoFactory: PeritoFactory
   )
   {
-
   }
 
-  async getLaudo(atendimento: Atendimento) {
+  async getLaudo(atendimento: Atendimento, user: User) {
 
-    let laudo = await DocumentoFactory.create(atendimento, this.auth, this.corporacaoService, this.unidadeService);
+    if (!atendimento.fields.laudo.numero || atendimento.fields.laudo.ano.trim() === '') {
+      throw new Error('Atendimento não possui número de Laudo definido');
+    }
+
+    const perito = await this.peritoFactory.create(user);
+
+    let laudo = await DocumentoFactory.create(atendimento, perito);
 
     const packer = new Packer();
 
@@ -41,9 +48,5 @@ export class ExportarService {
     audio.src = '/assets/ring.wav';
     audio.load();
     audio.play();
-
   }
-
-
-
 }

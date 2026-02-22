@@ -4,7 +4,7 @@ import { Paragraph, TextRun, Media, SequentialIdentifier, ImageRun } from 'docx'
 
 export class ImageParagraph{
 
-    static get(imageData, legenda, width, height) {
+    static get(imageData: any, legenda: any, width: number, height: number) {
     
         return [
             
@@ -13,6 +13,7 @@ export class ImageParagraph{
                 children: [
                     new ImageRun({
                         data: imageData,
+                        type: "jpg",
                         transformation: {
                             width: width,
                             height: height

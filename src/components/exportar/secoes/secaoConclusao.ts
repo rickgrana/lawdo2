@@ -5,15 +5,15 @@ import { Paragraph, TextRun} from 'docx';
 
 export class SecaoConclusao extends SecaoNumerada{
 
-    getTitulo(){
+    override getTitulo(){
         return 'CONCLUSÃO';
     }
 
-    isSecaoDisponivel(){
+    override isSecaoDisponivel(){
         return (this.documento.atendimento.fields.conclusao.length > 0);
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
         let model = this.documento.atendimento;
         let artigo = this.documento.perito.getArtigo();
@@ -22,11 +22,8 @@ export class SecaoConclusao extends SecaoNumerada{
                         .replace(/<O>/g, artigo.toUpperCase());
 
         
-        let retorno = [];
-
-       
+        let retorno: any[] = [];
         retorno = retorno.concat([
-
             new Paragraph ({
                         style: 'padrao',
                         children: [
@@ -37,7 +34,4 @@ export class SecaoConclusao extends SecaoNumerada{
 
         return retorno;
     }
-
-
-
 }

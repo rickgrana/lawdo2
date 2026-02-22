@@ -106,8 +106,8 @@
 
 <ion-footer>
     <ion-toolbar>
-            <ion-button (click)="exportar()" expand="block" color="danger">
-                    <ion-icon name="print"></ion-icon> Exportar Laudo
-            </ion-button>
+        <ion-button (click)="exportar()" expand="block" color="danger" *ngIf="user">
+                <ion-icon name="print"></ion-icon> Exportar Laudo
+        </ion-button>
     </ion-toolbar>
 </ion-footer>

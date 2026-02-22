@@ -6,11 +6,11 @@ import { Veiculo } from 'src/app/models/veiculo.model';
 
 export class SecaoVeiculoNumerado extends SecaoNumerada{
 
-    private veiculo: Veiculo;
+    private veiculo!: Veiculo;
 
-    protected estiloTitulo = 'titulo2';
+    protected override estiloTitulo = 'titulo2';
 
-    getTitulo(){
+    override getTitulo(){
         return this.getVeiculo().index;
     }
 
@@ -24,7 +24,7 @@ export class SecaoVeiculoNumerado extends SecaoNumerada{
         return this.veiculo;
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
         return await (new SecaoVeiculoIndividual(this.documento)
                         .setVeiculo(this.getVeiculo())
                         .run()

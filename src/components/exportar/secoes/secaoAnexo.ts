@@ -8,18 +8,15 @@ import { ImageParagraph } from '../helper/ImageParagraph';
 
 export class SecaoAnexo extends Secao{
 
-    cells = [];
-    rows = [];
-
+    cells: any[] = [];
+    rows: any[] = [];
     total = 0;
 
-
-
-    isSecaoDisponivel(){
+    override isSecaoDisponivel(){
         return (this.documento.atendimento.imagens.length > 0);
     }
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
         let model = this.documento.atendimento;
         let artigo = this.documento.perito.getArtigo();
@@ -68,8 +65,8 @@ export class SecaoAnexo extends Secao{
         this.rows   = [];
         this.total = 0;
 
-        const promises = [];
-        const paragraphs = [];
+        const promises: Promise<void>[] = [];
+        const paragraphs: Paragraph[] = [];
         var i = 0;
         
         for (let imagem of imagens) {
@@ -93,7 +90,7 @@ export class SecaoAnexo extends Secao{
         
     }
 
-    addParagraph(paragraphs, ordem, imagem){
+    addParagraph(paragraphs: any[], ordem: number, imagem: any){
 
         return this.getImageParagraph(imagem).then(
             function(paragraph) {
@@ -128,27 +125,22 @@ export class SecaoAnexo extends Secao{
         await this.addCell(imageParagraph);
     }*/
 
-    getImageParagraph(imagem) {
-
+    getImageParagraph(imagem: any) {
         return ImageHelper.getBufferFromURL(imagem.imagem)
-                .then(function(buffer){
-                    return ImageHelper.loadFromURL(imagem.imagem).then(img => {
+            .then(function(buffer){
+                return ImageHelper.loadFromURL(imagem.imagem).then((img: any) => {
+                    return [img[0], img[1]];
+                })
+                .then(function(result){
+                    const width= result[0];
+                    const height = result[1];
 
-                        return [img[0], img[1]];
-                    })
-                    .then(function(result){
-                        const width= result[0];
-                        const height = result[1];
-
-                        return ImageParagraph.get(buffer, imagem.legenda, 200 * width/height, 200);
-                    });
+                    return ImageParagraph.get(buffer, imagem.legenda, 200 * width/height, 200);
                 });
-
-
-        //const imageData = await Media.addImage(this.documento.docx, buffer, 200 * width/height, 200);
+            });
     }
     
-    async addCell(imageParagraph){
+    async addCell(imageParagraph: any) {
 
         let colSpan = 1;
 
@@ -158,7 +150,9 @@ export class SecaoAnexo extends Secao{
 
         let cell = await ImageCell.get(imageParagraph, colSpan);
 
-        await this.cells.push(cell);
+        if (cell) {
+            await this.cells!.push(cell);
+        }
 
         await this.addCellsToRows();
 

@@ -8,7 +8,7 @@ export class Secao {
         this.documento = documento;
     }
 
-    async run(){
+    async run(): Promise<any[]> {
         if(this.isSecaoDisponivel()){
             return await this.runInternal();
         }
@@ -16,7 +16,7 @@ export class Secao {
         return [];
     }
 
-    async runInternal(){
+    async runInternal(): Promise<any[]> {
         return [];
     }
 

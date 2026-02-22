@@ -4,7 +4,7 @@ import { Atendimento } from 'src/app/models/atendimento.model';
 
 export class SecaoRequisicao extends Secao{
 
-    async runInternal(){
+    override async runInternal(): Promise<any[]> {
 
         let model = this.documento.atendimento;
 

@@ -10,16 +10,13 @@ export abstract class Cabecalho{
 
         const img = await ImageHelper.getBufferFromURL('/assets/cabecalho.png');
 
-
-        //const img = await fetch('/assets/cabecalho.png');
-        //const imageCabecalho =  Media.addImage(laudo.docx, await img.arrayBuffer(), 320 * 2, 48 * 2);
-    
         return new Header({ 
             children: [
                 new Paragraph({
                     children: [
                         new ImageRun({
                             data: img,
+                            type: "png",
                             transformation: {
                                 width: 320 * 2,
                                 height: 48 * 2

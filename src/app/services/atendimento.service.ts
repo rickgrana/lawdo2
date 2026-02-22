@@ -235,6 +235,15 @@ export class AtendimentoService {
     });
   }
 
+  async concluir(atendimento: Atendimento) {
+    const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
+    
+    return await updateDoc(atendimentoRef, {
+      situacao: Atendimento.SIT_CONCLUIDO,
+      dtconcluido: Timestamp.now()
+    });
+  }
+
   async update(atendimento: Atendimento) {
     //return this.firestore.collection('atendimentos').doc(atendimento.id).update(atendimento.rawData());
   }

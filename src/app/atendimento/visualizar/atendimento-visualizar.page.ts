@@ -269,14 +269,11 @@ export class AtendimentoVisualizarPage implements OnInit {
 
     await this.presentLoading();
 
-    this.model!.fields.situacao = Atendimento.SIT_CONCLUIDO;
-
-    this.atendimentoService.update(this.model!).then(resp => {
+    this.atendimentoService.concluir(this.model!).then(async resp => {
       this.hideLoader();
-      this.presentAlertSalvo('Ocorrência concluída com sucesso');
+      await this.presentAlertSalvo('Ocorrência concluída com sucesso');
     })
     .catch((error: any) => {
-
       this.hideLoader();
       this.showAlert(error.message);
     });

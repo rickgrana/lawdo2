@@ -51,7 +51,7 @@ export class SecaoPerinecroVitima extends Secao{
 
             retorno = retorno.concat([
                 new Paragraph ({
-                    style: 'itens',
+                    style: 'padrao',
                     bullet: {
                         level: 0,
                     },
@@ -72,7 +72,7 @@ export class SecaoPerinecroVitima extends Secao{
         if(this.documento.atendimento.isSuicidio){
             retorno = retorno.concat([
                 new Paragraph ({
-                    style: 'itens',
+                    style: 'Normal',
                     bullet: {
                         level: 0,
                     },
@@ -91,7 +91,7 @@ export class SecaoPerinecroVitima extends Secao{
             if(this.vitima.pertences.trim().toUpperCase() == 'NADA'){
                 retorno = retorno.concat([
                     new Paragraph ({
-                        style: 'itens',
+                        style: 'Normal',
                         bullet: {
                             level: 0,
                         },
@@ -106,7 +106,7 @@ export class SecaoPerinecroVitima extends Secao{
 
                 retorno = retorno.concat([
                     new Paragraph ({
-                        style: 'itens',
+                        style: 'Normal',
                         bullet: {
                             level: 0,
                         },
@@ -121,7 +121,7 @@ export class SecaoPerinecroVitima extends Secao{
                 this.vitima.pertences.split(",").forEach((pertence) => {
                     retorno = retorno.concat([
                         new Paragraph ({
-                            style: 'itens',
+                            style: 'Normal',
                             bullet: {
                                 level: 1,
                             },
@@ -146,7 +146,7 @@ export class SecaoPerinecroVitima extends Secao{
             if(qtde == 1){
                 retorno = retorno.concat([
                     new Paragraph ({
-                        style: 'itens',
+                        style: 'Normal',
                         bullet: {
                             level: 0,
                         },
@@ -161,7 +161,7 @@ export class SecaoPerinecroVitima extends Secao{
 
                 retorno = retorno.concat([
                     new Paragraph ({
-                        style: 'itens',
+                        style: 'Normal',
                         bullet: {
                             level: 0,
                         },
@@ -176,7 +176,7 @@ export class SecaoPerinecroVitima extends Secao{
                 this.vitima.tatuagens.split(",").forEach((tatoo) => {
                     retorno = retorno.concat([
                         new Paragraph ({
-                            style: 'itens',
+                            style: 'Normal',
                             bullet: {
                                 level: 1,
                             },
@@ -199,7 +199,7 @@ export class SecaoPerinecroVitima extends Secao{
             this.vitima.observacoes.split(";").forEach((item) => {
                 retorno = retorno.concat([
                     new Paragraph ({
-                        style: 'itens',
+                        style: 'Normal',
                         bullet: {
                             level: 0,
                         },
@@ -352,7 +352,7 @@ export class SecaoPerinecroVitima extends Secao{
     
                 secoes = secoes.concat([
                     new Paragraph ({
-                        style: 'itens',
+                        style: 'Normal',
                         bullet: {
                             level: 1,
                         },
@@ -379,7 +379,7 @@ export class SecaoPerinecroVitima extends Secao{
     
                 secoes = secoes.concat([
                     new Paragraph ({
-                        style: 'itens',
+                        style: 'Normal',
                         bullet: {
                             level: 1,
                         },

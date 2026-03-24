@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Atendimento } from '../../models/atendimento.model';
 import { ActionSheetController } from '@ionic/angular/standalone';
@@ -31,7 +30,6 @@ import { User } from 'src/app/models/user.model';
   styleUrls: ['./atendimento-visualizar.page.scss'],
   standalone: true,
   imports: [
-    IonicModule,
     CommonModule,
     DatePipe,
     IonContent, IonItem, IonButton, IonIcon, IonToolbar, IonFooter, IonButtons, IonRow, IonCol, IonLabel,

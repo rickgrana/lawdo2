@@ -34,7 +34,7 @@ export class SecaoIsolamento extends SecaoSubExames{
 
             retorno = retorno.concat([
                 new Paragraph ({
-                    style: 'itens',
+                    style: 'Normal',
                     bullet: {
                         level: 1,
                     },
@@ -44,7 +44,7 @@ export class SecaoIsolamento extends SecaoSubExames{
                         new TextRun({ text: model.fields.equipes.pm.origem }),
                         new TextRun({ text: ', VTR Nº'}),
                         new TextRun({ text: model.fields.equipes.pm.vtr }),
-                        new TextRun({ text: ')' }),
+                        new TextRun({ text: ');' }),
                     ],
                 }),
             ]);
@@ -57,38 +57,51 @@ export class SecaoIsolamento extends SecaoSubExames{
 
             equipe_pc = [
                 new TextRun({ text: 'Delegado '}),
-                new TextRun({ text: model.fields.equipes.pc.delegado, bold: true }),
+                new TextRun({ text: model.fields.equipes.pc.delegado.toLocaleUpperCase(), bold: true }),
             ];
         }
 
         if(model.fields.equipes.pc.investigacao.length > 0){
 
-            if(equipe_pc.length > 0){
+            if(equipe_pc.length > 0){  
+                equipe_pc = equipe_pc.concat(new TextRun({ text: ' e '}));
+            }
+
+            const investigadores = model.fields.equipes.pc.investigacao.split(',').map((item: string) => item.trim());
+
+            if (investigadores.length > 1) {
+                equipe_pc = equipe_pc.concat(new TextRun({ text: 'Investigadores '}));
+            } else {
+                equipe_pc = equipe_pc.concat(new TextRun({ text: 'Investigador '}));
+            }
+
+            investigadores.forEach((investigador: string, index: number) => {
                 equipe_pc = equipe_pc.concat([
-                    new TextRun({ text: ' e o(s) investigador(es) '}),
-                    new TextRun({ text: model.fields.equipes.pc.investigacao, bold: true }),
+                    new TextRun({ text: (index > 0) ? ((index < investigadores.length - 2) ? ', ' : ' e ') : '' }),
+                    new TextRun({ text: investigador.toLocaleUpperCase(), bold: true }),
                 ]);
-            }else{
-                equipe_pc = equipe_pc.concat([
-                    new TextRun({ text: 'Investigador(es) '}),
-                    new TextRun({ text: model.fields.equipes.pc.investigacao, bold: true }),
-                   
-                ]);
-            }    
+            }); 
         }
 
         if(equipe_pc.length > 0){
             equipe_pc = equipe_pc.concat([
                 new TextRun({ text: ' ('}),
-                new TextRun({ text: model.fields.equipes.pc.origem }),
-                new TextRun({ text: ', VTR Nº'}),
-                new TextRun({ text: model.fields.equipes.pc.vtr }),
-                new TextRun({ text: ')'})
+                new TextRun({ text: model.fields.equipes.pc.origem })
             ]);
+
+            if (model.fields.equipes.pc.vtr.length > 0) {
+                equipe_pc = equipe_pc.concat([
+                    new TextRun({ text: ', VTR Nº'}),
+                    new TextRun({ text: model.fields.equipes.pc.vtr }),
+                    new TextRun({ text: ')' })
+                ]);
+            }
+
+            equipe_pc = equipe_pc.concat(new TextRun({ text: ';'}));
 
             retorno = retorno.concat([
                 new Paragraph ({
-                    style: 'itens',
+                    style: 'Normal',
                     bullet: {
                         level: 1,
                     },

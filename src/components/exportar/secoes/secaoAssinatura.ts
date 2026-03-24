@@ -17,9 +17,9 @@ export class SecaoAssinatura extends Secao{
                 new TextRun({
                     text: '\n' + this.documento.perito.unidade.cidade + '(' +
                         this.documento.perito.corporacao.uf + '), ' +
-                    model.fields.laudo.data.substr(0, 2) + ' de ' +
-                    DateTimeHelper.getMesExtenso(model.fields.laudo.data.substr(3, 2)) + ' de ' +
-                    model.fields.laudo.data.substr(6, 4) + '\n\n'
+                    model.fields.laudo.data.substr(8, 2) + ' de ' +
+                    DateTimeHelper.getMesExtenso(model.fields.laudo.data.substr(5, 2)) + ' de ' +
+                    model.fields.laudo.data.substr(0, 4) + '\n\n'
                 })
               ]
             }),

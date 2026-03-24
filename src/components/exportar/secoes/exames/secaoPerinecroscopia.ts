@@ -38,7 +38,7 @@ export class SecaoPerinecroscopia extends SecaoSubExames{
             }),
     
             new Paragraph ({
-                style: 'itens',
+                style: 'Normal',
                 bullet: {
                     level: 0,
                 },
@@ -51,7 +51,7 @@ export class SecaoPerinecroscopia extends SecaoSubExames{
     
     
             new Paragraph ({
-                style: 'itens',
+                style: 'Normal',
                 bullet: {
                     level: 0,
                 },
@@ -63,7 +63,7 @@ export class SecaoPerinecroscopia extends SecaoSubExames{
             }),
     
             new Paragraph ({
-                style: 'itens',
+                style: 'Normal',
                 bullet: {
                     level: 0,
                 },
@@ -75,7 +75,7 @@ export class SecaoPerinecroscopia extends SecaoSubExames{
             }),
     
             new Paragraph ({
-                style: 'itens',
+                style: 'Normal',
                 bullet: {
                     level: 0,
                 },

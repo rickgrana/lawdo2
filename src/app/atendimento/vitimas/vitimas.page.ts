@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { AtendimentoService } from '../../services/atendimento.service';
 import { Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
-import { ToastController } from '@ionic/angular';
-import { LoadingController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular/standalone';
+import { LoadingController } from '@ionic/angular/standalone';
 import { Vitima } from 'src/app/models/vitima.model';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonIcon,
     IonRow, IonList, IonCol, IonLabel, IonButton, IonItem, IonBackButton } from '@ionic/angular/standalone';

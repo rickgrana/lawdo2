@@ -58,7 +58,7 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
     super.ngOnInit();
   }
 
-  public ngAfterViewInit() {
+  public ionViewDidEnter() {
     this.load();
   }
 

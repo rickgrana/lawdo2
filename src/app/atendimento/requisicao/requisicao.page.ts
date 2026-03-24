@@ -1,11 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AtendimentoService } from '../../services/atendimento.service';
-import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
-import { ToastController } from '@ionic/angular';
-import { LoadingController } from '@ionic/angular';
-import { NavController } from '@ionic/angular';
-import { Router } from '@angular/router';
-import { Atendimento } from '../../models/atendimento.model';
+import { Validators, FormControl } from '@angular/forms';
 import { Quesito } from 'src/app/models/quesito.model';
 import { CommonModule } from '@angular/common';
 import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonBackButton, IonFooter,

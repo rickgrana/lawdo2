@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { AtendimentoService } from '../../services/atendimento.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
-import { ToastController } from '@ionic/angular';
-import { LoadingController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular/standalone';
+import { LoadingController } from '@ionic/angular/standalone';
 import { Veiculo } from 'src/app/models/veiculo.model';
 import { NumberHelper } from 'src/app/extensions/numberHelper';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter,

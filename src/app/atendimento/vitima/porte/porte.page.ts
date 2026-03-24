@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { AtendimentoService } from '../../../services/atendimento.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
-import { LoadingController } from '@ionic/angular';
+import { ToastController } from '@ionic/angular/standalone';
+import { LoadingController } from '@ionic/angular/standalone';
 import { Location } from "@angular/common";
 
 import { faMale } from '@fortawesome/free-solid-svg-icons';
@@ -16,7 +16,7 @@ import { faBaby} from '@fortawesome/free-solid-svg-icons';
 })
 export class PortePage implements OnInit {
 
-  form: FormGroup;
+  form?: FormGroup;
 
   faMale = faMale;
 
@@ -48,7 +48,7 @@ export class PortePage implements OnInit {
   loadForm() {
 
     this.form = this.formBuilder.group({
-      'porte': new FormControl(this.vitima.porte, 
+      'porte': new FormControl(this.vitima!.porte, 
         Validators.compose([
           //Validators.required
         ]))
@@ -63,7 +63,7 @@ export class PortePage implements OnInit {
     this.router.navigate(['/']);
   }
 
-  salvar(form){
+  salvar(form: any){
 
   }
 

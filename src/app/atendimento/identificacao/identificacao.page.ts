@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { MessageService } from 'src/app/services/message.service';
 import { Atendimento } from 'src/app/models/atendimento.model';
@@ -12,9 +13,9 @@ import { AtendimentoService } from 'src/app/services/atendimento.service';
 import { filter, map, Observable, startWith } from 'rxjs';
 import { Bairros } from 'src/app/extensions/bairroHelper';
 import { Cidades } from 'src/app/extensions/cidadeHelper';
-import { LoadingController } from '@ionic/angular';
-import { ToastController } from '@ionic/angular';
-import { NavController } from '@ionic/angular';
+import { LoadingController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular/standalone';
+import { NavController } from '@ionic/angular/standalone';
 import { DateTimeHelper } from 'src/app/extensions/dateTimeHelper';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -29,7 +30,7 @@ import { User } from 'src/app/models/user.model';
   templateUrl: './identificacao.page.html',
   styleUrls: ['./identificacao.page.scss'],
   standalone: true,
-  imports: [IonDatetimeButton, IonModal, IonBackButton, IonItem, IonButton, FormsModule, ReactiveFormsModule,
+  imports: [IonicModule, IonDatetimeButton, IonModal, IonBackButton, IonItem, IonButton, FormsModule, ReactiveFormsModule,
     IonGrid, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar,
     IonRow, IonCol, IonLabel, IonSelectOption, IonFooter, IonModal,
     IonInput, IonDatetime, IonSelect, IonIcon, IonSpinner,

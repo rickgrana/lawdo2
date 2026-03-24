@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Atendimento } from '../../models/atendimento.model';
-import { ActionSheetController } from '@ionic/angular';
+import { ActionSheetController } from '@ionic/angular/standalone';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faHome } from '@fortawesome/free-solid-svg-icons';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
@@ -10,9 +11,9 @@ import { faFemale } from '@fortawesome/free-solid-svg-icons';
 import { faQuestion } from '@fortawesome/free-solid-svg-icons';
 import { Vitima } from 'src/app/models/vitima.model';
 import { ImageService } from 'src/app/services/image.service';
-import { AlertController } from '@ionic/angular';
-import { ToastController } from '@ionic/angular';
-import { LoadingController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular/standalone';
+import { LoadingController } from '@ionic/angular/standalone';
 import { AtendimentoService } from '../../services/atendimento.service';
 import { AuthenticationService } from 'src/app/authentication.service';
 import { arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline } from 'ionicons/icons';
@@ -30,6 +31,7 @@ import { User } from 'src/app/models/user.model';
   styleUrls: ['./atendimento-visualizar.page.scss'],
   standalone: true,
   imports: [
+    IonicModule,
     CommonModule,
     DatePipe,
     IonContent, IonItem, IonButton, IonIcon, IonToolbar, IonFooter, IonButtons, IonRow, IonCol, IonLabel,
@@ -46,6 +48,7 @@ export class AtendimentoVisualizarPage implements OnInit {
   faQuestion = faQuestion;
   gallery = null;
   user: User | null = null;
+  loading?: any;
 
   constructor(
     private atendimentoService: AtendimentoService,
@@ -232,18 +235,37 @@ export class AtendimentoVisualizarPage implements OnInit {
   }
 
   async presentLoading(msg: string|null = null) {
+
+    if (this.loading) {
+      await this.loading.dismiss();
+      this.loading = null;
+    }
+
     if(msg === null) msg = 'Processando...';
 
-    const loading = await this.loadingController.create({
+    this.loading = await this.loadingController.create({
       message: msg,
       showBackdrop: false
     });
-    return await loading.present();
+    
+    return await this.loading.present();
+
+    // return await new Promise(resolve => requestAnimationFrame(resolve));
   }
+
+  async ionViewDidLeave() {
+      if (this.loading) {
+        await this.loading.dismiss().catch(() => {});
+        this.loading = null;
+      }
+    }
 
   async hideLoader() {
     setTimeout(async () => {
-      await this.loadingController.dismiss();
+      if (this.loading) {
+        await this.loading.dismiss();
+        this.loading = null;
+      }
     }, 500);
   }
 

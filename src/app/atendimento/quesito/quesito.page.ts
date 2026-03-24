@@ -3,8 +3,8 @@ import { FormGroup, FormBuilder, FormControl, ReactiveFormsModule } from '@angul
 import { AtendimentoService } from '../../services/atendimento.service';
 import { Quesito } from 'src/app/models/quesito.model';
 import { Observable } from 'rxjs';
-import { LoadingController } from '@ionic/angular';
-import { ToastController } from '@ionic/angular';
+import { LoadingController } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular/standalone';
 import { IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonBackButton,
     IonLabel, IonButton, IonItem,
      IonModal, ModalController, PopoverController, IonSearchbar,

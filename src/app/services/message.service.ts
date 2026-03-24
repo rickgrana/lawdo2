@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { LoadingController, AlertController , ToastController} from '@ionic/angular';
+import { LoadingController, AlertController , ToastController} from '@ionic/angular/standalone';
 
 @Injectable({
   providedIn: 'root'

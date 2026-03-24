@@ -1,9 +1,9 @@
 import { Component, Directive, inject, OnInit } from '@angular/core';
 import { AtendimentoService } from 'src/app/services/atendimento.service';
 import { FormGroup, FormBuilder } from '@angular/forms';
-import { ToastController } from '@ionic/angular';
-import { LoadingController } from '@ionic/angular';
-import { NavController } from '@ionic/angular';
+import { ToastController } from '@ionic/angular/standalone';
+import { LoadingController } from '@ionic/angular/standalone';
+import { NavController } from '@ionic/angular/standalone';
 import { filter } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { AuthenticationService } from 'src/app/authentication.service';
@@ -16,6 +16,7 @@ import { AlertController } from '@ionic/angular/standalone';
 export abstract class AtendimentoBasePage implements OnInit {
   user?: User;
   form?: FormGroup;
+  loading?: any;
 
   protected authService = inject(AuthenticationService);
   protected atendimentoService = inject(AtendimentoService);
@@ -40,6 +41,7 @@ export abstract class AtendimentoBasePage implements OnInit {
   get model() {
     return this.atendimentoService.model;
   }
+  
 
   loadForm() {
     if(this.model!.isConcluido() || this.model!.isArquivado()){
@@ -70,17 +72,34 @@ export abstract class AtendimentoBasePage implements OnInit {
   }
 
   async presentLoading(message: string = 'Processando...') {
-    const loading = await this.loadingController.create({
+    if (this.loading) {
+      await this.loading.dismiss();
+    }
+    
+    this.loading = await this.loadingController.create({
       message: message,
       showBackdrop: true
     });
-    return await loading.present();
+    
+    await this.loading.present();
+
+    return await new Promise(resolve => requestAnimationFrame(resolve));
   }
 
   async hideLoader() {
     setTimeout(async () => {
-      await this.loadingController.dismiss();
+      if (this.loading) {
+        await this.loading.dismiss();
+        this.loading = null;
+      }
     }, 500);
+  }
+
+  async ionViewDidLeave() {
+    if (this.loading) {
+      await this.loading.dismiss().catch(() => {});
+      this.loading = null;
+    }
   }
 
 }

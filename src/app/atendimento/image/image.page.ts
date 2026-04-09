@@ -6,10 +6,11 @@ import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFo
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { chevronForwardOutline, syncOutline, cutOutline, trash } from 'ionicons/icons';
+import { chevronForwardOutline, syncOutline, cutOutline, trash, sparklesOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import 'cropperjs';
 import Cropper from 'cropperjs';
+import { FirearmDetectionService } from 'src/app/services/firearm-detection.service';
 
 @Component({
   selector: 'app-image',
@@ -44,10 +45,11 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
   @Input("src") public imageSource: string = 'assets/no-image.jpg';
 
   protected imageService = inject(ImageService);
+  protected firearmDetectionService = inject(FirearmDetectionService);
 
   constructor() {
     super();
-    addIcons({ chevronForwardOutline, syncOutline, cutOutline, trash });
+    addIcons({ chevronForwardOutline, syncOutline, cutOutline, trash, sparklesOutline });
   }
   
   get imagem() {
@@ -281,5 +283,51 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
     });;
 
     this.model!.imagens.splice(index, 1);
+  }
+
+  async firearmDetection() {
+    await this.presentLoading('Identificando perfurações...');
+
+    try {
+      const response = await this.firearmDetectionService.detect(this.imageSource);
+      const blob = response.blob;
+
+      if (this.legenda.length > 0) {
+        this.legenda = this.legenda + ' - ';
+      }
+
+      console.log('Número de detecções:', response.quantidade);
+
+      if (response.quantidade > 0) {
+        this.legenda = this.legenda + `${response.quantidade} perfurações por arma de fogo detectadas`;
+      }
+
+      const img = new Image();
+      img.src = URL.createObjectURL(blob);
+
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+
+        // mantém proporção
+        const targetHeight = 500;
+        const scale = targetHeight / img.height;
+        const targetWidth = img.width * scale;
+
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+        // JPEG base64
+        const src = canvas.toDataURL('image/jpeg', 0.9);
+
+        this.imageSource = src;
+        await this.hideLoader();
+      };
+    } catch (error: any) {
+      await this.hideLoader();
+      this.presentError('Erro ao tentar identificar perfurações: ' + error.message);
+    }
   }
 }

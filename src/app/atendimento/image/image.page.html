@@ -24,6 +24,10 @@
           <ion-label >Desfazer</ion-label>
       </ion-button>
 
+      <ion-button (click)="firearmDetection()" *ngIf="imageLoaded && !cropperEnabled" title="Identificar perfurações">
+          <ion-icon name="sparkles-outline"></ion-icon>
+      </ion-button>
+
       <ion-button (click)="remover()" *ngIf="this.imagem !== null">
           <ion-label><ion-icon name="trash"></ion-icon> Remover</ion-label>
       </ion-button>

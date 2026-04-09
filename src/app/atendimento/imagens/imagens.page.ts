@@ -5,6 +5,7 @@ import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFo
     IonReorderGroup,
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
+import { FirearmDetectionService } from 'src/app/services/firearm-detection.service';
 
 @Component({
   selector: 'app-imagens',
@@ -19,6 +20,7 @@ import { CommonModule } from '@angular/common';
 export class ImagensPage extends AtendimentoBasePage implements OnInit {
 
   protected imageService = inject(ImageService);
+  protected firearmDetectionService = inject(FirearmDetectionService);
   
   @ViewChild("reorderGroup", { read: IonReorderGroup, static: true}) reorderGroup!: IonReorderGroup;
 

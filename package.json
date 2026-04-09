@@ -9,7 +9,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "deploy:firearm": "cd ml-services/firearm-detection-api && gcloud run deploy firearm-detection-api --source . --region southamerica-east1 --allow-unauthenticated --memory 2Gi --timeout=1000"
   },
   "private": true,
   "dependencies": {

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>SVG Croqui</title>
+
+  <style>
+    .croqui {
+      width: 400px;
+    }
+
+    .area {
+      fill: transparent;
+      stroke: transparent;
+      cursor: pointer;
+    }
+
+    .area:hover {
+      fill: rgba(255,0,0,0.3);
+      stroke: red;
+    }
+
+    .croqui {
+        width: 250px;   /* menor */
+        height: auto;
+    }
+  </style>
+</head>
+
+<body>
+
+  <svg viewBox="0 0 424 941" width="100%" class="croqui" preserveAspectRatio="xMidYMid meet">
+
+    <image href="croqui-frente.png" width="424" height="941" />
+
+    <!-- ===== TODAS AS ÁREAS ===== -->
+
+    <polygon class="area" data-id="1" points="261,53 256,35 249,24 236,13 221,4 203,4 181,13 172,25 166,42 165,57 167,69 172,61 185,48 197,51 210,58 217,53 224,45 237,51 249,55 258,62 261,61"/>
+    <polygon class="area" data-id="2D" points="171,67 181,72 194,71 201,67 208,59 201,52 193,50 185,48 173,59"/>
+    <polygon class="area" data-id="2E" points="212,58 221,67 232,71 242,69 248,62 245,52 233,48 224,46"/>
+    <polygon class="area" data-id="3" points="199,72 198,91 201,98 214,103 222,98 224,83 223,69 211,58 196,73"/>
+    <polygon class="area" data-id="4D" points="178,73 181,90 197,85 197,72"/>
+    <polygon class="area" data-id="4E" points="224,70 223,83 229,89 240,90 242,75 237,70"/>
+    <polygon class="area" data-id="5D" points="172,93 180,88 178,69 169,64 167,76 174,105 176,120 195,135 197,129 201,123 190,117 185,108 180,79"/>
+    <polygon class="area" data-id="5E" points="221,120 227,134 248,119 251,102 253,81 258,63 247,54 247,61 240,69 238,88 238,101 238,110 234,115"/>
+    <polygon class="area" data-id="6D" points="184,109 191,103 199,99 196,86 183,89"/>
+    <polygon class="area" data-id="7" points="187,107 190,116 200,121 221,120 234,114 240,105 220,99 202,98 191,102"/>
+    <polygon class="area" data-id="6E" points="223,99 237,103 237,88 225,86"/>
+    <polygon class="area" data-id="8" points="195,134 200,139 222,139 226,134 220,120 201,119"/>
+    <polygon class="area" data-id="9" points="198,143 200,147 224,149 226,135 218,137 199,136 228,141 208,137"/>
+    <polygon class="area" data-id="10" points="199,148 200,165 222,166 223,149"/>
+    <polygon class="area" data-id="11D" points="199,164 176,144 176,120 198,137"/>
+    <polygon class="area" data-id="11E" points="222,165 248,144 248,119 225,136"/>
+    <polygon class="area" data-id="12D" points="197,163 146,160 174,144"/>
+    <polygon class="area" data-id="12E" points="223,163 274,160 247,143"/>
+    <polygon class="area" data-id="13D" points="133,171 199,164 145,160"/>
+    <polygon class="area" data-id="13E" points="222,164 295,172 273,159 226,164"/>
+    <polygon class="area" data-id="14D" points="110,184 127,186 203,165 131,170"/>
+    <polygon class="area" data-id="14E" points="316,182 295,184 219,164 293,170"/>
+    <polygon class="area" data-id="15" points="192,293 231,293 220,164 201,163"/>
+
+    <circle class="area" data-id="17D" cx="167" cy="275" r="7"/>
+    <circle class="area" data-id="17E" cx="269" cy="274" r="8"/>
+
+    <polygon class="area" data-id="16D" points="201,165 128,186 130,204 130,226 130,251 125,260 132,273 159,271 163,267 169,268 174,272 174,278 174,280 181,282 192,293"/>
+    <polygon class="area" data-id="16D" points="190,291 180,282 172,278 164,281 159,271 131,272 130,284 132,295 133,320 157,316 175,305 186,298"/>
+    <polygon class="area" data-id="16E" points="220,165 231,292 260,275 263,267 268,265 274,268 284,270 292,273 300,257 294,243 292,228 292,201 295,184 224,166"/>
+    <polygon class="area" data-id="16E" points="231,291 253,308 272,317 289,318 291,301 292,273 283,270 276,269 278,275 272,283 263,280 260,276"/>
+
+    <polygon class="area" data-id="18" points="187,360 235,359 230,293 190,291"/>
+    <polygon class="area" data-id="19D" points="186,358 173,369 161,374 145,379 132,319 156,316 185,298 189,290 187,363"/>
+    <polygon class="area" data-id="19E" points="234,359 253,372 270,377 282,379 292,318 274,317 259,311 243,300 230,291"/>
+    <polygon class="area" data-id="20" points="186,361 178,445 204,396 236,358 208,360"/>
+    <polygon class="area" data-id="20" points="177,445 199,402 205,408 210,411 215,409 219,404 218,395 210,389 234,359 237,380 244,446"/>
+
+    <circle class="area" data-id="21" cx="210" cy="399" r="10"/>
+
+    <polygon class="area" data-id="22D" points="177,445 186,358 173,369 145,380 129,436 130,444"/>
+    <polygon class="area" data-id="22E" points="243,445 296,447 294,429 282,389 280,380 252,371 233,359"/>
+    <polygon class="area" data-id="23" points="177,445 176,482 247,481 243,446"/>
+    <polygon class="area" data-id="24D" points="176,482 127,460 129,443 176,445 176,485"/>
+    <polygon class="area" data-id="24E" points="247,484 296,462 294,447 243,445"/>
+    <polygon class="area" data-id="25" points="176,483 201,498 212,500 224,497 240,491 248,482"/>
+    <polygon class="area" data-id="28" points="202,498 204,518 204,525 211,529 217,524 218,509 221,498 211,499"/>
+    <polygon class="area" data-id="29" points="202,506 196,509 195,530 200,543 205,548 220,549 225,542 226,524 223,506 221,498 220,518 215,528 205,526"/>
+    <polygon class="area" data-id="26D" points="195,515 126,465 130,459 175,482 200,496 202,506"/>
+    <polygon class="area" data-id="26E" points="221,499 225,521 298,464 295,462"/>
+    <polygon class="area" data-id="27D" points="198,540 125,480 125,464 194,515"/>
+    <polygon class="area" data-id="27E" points="226,543 299,478 296,464 226,520"/>
+
+    <polygon class="area" data-id="30D" points="80,269 102,269 124,262 130,248 128,185 106,182 96,189 84,214 78,245 80,269"/>
+    <polygon class="area" data-id="30E" points="298,258 322,267 346,272 350,253 328,185 316,181 295,181 291,218"/>
+    <polygon class="area" data-id="31D" points="80,269 78,298 131,306 130,272 124,259 103,269"/>
+    <polygon class="area" data-id="31E" points="291,306 310,300 346,300 343,270 299,259 292,273"/>
+    <polygon class="area" data-id="32D" points="77,297 78,334 91,335 126,348 131,320 130,304"/>
+    <polygon class="area" data-id="32E" points="290,326 299,348 329,336 345,330 345,300 310,299 291,305"/>
+    <polygon class="area" data-id="33D" points="77,334 77,360 120,378 125,346 90,333"/>
+    <polygon class="area" data-id="33E" points="297,347 305,382 348,361 345,330"/>
+    <polygon class="area" data-id="34D" points="64,384 112,410 119,378 78,359"/>
+    <polygon class="area" data-id="34E" points="305,382 313,410 361,387 348,360"/>
+    <polygon class="area" data-id="35D" points="53,421 94,443 112,409 64,384"/>
+    <polygon class="area" data-id="35E" points="312,410 330,444 371,424 361,387"/>
+    <polygon class="area" data-id="36D" points="46,452 78,470 96,442 53,420"/>
+    <polygon class="area" data-id="36E" points="327,443 345,469 377,451 371,423"/>
+    <polygon class="area" data-id="37D" points="41,462 70,481 79,470 46,449"/>
+    <polygon class="area" data-id="37E" points="344,468 352,482 366,474 384,463 377,449"/>
+    <polygon class="area" data-id="38D" points="28,504 41,516 55,516 64,500 59,479 44,475 31,485"/>
+    <circle class="area" data-id="38E" cx="375" cy="497" r="22"/>
+
+    <polygon class="area" data-id="39D" points="207,549 184,560 162,564 139,560 125,555 121,515 124,480"/>
+    <polygon class="area" data-id="39E" points="219,548 230,557 251,560 275,560 299,554 302,516 298,477"/>
+    <polygon class="area" data-id="40D" points="125,555 140,619 172,621 209,603 209,578 210,548 184,557 161,563"/>
+    <polygon class="area" data-id="40E" points="213,606 214,560 212,549 219,548 226,554 256,561 275,559 298,552 284,621 246,620"/>
+    <polygon class="area" data-id="41D" points="139,618 154,662 177,663 207,653 210,619 207,603 173,620"/>
+    <polygon class="area" data-id="41E" points="213,605 211,633 213,655 239,662 266,661 275,643 283,619 246,619"/>
+
+    <circle class="area" data-id="42D" cx="182" cy="673" r="15"/>
+    <circle class="area" data-id="42E" cx="240" cy="676" r="15"/>
+
+    <polygon class="area" data-id="43D" points="153,662 151,706 206,704 204,681 206,666 207,653 189,658 195,667 195,675 190,683 181,687 168,683 165,673 169,662"/>
+    <polygon class="area" data-id="43E" points="214,656 218,681 216,698 234,704 251,705 268,699 268,662 246,661 253,672 252,679 246,687 236,688 225,681 225,669 230,663 236,660"/>
+    <polygon class="area" data-id="44D" points="150,705 151,751 168,756 202,756 211,751 210,729 204,703"/>
+    <polygon class="area" data-id="44E" points="214,752 227,759 242,759 272,755 273,738 268,700 252,703 235,704 215,698"/>
+    <polygon class="area" data-id="45D" points="150,750 160,804 180,809 201,805 213,753 200,754 167,755"/>
+    <polygon class="area" data-id="45E" points="213,753 216,781 220,807 241,810 263,806 271,774 271,754 243,758 226,757"/>
+    <polygon class="area" data-id="46D" points="171,806 179,862 193,860 197,805 180,808"/>
+    <polygon class="area" data-id="46E" points="226,808 228,860 239,862 249,806 238,808"/>
+    <polygon class="area" data-id="47D" points="162,925 169,909 174,900 174,878 181,860 176,846 171,804 160,803 167,845 169,860 170,866 169,893 162,904 156,913"/>
+    <polygon class="area" data-id="47E" points="239,861 247,878 250,891 247,900 257,925 263,916 254,894 251,862 253,848 263,805 248,808"/>
+    <polygon class="area" data-id="49D" points="173,900 183,908 194,905 198,896 199,870 192,860 178,861 173,878"/>
+    <polygon class="area" data-id="49E" points="228,860 237,861 247,879 250,892 246,900 236,903 226,897 223,886 224,865"/>
+    <polygon class="area" data-id="48D" points="162,922 169,936 198,939 211,919 205,903 202,884 204,845 202,811 200,799 192,858 198,868 195,900 182,907 173,900"/>
+    <polygon class="area" data-id="48E" points="218,807 219,872 211,916 215,925 221,933 231,937 247,935 257,927 245,898 235,903 225,896 222,884 224,865 227,858 225,807"/>
+
+    </svg>
+
+</body>
+</html>

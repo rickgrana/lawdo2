@@ -19,6 +19,7 @@
       data="assets/mapas/corpo-frente/corpo-frente.svg"
       aria-label="Mapa corpo (frente)"
       title="Corpo (frente)"
+      (load)="onCroquiSvgCarregado($event)"
     ></object>
     <object
       *ngIf="visao === MapaVisao.CORPO_VERSO"
@@ -27,6 +28,7 @@
       data="assets/mapas/corpo-verso/corpo-verso.svg"
       aria-label="Mapa corpo (verso)"
       title="Corpo (verso)"
+      (load)="onCroquiSvgCarregado($event)"
     ></object>
     <img
       *ngIf="visao !== MapaVisao.CORPO_FRENTE && visao !== MapaVisao.CORPO_VERSO"

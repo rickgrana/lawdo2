@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faMars, faVenus, faPerson, faQuestion } from '@fortawesome/free-solid-svg-icons';
+import { trash } from 'ionicons/icons';
 
 @Component({
   selector: 'app-vitimas',
@@ -33,7 +34,7 @@ export class VitimasPage implements OnInit {
     public toastController: ToastController,
     public loadingController: LoadingController,
     private router: Router) {
-      addIcons({});
+      addIcons({trash});
   }
 
   ngOnInit() {

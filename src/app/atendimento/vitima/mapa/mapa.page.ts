@@ -62,7 +62,6 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
   imagemSrc = '';
 
   private svgInteracaoAbort?: AbortController;
-  private readonly cruzPorArea = new WeakMap<SVGGraphicsElement, SVGGElement>();
   /** Chave estável por elemento `.area` (índice na lista ao carregar o SVG). */
   private readonly contagensPorRegiao = new Map<string, number>();
 
@@ -114,7 +113,6 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
     const ac = new AbortController();
     this.svgInteracaoAbort = ac;
 
-    this.garantirEstiloSelecao(svgDoc);
     const overlay = this.garantirGrupoOverlay(svg);
 
     const areas = svgDoc.querySelectorAll<SVGGraphicsElement>('.area');
@@ -132,22 +130,6 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
         { signal: ac.signal, capture: true },
       );
     });
-  }
-
-  private garantirEstiloSelecao(svgDoc: Document) {
-    if (svgDoc.getElementById('mapa-estilo-selecao')) {
-      return;
-    }
-    const no = svgDoc.createElementNS(SVG_NS, 'style');
-    no.setAttribute('id', 'mapa-estilo-selecao');
-    no.textContent = `
-      .area.area-selecionada {
-        fill: rgba(255, 0, 0, 0.35);
-        stroke: #c62828;
-        stroke-width: 1.5;
-      }
-    `;
-    svgDoc.documentElement.insertBefore(no, svgDoc.documentElement.firstChild);
   }
 
   private garantirGrupoOverlay(svg: SVGSVGElement): SVGGElement {
@@ -184,13 +166,9 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
     const vezes = (this.contagensPorRegiao.get(chave) ?? 0) + 1;
     this.contagensPorRegiao.set(chave, vezes);
 
-    if (!this.cruzPorArea.has(el)) {
-      const { x: cx, y: cy } = pontoSvgNoCliente(svg, ev);
-      const cruz = criarCruzVermelhaCentrada(svg, cx, cy);
-      overlay.appendChild(cruz);
-      this.cruzPorArea.set(el, cruz);
-      el.classList.add('area-selecionada');
-    }
+    const { x: cx, y: cy } = pontoSvgNoCliente(svg, ev);
+    const cruz = criarCruzVermelhaCentrada(svg, cx, cy);
+    overlay.appendChild(cruz);
 
     this.logRegioesClicadas();
   }
@@ -259,7 +237,7 @@ function metadeBracoCruzEmUnidadesSvg(svg: SVGSVGElement, pixelsTela: number): {
 
 function criarCruzVermelhaCentrada(svg: SVGSVGElement, cx: number, cy: number): SVGGElement {
   const doc = svg.ownerDocument!;
-  const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 14);
+  const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 7);
 
   const g = doc.createElementNS(SVG_NS, 'g');
 

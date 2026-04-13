@@ -345,21 +345,29 @@
 
         <ion-grid>
             <ion-row>
-                <ion-col size="3">
-                    <ion-item (click)="abrir_cabeca_posterior()">
-                        <ion-img src="/assets/cabeca-posterior.png" title="Cabeça (Posterior)"></ion-img>
+                <ion-col size="2" class="img-container">
+                    <ion-item (click)="abrirMapa(MapaVisao.CORPO_FRENTE)">
+                        <ion-img src="/assets/mapas/corpo-frente/corpo-frente.png" title="Corpo (Frente)"></ion-img>
                     </ion-item>      
                 </ion-col>
-
-                <ion-col size="3">
-                    <ion-item (click)="abrir_cabeca()">
-                        <ion-img src="/assets/cabeca-anterior.png" title="Cabeça (Anterior)"></ion-img>
+                <ion-col size="2" class="img-container">
+                    <ion-item (click)="abrirMapa(MapaVisao.CORPO_VERSO)">
+                        <ion-img src="/assets/mapas/corpo-verso/corpo-verso.png" title="Corpo (Verso)"></ion-img>
+                    </ion-item>      
+                </ion-col>
+                <ion-col size="2" class="img-container">
+                    <ion-item (click)="abrirMapa(MapaVisao.CABECA_POSTERIOR)">
+                        <ion-img src="/assets/mapas/cabeca-posterior/cabeca-posterior.png" title="Cabeça (Posterior)"></ion-img>
+                    </ion-item>      
+                </ion-col>
+                <ion-col size="2" class="img-container">
+                    <ion-item (click)="abrirMapa(MapaVisao.CABECA_ANTERIOR)">
+                        <ion-img src="/assets/mapas/cabeca-anterior/cabeca-anterior.png" title="Cabeça (Anterior)"></ion-img>
                     </ion-item>     
                 </ion-col>
-
-                <ion-col size="3">
-                    <ion-item (click)="abrir_cabeca_lateral()">
-                        <ion-img src="/assets/cabeca-lateral.png" title="Cabeça (Lateral)"></ion-img>
+                <ion-col size="2" class="img-container">
+                    <ion-item (click)="abrirMapa(MapaVisao.CABECA_LE)">
+                        <ion-img src="/assets/mapas/cabeca-le/cabeca-le.png" title="Cabeça (Lateral Esquerda)"></ion-img>
                     </ion-item>     
                 </ion-col>
             </ion-row>

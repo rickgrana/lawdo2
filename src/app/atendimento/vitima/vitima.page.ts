@@ -1,10 +1,12 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
-    IonTextarea, IonListHeader, IonImg, IonList,
-    IonRow, IonCol, IonButton, IonItem, IonBackButton, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+    IonTextarea, IonListHeader, IonImg, IonList, IonIcon,
+    IonRow, IonCol, IonButton, IonItem, IonBackButton, IonSelect, IonSelectOption, ModalController } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { AtendimentoBasePage } from '../atendimento-base.page';
+import { MapaPage } from './mapa/mapa.page';
+import { MapaVisao } from './mapa/mapa-visao.enum';
 
 @Component({
   selector: 'app-vitima',
@@ -14,11 +16,14 @@ import { AtendimentoBasePage } from '../atendimento-base.page';
   imports: [
       ReactiveFormsModule, CommonModule,
       IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
-      IonTextarea, IonListHeader, IonImg, IonList,
+      IonTextarea, IonListHeader, IonImg, IonList, IonIcon,
       IonRow, IonCol, IonButton, IonItem, IonBackButton, IonSelect, IonSelectOption
     ]
 })
 export class VitimaPage extends AtendimentoBasePage implements OnInit {
+
+  protected readonly modalCtrl = inject(ModalController);
+  readonly MapaVisao = MapaVisao;
 
   @ViewChild("rg", { read: ElementRef, static: true}) rgInput?: ElementRef;
   @ViewChild("compleicao", { static: true}) complSelect: any;
@@ -139,16 +144,13 @@ export class VitimaPage extends AtendimentoBasePage implements OnInit {
   }
 
 
-  abrir_cabeca_posterior() {
-
-  }
-
-  abrir_cabeca() {
-
-  }
-
-  abrir_cabeca_lateral() {
-
+  async abrirMapa(visao: MapaVisao) {
+    const modal = await this.modalCtrl.create({
+      component: MapaPage,
+      componentProps: { visaoEntrada: visao },
+      cssClass: 'mapa-modal',
+    });
+    await modal.present();
   }
 
   editarPorte() {
@@ -160,9 +162,6 @@ export class VitimaPage extends AtendimentoBasePage implements OnInit {
   }
 
   onChangePorte($event: any){
-
-    console.log(this.complSelect);
-
     setTimeout(() => {
       this.complSelect.open();
     }, 100);

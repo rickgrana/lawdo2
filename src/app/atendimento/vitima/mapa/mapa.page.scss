@@ -1,0 +1,15 @@
+.mapa-container {
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+
+  ion-img {
+    width: 100%;
+    max-width: 720px;
+  }
+}
+
+.mapa-erro {
+  padding: 16px;
+  text-align: center;
+}

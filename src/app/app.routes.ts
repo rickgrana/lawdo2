@@ -68,6 +68,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard, AtendimentoGuard]
   },
   {
+    path: 'atendimento/vitima/mapa/:visao',
+    loadComponent: () => import('./atendimento/vitima/mapa/mapa.page').then((m) => m.MapaPage),
+    canActivate: [AuthGuard, AtendimentoGuard],
+  },
+  {
     path: 'atendimento/conclusao',
     loadComponent: () => import('./atendimento/conclusao/conclusao.page').then(m => m.ConclusaoPage),
     canActivate: [AuthGuard, AtendimentoGuard]

@@ -1,0 +1,42 @@
+.img-container {
+  position: relative;
+  cursor: zoom-in;
+}
+
+.img-container ion-img {
+  width: 100%;
+  display: block;
+}
+
+/* Ícone centralizado e oculto */
+.hover-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  font-size: 28px;
+  color: white;
+
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Fundo escurecido opcional */
+.img-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Hover */
+.img-container:hover .hover-icon {
+  opacity: 1;
+}
+
+.img-container:hover::after {
+  opacity: 1;
+}

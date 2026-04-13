@@ -1,0 +1,15 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="fechar()">Fechar</ion-button>
+    </ion-buttons>
+    <ion-title>Mapa</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content *ngIf="form">
+  <div class="mapa-container" *ngIf="visao && imagemSrc">
+    <ion-img [src]="imagemSrc" [title]="visao"></ion-img>
+  </div>
+  <p class="mapa-erro" *ngIf="!visao">Parâmetro de visão inválido ou ausente.</p>
+</ion-content>

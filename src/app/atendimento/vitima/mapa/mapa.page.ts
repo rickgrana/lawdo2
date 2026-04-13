@@ -7,7 +7,6 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
-  IonImg,
   IonTitle,
   IonToolbar,
   ModalController,
@@ -30,13 +29,14 @@ import { MapaVisao, mapaSrcParaVisao, parseMapaVisao } from './mapa-visao.enum';
     IonButtons,
     IonButton,
     IonContent,
-    IonImg,
   ],
 })
 export class MapaPage extends AtendimentoBasePage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly modalCtrl = inject(ModalController);
+
+  readonly MapaVisao = MapaVisao;
 
   /** Quando aberto como modal a partir da vítima (componentProps). */
   @Input() visaoEntrada: string | MapaVisao | null = null;

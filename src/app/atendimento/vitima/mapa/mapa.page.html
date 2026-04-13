@@ -7,9 +7,23 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content *ngIf="form">
-  <div class="mapa-container" *ngIf="visao && imagemSrc">
-    <ion-img [src]="imagemSrc" [title]="visao"></ion-img>
+<ion-content *ngIf="form" [scrollY]="false">
+  <div class="mapa-container" *ngIf="visao && (visao === MapaVisao.CORPO_FRENTE || imagemSrc)">
+    <object
+      *ngIf="visao === MapaVisao.CORPO_FRENTE"
+      class="mapa-croqui"
+      type="image/svg+xml"
+      data="assets/mapas/corpo-frente/corpo-frente.svg"
+      aria-label="Mapa corpo (frente)"
+      title="Corpo (frente)"
+    ></object>
+    <img
+      *ngIf="visao !== MapaVisao.CORPO_FRENTE"
+      class="mapa-imagem"
+      [src]="imagemSrc"
+      alt="Mapa"
+      [attr.title]="visao"
+    />
   </div>
   <p class="mapa-erro" *ngIf="!visao">Parâmetro de visão inválido ou ausente.</p>
 </ion-content>

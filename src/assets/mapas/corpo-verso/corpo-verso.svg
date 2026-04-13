@@ -1,4 +1,19 @@
-<svg viewBox="0 0 424 941" class="croqui">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 424 941" width="100%" class="croqui" preserveAspectRatio="xMidYMid meet">
+  <style>
+    .area {
+      fill: transparent;
+      stroke: transparent;
+      cursor: pointer;
+    }
+    .area:hover {
+      fill: rgba(255, 0, 0, 0.3);
+      stroke: #c62828;
+      stroke-width: 1.5;
+    }
+    image {
+      pointer-events: none;
+    }
+  </style>
 
   <image href="corpo-verso.png" width="424" height="941" />
 

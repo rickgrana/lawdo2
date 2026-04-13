@@ -8,7 +8,10 @@
 </ion-header>
 
 <ion-content *ngIf="form" [scrollY]="false">
-  <div class="mapa-container" *ngIf="visao && (visao === MapaVisao.CORPO_FRENTE || imagemSrc)">
+  <div
+    class="mapa-container"
+    *ngIf="visao && (visao === MapaVisao.CORPO_FRENTE || visao === MapaVisao.CORPO_VERSO || imagemSrc)"
+  >
     <object
       *ngIf="visao === MapaVisao.CORPO_FRENTE"
       class="mapa-croqui"
@@ -17,8 +20,16 @@
       aria-label="Mapa corpo (frente)"
       title="Corpo (frente)"
     ></object>
+    <object
+      *ngIf="visao === MapaVisao.CORPO_VERSO"
+      class="mapa-croqui"
+      type="image/svg+xml"
+      data="assets/mapas/corpo-verso/corpo-verso.svg"
+      aria-label="Mapa corpo (verso)"
+      title="Corpo (verso)"
+    ></object>
     <img
-      *ngIf="visao !== MapaVisao.CORPO_FRENTE"
+      *ngIf="visao !== MapaVisao.CORPO_FRENTE && visao !== MapaVisao.CORPO_VERSO"
       class="mapa-imagem"
       [src]="imagemSrc"
       alt="Mapa"

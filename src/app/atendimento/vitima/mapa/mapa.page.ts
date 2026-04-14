@@ -217,11 +217,18 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
       return;
     }
 
+    const pontoMarca =
+      tipo === MapaTipoMarca.PAF
+        ? aplicarOffsetPistolaNaCoordenada(svg, cx, cy)
+        : tipo === MapaTipoMarca.FACA
+          ? aplicarOffsetFacaNaCoordenada(svg, cx, cy)
+          : { x: cx, y: cy };
+
     if (tipo === MapaTipoMarca.PAF) {
       this.appendIdAoCampoPaf(campoPafParaVisao(this.visao), id);
     }
 
-    const marca: MapaMarcaPersistida = { visao: this.visao, id, x: cx, y: cy, tipo };
+    const marca: MapaMarcaPersistida = { visao: this.visao, id, x: pontoMarca.x, y: pontoMarca.y, tipo };
     this.appendMarcaMapa(marca);
     overlay.appendChild(criarMarcaSvg(svg, marca));
   }
@@ -268,32 +275,34 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
     }
     const lista = this.marcacoesAtuais();
     const lim2 = raioApagarEmUnidadesSvg2(svg, 26);
-    let best = -1;
-    let bestD2 = Infinity;
-    for (let i = 0; i < lista.length; i++) {
-      const m = lista[i];
+    const removidos: MapaMarcaPersistida[] = [];
+    const restantes = lista.filter((m) => {
       if (m.visao !== visao) {
-        continue;
+        return true;
       }
       const dx = m.x - cx;
       const dy = m.y - cy;
       const d2 = dx * dx + dy * dy;
-      if (d2 > lim2 || d2 > bestD2) {
-        continue;
+      const manter = d2 > lim2;
+      if (!manter) {
+        removidos.push(m);
       }
-      bestD2 = d2;
-      best = i;
-    }
-    if (best < 0) {
+      return manter;
+    });
+
+    if (removidos.length === 0) {
       return;
     }
-    const rem = lista[best];
-    const tipo = rem.tipo ?? MapaTipoMarca.PAF;
-    if (tipo === MapaTipoMarca.PAF) {
-      this.removerIdDoCampoPaf(campoPafParaVisao(visao), rem.id);
+
+    const campo = campoPafParaVisao(visao);
+    for (const rem of removidos) {
+      const tipo = rem.tipo ?? MapaTipoMarca.PAF;
+      if (tipo === MapaTipoMarca.PAF) {
+        this.removerIdDoCampoPaf(campo, rem.id);
+      }
     }
-    lista.splice(best, 1);
-    this.definirMarcacoes(lista);
+
+    this.definirMarcacoes(restantes);
     this.restaurarMarcasSalvas(svg, overlay);
   }
 
@@ -490,21 +499,65 @@ function criarCruzVermelhaCentrada(svg: SVGSVGElement, cx: number, cy: number): 
 }
 
 function cursorCssParaFerramenta(f: MapaFerramenta): string {
-  const url = cursorSvgParaFerramenta(f);
-  return `url("${url}") 12 12, auto`;
+  const cursor = cursorParaFerramenta(f);
+  return `url("${cursor.url}") ${cursor.hotspotX} ${cursor.hotspotY}, auto`;
 }
 
-function cursorSvgParaFerramenta(f: MapaFerramenta): string {
+function cursorParaFerramenta(
+  f: MapaFerramenta,
+): { url: string; hotspotX: number; hotspotY: number } {
   switch (f) {
     case MapaFerramenta.PISTOLA:
-      return '/assets/toolbox/pistola.svg';
+      return { url: '/assets/toolbox/pistola.svg', hotspotX: 22, hotspotY: 17 };
     case MapaFerramenta.FACA:
-      return '/assets/toolbox/faca.svg';
+      return { url: '/assets/toolbox/faca.svg', hotspotX: 8, hotspotY: 20 };
     case MapaFerramenta.TACO:
-      return '/assets/toolbox/punho.svg';
+      return { url: '/assets/toolbox/punho.svg', hotspotX: 12, hotspotY: 12 };
     case MapaFerramenta.HEMATOMA:
-      return '/assets/toolbox/hematoma.svg';
+      return { url: '/assets/toolbox/hematoma.svg', hotspotX: 12, hotspotY: 12 };
     case MapaFerramenta.BORRACHA:
-      return '/assets/toolbox/limpar.svg';
+      return { url: '/assets/toolbox/limpar.svg', hotspotX: 12, hotspotY: 12 };
   }
+}
+
+/** Ajusta a marca PAF para acompanhar o hotspot definido no cursor da pistola. */
+function aplicarOffsetPistolaNaCoordenada(
+  svg: SVGSVGElement,
+  x: number,
+  y: number,
+): { x: number; y: number } {
+  // Cursor-base 24x24: centro em (12,12), hotspot da pistola em (23,1).
+  const dxTela = 11;
+  const dyTela = -11;
+  const inv = svg.getScreenCTM()?.inverse();
+  if (!inv) {
+    return { x, y };
+  }
+  const o = new DOMPoint(0, 0).matrixTransform(inv);
+  const d = new DOMPoint(dxTela, dyTela).matrixTransform(inv);
+  return {
+    x: x + (d.x - o.x),
+    y: y + (d.y - o.y),
+  };
+}
+
+/** Ajusta a marca FACA para acompanhar o hotspot no canto inferior esquerdo. */
+function aplicarOffsetFacaNaCoordenada(
+  svg: SVGSVGElement,
+  x: number,
+  y: number,
+): { x: number; y: number } {
+  // Cursor-base 24x24: centro em (12,12), hotspot da faca em (1,23).
+  const dxTela = -11;
+  const dyTela = 11;
+  const inv = svg.getScreenCTM()?.inverse();
+  if (!inv) {
+    return { x, y };
+  }
+  const o = new DOMPoint(0, 0).matrixTransform(inv);
+  const d = new DOMPoint(dxTela, dyTela).matrixTransform(inv);
+  return {
+    x: x + (d.x - o.x),
+    y: y + (d.y - o.y),
+  };
 }

@@ -39,6 +39,9 @@ export class Vitima extends Base {
     paf_frente = '';
     paf_costas = '';
 
+    /** JSON: lista de `{ visao, id, x, y, tipo? }` (tipo: PAF|FACA|TACO|HEMATOMA) no mapa. */
+    paf_mapa_marcacoes = '';
+
     observacoes = '';
 
     vestigios = [];
@@ -104,6 +107,7 @@ export class Vitima extends Base {
 
         this.paf_frente              = this.getValue(data.paf_frente);
         this.paf_costas              = this.getValue(data.paf_costas);
+        this.paf_mapa_marcacoes      = this.getValue(data.paf_mapa_marcacoes);
 
         this.observacoes              = this.getValue(data.observacoes);
 
@@ -267,6 +271,7 @@ export class Vitima extends Base {
             tatuagens: this.tatuagens,
             paf_frente: this.paf_frente,
             paf_costas: this.paf_costas,
+            paf_mapa_marcacoes: this.paf_mapa_marcacoes,
             observacoes: this.observacoes
           };
 

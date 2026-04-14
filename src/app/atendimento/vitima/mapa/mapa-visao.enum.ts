@@ -26,3 +26,17 @@ export function parseMapaVisao(value: string | null | undefined): MapaVisao | nu
   }
   return (Object.values(MapaVisao) as string[]).includes(value) ? (value as MapaVisao) : null;
 }
+
+/** Campo do formulário da vítima onde acumular os `data-id` do croqui desta visão. */
+export function campoPafParaVisao(visao: MapaVisao): 'paf_frente' | 'paf_costas' {
+  switch (visao) {
+    case MapaVisao.CORPO_FRENTE:
+    case MapaVisao.CABECA_ANTERIOR:
+    case MapaVisao.CABECA_LE:
+    case MapaVisao.CABECA_LD:
+      return 'paf_frente';
+    case MapaVisao.CORPO_VERSO:
+    case MapaVisao.CABECA_POSTERIOR:
+      return 'paf_costas';
+  }
+}

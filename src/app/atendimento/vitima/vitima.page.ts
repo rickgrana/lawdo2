@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
-    IonTextarea, IonListHeader, IonImg, IonList, IonIcon,
+    IonTextarea, IonListHeader, IonImg, IonList,
     IonRow, IonCol, IonButton, IonItem, IonBackButton, IonSelect, IonSelectOption, ModalController } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { AtendimentoBasePage } from '../atendimento-base.page';
@@ -16,7 +16,7 @@ import { MapaVisao } from './mapa/mapa-visao.enum';
   imports: [
       ReactiveFormsModule, CommonModule,
       IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
-      IonTextarea, IonListHeader, IonImg, IonList, IonIcon,
+      IonTextarea, IonListHeader, IonImg, IonList,
       IonRow, IonCol, IonButton, IonItem, IonBackButton, IonSelect, IonSelectOption
     ]
 })
@@ -78,6 +78,7 @@ export class VitimaPage extends AtendimentoBasePage implements OnInit {
       tatuagens: new FormControl<string>(this.vitima!.tatuagens),
       paf_frente: new FormControl<string>(this.vitima!.paf_frente),
       paf_costas: new FormControl<string>(this.vitima!.paf_costas),
+      paf_mapa_marcacoes: new FormControl<string>(this.vitima!.paf_mapa_marcacoes),
       observacoes: new FormControl<string>(this.vitima!.observacoes)
     });
 
@@ -113,6 +114,7 @@ export class VitimaPage extends AtendimentoBasePage implements OnInit {
     this.vitima!.tatuagens = record.tatuagens;
     this.vitima!.paf_frente = record.paf_frente;
     this.vitima!.paf_costas = record.paf_costas;
+    this.vitima!.paf_mapa_marcacoes = record.paf_mapa_marcacoes ?? '';
     this.vitima!.observacoes = record.observacoes;
 
     if(this.vitima!.isNewRecord()) {
@@ -147,7 +149,7 @@ export class VitimaPage extends AtendimentoBasePage implements OnInit {
   async abrirMapa(visao: MapaVisao) {
     const modal = await this.modalCtrl.create({
       component: MapaPage,
-      componentProps: { visaoEntrada: visao },
+      componentProps: { visaoEntrada: visao, formularioVitima: this.form },
       cssClass: 'mapa-modal',
     });
     await modal.present();

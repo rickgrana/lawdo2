@@ -7,7 +7,6 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
-  IonIcon,
   IonTitle,
   IonToolbar,
   ModalController,
@@ -62,8 +61,7 @@ function eventoTemCoordenadasCliente(ev: Event): ev is EventoComCoordenadasClien
     IonTitle,
     IonButtons,
     IonButton,
-    IonContent,
-    IonIcon,
+    IonContent
   ],
 })
 export class MapaPage extends AtendimentoBasePage implements OnInit {
@@ -84,14 +82,17 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
 
   visao: MapaVisao | null = null;
   imagemSrc = '';
+  cursorFerramentaCss = '';
 
   private svgInteracaoAbort?: AbortController;
+  private svgRaizAtual: SVGSVGElement | null = null;
 
   get vitima() {
     return this.atendimentoService.vitima;
   }
 
   override ngOnInit() {
+    this.atualizarCursorFerramenta();
     const entrada = this.visaoEntrada;
     if (entrada != null && `${entrada}` !== '') {
       this.aplicarVisao(String(entrada));
@@ -108,6 +109,7 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
     this.encerrarInteratividadeSvg();
     this.visao = parseMapaVisao(raw);
     this.imagemSrc = this.visao ? mapaSrcParaVisao(this.visao) : '';
+    this.atualizarCursorFerramenta();
   }
 
   onCroquiSvgCarregado(event: Event) {
@@ -125,6 +127,7 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
   private encerrarInteratividadeSvg() {
     this.svgInteracaoAbort?.abort();
     this.svgInteracaoAbort = undefined;
+    this.svgRaizAtual = null;
   }
 
   private inicializarInteratividadeCroqui(svgDoc: Document) {
@@ -134,8 +137,10 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
       return;
     }
     const svg = raiz as SVGSVGElement;
+    this.svgRaizAtual = svg;
     const ac = new AbortController();
     this.svgInteracaoAbort = ac;
+    this.aplicarCursorNoSvgInterativo(svg);
 
     const overlay = this.garantirGrupoOverlay(svg);
 
@@ -160,6 +165,22 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
 
   selecionarFerramenta(f: MapaFerramenta) {
     this.ferramentaAtiva = f;
+    this.atualizarCursorFerramenta();
+  }
+
+  private atualizarCursorFerramenta() {
+    this.cursorFerramentaCss = cursorCssParaFerramenta(this.ferramentaAtiva);
+    if (this.svgRaizAtual) {
+      this.aplicarCursorNoSvgInterativo(this.svgRaizAtual);
+    }
+  }
+
+  private aplicarCursorNoSvgInterativo(svg: SVGSVGElement) {
+    const cursor = this.cursorFerramentaCss || 'auto';
+    svg.style.cursor = cursor;
+    svg.querySelectorAll<SVGGraphicsElement>('.area').forEach((el) => {
+      el.style.cursor = cursor;
+    });
   }
 
   private garantirGrupoOverlay(svg: SVGSVGElement): SVGGElement {
@@ -466,4 +487,24 @@ function criarCruzVermelhaCentrada(svg: SVGSVGElement, cx: number, cy: number): 
   }
 
   return g;
+}
+
+function cursorCssParaFerramenta(f: MapaFerramenta): string {
+  const url = cursorSvgParaFerramenta(f);
+  return `url("${url}") 12 12, auto`;
+}
+
+function cursorSvgParaFerramenta(f: MapaFerramenta): string {
+  switch (f) {
+    case MapaFerramenta.PISTOLA:
+      return '/assets/toolbox/pistola.svg';
+    case MapaFerramenta.FACA:
+      return '/assets/toolbox/faca.svg';
+    case MapaFerramenta.TACO:
+      return '/assets/toolbox/punho.svg';
+    case MapaFerramenta.HEMATOMA:
+      return '/assets/toolbox/hematoma.svg';
+    case MapaFerramenta.BORRACHA:
+      return '/assets/toolbox/limpar.svg';
+  }
 }

@@ -14,8 +14,9 @@
   >
     <aside class="mapa-toolbox" aria-label="Ferramentas do mapa">
       <ion-button
-        fill="clear"
+        [fill]="ferramentaAtiva === MapaFerramenta.PISTOLA ? 'solid' : 'clear'"
         [color]="ferramentaAtiva === MapaFerramenta.PISTOLA ? 'primary' : 'medium'"
+        [class.active-tool]="ferramentaAtiva === MapaFerramenta.PISTOLA"
         (click)="selecionarFerramenta(MapaFerramenta.PISTOLA)"
         title="Pistola (PAF)"
         aria-label="Pistola (PAF)"
@@ -23,8 +24,9 @@
         <img slot="icon-only" class="mapa-toolbox-img" src="assets/toolbox/pistola.svg" alt="" />
       </ion-button>
       <ion-button
-        fill="clear"
+        [fill]="ferramentaAtiva === MapaFerramenta.FACA ? 'solid' : 'clear'"
         [color]="ferramentaAtiva === MapaFerramenta.FACA ? 'primary' : 'medium'"
+        [class.active-tool]="ferramentaAtiva === MapaFerramenta.FACA"
         (click)="selecionarFerramenta(MapaFerramenta.FACA)"
         title="Faca (instrumento cortante)"
         aria-label="Faca (instrumento cortante)"
@@ -32,8 +34,9 @@
         <img slot="icon-only" class="mapa-toolbox-img" src="assets/toolbox/faca.svg" alt="" />
       </ion-button>
       <ion-button
-        fill="clear"
+        [fill]="ferramentaAtiva === MapaFerramenta.TACO ? 'solid' : 'clear'"
         [color]="ferramentaAtiva === MapaFerramenta.TACO ? 'primary' : 'medium'"
+        [class.active-tool]="ferramentaAtiva === MapaFerramenta.TACO"
         (click)="selecionarFerramenta(MapaFerramenta.TACO)"
         title="Contundente"
         aria-label="Contundente"
@@ -41,8 +44,9 @@
         <img slot="icon-only" class="mapa-toolbox-img" src="assets/toolbox/punho.svg" alt="" />
       </ion-button>
       <ion-button
-        fill="clear"
+        [fill]="ferramentaAtiva === MapaFerramenta.HEMATOMA ? 'solid' : 'clear'"
         [color]="ferramentaAtiva === MapaFerramenta.HEMATOMA ? 'primary' : 'medium'"
+        [class.active-tool]="ferramentaAtiva === MapaFerramenta.HEMATOMA"
         (click)="selecionarFerramenta(MapaFerramenta.HEMATOMA)"
         title="Hematoma"
         aria-label="Hematoma"
@@ -50,8 +54,9 @@
         <img slot="icon-only" class="mapa-toolbox-img" src="assets/toolbox/hematoma.svg" alt="" />
       </ion-button>
       <ion-button
-        fill="clear"
+        [fill]="ferramentaAtiva === MapaFerramenta.BORRACHA ? 'solid' : 'clear'"
         [color]="ferramentaAtiva === MapaFerramenta.BORRACHA ? 'primary' : 'medium'"
+        [class.active-tool]="ferramentaAtiva === MapaFerramenta.BORRACHA"
         (click)="selecionarFerramenta(MapaFerramenta.BORRACHA)"
         title="Borracha (apagar)"
         aria-label="Borracha (apagar)"
@@ -59,7 +64,7 @@
         <img slot="icon-only" class="mapa-toolbox-img" src="assets/toolbox/limpar.svg" alt="" />
       </ion-button>
     </aside>
-    <div class="mapa-container">
+    <div class="mapa-container" [style.cursor]="cursorFerramentaCss">
     <object
       *ngIf="visao === MapaVisao.CORPO_FRENTE"
       class="mapa-croqui"

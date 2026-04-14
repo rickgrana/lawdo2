@@ -46,6 +46,7 @@ ion-content::part(scroll) {
   margin: 0;
   --padding-start: 6px;
   --padding-end: 6px;
+  --border-radius: 10px;
 }
 
 .mapa-toolbox ion-icon {
@@ -56,6 +57,11 @@ ion-content::part(scroll) {
   width: 26px;
   height: 26px;
   display: block;
+}
+
+.mapa-toolbox ion-button.active-tool {
+  --background: rgba(var(--ion-color-primary-rgb), 0.14);
+  --box-shadow: 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.35) inset;
 }
 
 .mapa-container {

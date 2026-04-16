@@ -97,6 +97,17 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
   private svgInteracaoAbort?: AbortController;
   private svgRaizAtual: SVGSVGElement | null = null;
 
+  /** Arrasto livre para mancha poligonal (hematoma ou faca). */
+  private manchaPoligonoArrasto: {
+    svg: SVGSVGElement;
+    overlay: SVGGElement;
+    areaId: string;
+    tipoVestigio: MapaTipoVestigio.HEMATOMA | MapaTipoVestigio.FACA;
+    pontos: CoordenadaMapa[];
+    preview: SVGPolylineElement;
+    ac: AbortController;
+  } | null = null;
+
   get vitima() {
     return this.atendimentoService.vitima;
   }
@@ -135,6 +146,7 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
   }
 
   private encerrarInteratividadeSvg() {
+    this.cancelarArrastoManchaPoligono();
     this.svgInteracaoAbort?.abort();
     this.svgInteracaoAbort = undefined;
     this.svgRaizAtual = null;
@@ -159,12 +171,39 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
       el.addEventListener(
         'click',
         (ev) => {
+          if (
+            this.ferramentaAtiva === MapaFerramenta.HEMATOMA ||
+            this.ferramentaAtiva === MapaFerramenta.FACA
+          ) {
+            return;
+          }
           ev.preventDefault();
           ev.stopPropagation();
           if (!eventoTemCoordenadasCliente(ev)) {
             return;
           }
           this.registrarCliqueArea(el, svg, overlay, ev);
+        },
+        { signal: ac.signal, capture: true },
+      );
+      el.addEventListener(
+        'pointerdown',
+        (ev) => {
+          const f = this.ferramentaAtiva;
+          if (f !== MapaFerramenta.HEMATOMA && f !== MapaFerramenta.FACA) {
+            return;
+          }
+          if (ev.button !== 0) {
+            return;
+          }
+          ev.preventDefault();
+          ev.stopPropagation();
+          if (!eventoTemCoordenadasCliente(ev)) {
+            return;
+          }
+          const tipo =
+            f === MapaFerramenta.FACA ? MapaTipoVestigio.FACA : MapaTipoVestigio.HEMATOMA;
+          this.iniciarArrastoManchaPoligono(el, svg, overlay, ev, tipo);
         },
         { signal: ac.signal, capture: true },
       );
@@ -194,13 +233,18 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
   }
 
   private garantirGrupoOverlay(svg: SVGSVGElement): SVGGElement {
+    garantirDefesMapaOverlay(svg);
+    garantirClipUniaoAreas(svg);
     const existente = svg.getElementById('mapa-overlay-linhas');
     if (existente?.namespaceURI === SVG_NS && existente.localName === 'g') {
-      return existente as SVGGElement;
+      const g = existente as SVGGElement;
+      g.setAttribute('clip-path', 'url(#mapa-overlay-clip)');
+      return g;
     }
     const g = svg.ownerDocument!.createElementNS(SVG_NS, 'g');
     g.setAttribute('id', 'mapa-overlay-linhas');
     g.setAttribute('pointer-events', 'none');
+    g.setAttribute('clip-path', 'url(#mapa-overlay-clip)');
     svg.appendChild(g);
     return g;
   }
@@ -237,6 +281,162 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
     const marca: MapaMarcaPersistida = { visao: this.visao, id, x: pontoMarca.x, y: pontoMarca.y, tipo };
     this.appendMarcaMapa(marca);
     overlay.appendChild(criarMarcaSvg(svg, marca));
+  }
+
+  private iniciarArrastoManchaPoligono(
+    el: SVGGraphicsElement,
+    svg: SVGSVGElement,
+    overlay: SVGGElement,
+    ev: EventoComCoordenadasCliente,
+    tipoVestigio: MapaTipoVestigio.HEMATOMA | MapaTipoVestigio.FACA,
+  ) {
+    if (this.manchaPoligonoArrasto) {
+      return;
+    }
+    const id = el.getAttribute('data-id')?.trim() ?? '';
+    if (!id || !this.visao) {
+      return;
+    }
+    const p0 = clampPontoAoSvg(svg, pontoSvgNoCliente(svg, ev));
+    const doc = svg.ownerDocument!;
+    garantirDefesMapaOverlay(svg);
+    const preview = doc.createElementNS(SVG_NS, 'polyline');
+    preview.setAttribute('pointer-events', 'none');
+    preview.setAttribute('fill', 'none');
+    preview.setAttribute('stroke-linejoin', 'round');
+    preview.setAttribute('stroke-linecap', 'round');
+    preview.setAttribute('vector-effect', 'non-scaling-stroke');
+    if (tipoVestigio === MapaTipoVestigio.FACA) {
+      const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 1.25);
+      const riscoW = Math.max(rx, ry) * 1.35;
+      preview.setAttribute('stroke', '#ff1744');
+      preview.setAttribute('stroke-width', String(riscoW));
+      preview.setAttribute('stroke-opacity', '1');
+    } else {
+      const { largura, cor, opacidade } = estiloTracoHematomaArrasto(svg);
+      preview.setAttribute('stroke', cor);
+      preview.setAttribute('stroke-width', String(largura));
+      preview.setAttribute('stroke-opacity', opacidade);
+      preview.setAttribute('filter', 'url(#mapa-mancha-hem-preview)');
+    }
+    preview.setAttribute('points', `${p0.x},${p0.y}`);
+    overlay.appendChild(preview);
+
+    const ac = new AbortController();
+    this.manchaPoligonoArrasto = {
+      svg,
+      overlay,
+      areaId: id,
+      tipoVestigio,
+      pontos: [{ x: p0.x, y: p0.y }],
+      preview,
+      ac,
+    };
+
+    const ptr = ev as PointerEvent;
+    try {
+      el.setPointerCapture(ptr.pointerId);
+    } catch {
+      /* ignore */
+    }
+
+    const minDist = distanciaMinimaAmostragemSvg(svg);
+    const mover = (e: Event) => {
+      if (!this.manchaPoligonoArrasto || !eventoTemCoordenadasCliente(e)) {
+        return;
+      }
+      const p = clampPontoAoSvg(svg, pontoSvgNoCliente(svg, e));
+      const pts = this.manchaPoligonoArrasto.pontos;
+      const ult = pts[pts.length - 1];
+      const dx = p.x - ult.x;
+      const dy = p.y - ult.y;
+      if (dx * dx + dy * dy < minDist * minDist) {
+        return;
+      }
+      pts.push({ x: p.x, y: p.y });
+      this.manchaPoligonoArrasto.preview.setAttribute('points', pts.map((q) => `${q.x},${q.y}`).join(' '));
+    };
+
+    const finalizar = (e: Event) => {
+      if (!this.manchaPoligonoArrasto) {
+        return;
+      }
+      const st = this.manchaPoligonoArrasto;
+      this.manchaPoligonoArrasto = null;
+      ac.abort();
+      try {
+        el.releasePointerCapture((e as PointerEvent).pointerId);
+      } catch {
+        /* ignore */
+      }
+      st.preview.remove();
+      const pts = st.pontos.map((q) => clampPontoAoSvg(svg, q));
+      const minD = distanciaMinimaAmostragemSvg(svg);
+
+      if (st.tipoVestigio === MapaTipoVestigio.FACA) {
+        const comp = comprimentoPolylineAberta(pts);
+        const arrastoRisco = pts.length >= 3 && comp >= minD * 8;
+        if (!arrastoRisco) {
+          const cx = pts.reduce((s, q) => s + q.x, 0) / pts.length;
+          const cy = pts.reduce((s, q) => s + q.y, 0) / pts.length;
+          const { x, y } = aplicarOffsetFacaNaCoordenada(svg, cx, cy);
+          const marcaLente: MapaMarcaPersistida = {
+            visao: this.visao!,
+            id: st.areaId,
+            x,
+            y,
+            tipo: MapaTipoVestigio.FACA,
+          };
+          this.appendMarcaMapa(marcaLente);
+          overlay.appendChild(criarMarcaSvg(svg, marcaLente));
+          return;
+        }
+        const cx = pts.reduce((s, q) => s + q.x, 0) / pts.length;
+        const cy = pts.reduce((s, q) => s + q.y, 0) / pts.length;
+        const marcaRisco: MapaMarcaPersistida = {
+          visao: this.visao!,
+          id: st.areaId,
+          x: cx,
+          y: cy,
+          tipo: MapaTipoVestigio.FACA,
+          pontos: pts.map((q) => ({ x: q.x, y: q.y })),
+        };
+        this.appendMarcaMapa(marcaRisco);
+        overlay.appendChild(criarMarcaSvg(svg, marcaRisco));
+        return;
+      }
+
+      if (pts.length < 3) {
+        return;
+      }
+      const cx = pts.reduce((s, q) => s + q.x, 0) / pts.length;
+      const cy = pts.reduce((s, q) => s + q.y, 0) / pts.length;
+      const marca: MapaMarcaPersistida = {
+        visao: this.visao!,
+        id: st.areaId,
+        x: cx,
+        y: cy,
+        tipo: st.tipoVestigio,
+        pontos: pts.map((q) => ({ x: q.x, y: q.y })),
+      };
+      this.appendMarcaMapa(marca);
+      overlay.appendChild(criarMarcaSvg(svg, marca));
+    };
+
+    const docRoot = doc;
+    docRoot.addEventListener('pointermove', mover, { signal: ac.signal, capture: true });
+    docRoot.addEventListener('pointerup', finalizar, { signal: ac.signal, capture: true });
+    docRoot.addEventListener('pointercancel', finalizar, { signal: ac.signal, capture: true });
+  }
+
+  private cancelarArrastoManchaPoligono() {
+    const st = this.manchaPoligonoArrasto;
+    if (!st) {
+      return;
+    }
+    this.manchaPoligonoArrasto = null;
+    st.ac.abort();
+    st.preview.remove();
   }
 
   private marcacoesAtuais(): MapaMarcaPersistida[] {
@@ -280,9 +480,23 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
     const lista = this.marcacoesAtuais();
     const lim2 = raioApagarEmUnidadesSvg2(svg, 26);
     const removidos: MapaMarcaPersistida[] = [];
+    const limLinha = Math.sqrt(lim2) * 1.35;
     const restantes = lista.filter((m) => {
       if (m.visao !== visao) {
         return true;
+      }
+      const poligonoMancha =
+        (tipoMarcaDe(m) === MapaTipoVestigio.HEMATOMA || tipoMarcaDe(m) === MapaTipoVestigio.FACA) &&
+        m.pontos &&
+        m.pontos.length >= 3;
+      if (poligonoMancha) {
+        const dentro = pontoDentroPoligono(cx, cy, m.pontos!);
+        const dArista = distanciaMinimaPontoAristasPoligono(cx, cy, m.pontos!);
+        const manter = !dentro && dArista > limLinha;
+        if (!manter) {
+          removidos.push(m);
+        }
+        return manter;
       }
       const dx = m.x - cx;
       const dy = m.y - cy;
@@ -393,6 +607,31 @@ function parseVestigiosMapa(raw: unknown): MapaVestigioItem[] {
 function extrairMarcacoesDeVestigios(vestigios: MapaVestigioItem[]): MapaMarcaPersistida[] {
   const out: MapaMarcaPersistida[] = [];
   for (const item of vestigios) {
+    const manchaPoligono =
+      (item.tipoVestigio === MapaTipoVestigio.HEMATOMA || item.tipoVestigio === MapaTipoVestigio.FACA) &&
+      item.coordenadas.length > 0;
+    if (manchaPoligono) {
+      const q = item.quantidade;
+      const coords = item.coordenadas;
+      // Um polígono: quantidade 1 com ≥3 vértices. Vários marcos antigos na mesma região: quantidade = nº de marcas.
+      if (q === 1 && coords.length >= 3) {
+        const cx = coords.reduce((s, c) => s + c.x, 0) / coords.length;
+        const cy = coords.reduce((s, c) => s + c.y, 0) / coords.length;
+        out.push({
+          visao: item.visao,
+          id: item.regiao,
+          x: cx,
+          y: cy,
+          tipo: item.tipoVestigio,
+          pontos: coords.map((c) => ({ x: c.x, y: c.y })),
+        });
+        continue;
+      }
+      for (const c of coords) {
+        out.push({ visao: item.visao, tipo: item.tipoVestigio, id: item.regiao, x: c.x, y: c.y });
+      }
+      continue;
+    }
     for (const c of item.coordenadas) {
       out.push({ visao: item.visao, tipo: item.tipoVestigio, id: item.regiao, x: c.x, y: c.y });
     }
@@ -402,10 +641,26 @@ function extrairMarcacoesDeVestigios(vestigios: MapaVestigioItem[]): MapaMarcaPe
 
 function converterMarcacoesParaVestigios(lista: MapaMarcaPersistida[]): MapaVestigioItem[] {
   const index = new Map<string, CoordenadaMapa[]>();
+  const poligonosQuantidadeUm: MapaVestigioItem[] = [];
+
   for (const m of lista) {
     const tipo = m.tipo ?? MapaTipoVestigio.PAF;
     const regiao = parseMapaRegiao(String(m.id ?? '').trim());
     if (!regiao) {
+      continue;
+    }
+    if (
+      (tipo === MapaTipoVestigio.HEMATOMA || tipo === MapaTipoVestigio.FACA) &&
+      m.pontos &&
+      m.pontos.length >= 3
+    ) {
+      poligonosQuantidadeUm.push({
+        visao: m.visao,
+        regiao,
+        tipoVestigio: tipo,
+        quantidade: 1,
+        coordenadas: m.pontos.map((p) => ({ x: p.x, y: p.y })),
+      });
       continue;
     }
     const key = `${m.visao}||${tipo}||${regiao}`;
@@ -414,7 +669,7 @@ function converterMarcacoesParaVestigios(lista: MapaMarcaPersistida[]): MapaVest
     index.set(key, coords);
   }
 
-  const out: MapaVestigioItem[] = [];
+  const out: MapaVestigioItem[] = [...poligonosQuantidadeUm];
   for (const [key, coordenadas] of index.entries()) {
     const [visaoRaw, tipoRaw, regiaoRaw] = key.split('||');
     const visao = parseMapaVisao(visaoRaw);
@@ -468,6 +723,198 @@ function pontoSvgNoCliente(svg: SVGSVGElement, ev: EventoComCoordenadasCliente):
   return { x: p.x, y: p.y };
 }
 
+function limitesSvgLocal(svg: SVGSVGElement): { x: number; y: number; width: number; height: number } {
+  const vb = svg.viewBox?.baseVal;
+  if (vb && vb.width > 0 && vb.height > 0) {
+    return { x: vb.x, y: vb.y, width: vb.width, height: vb.height };
+  }
+  try {
+    const bb = svg.getBBox();
+    if (bb.width > 0 && bb.height > 0 && Number.isFinite(bb.x) && Number.isFinite(bb.y)) {
+      return { x: bb.x, y: bb.y, width: bb.width, height: bb.height };
+    }
+  } catch {
+    /* ignore */
+  }
+  return { x: 0, y: 0, width: 10000, height: 10000 };
+}
+
+function clampPontoAoSvg(svg: SVGSVGElement, p: CoordenadaMapa): CoordenadaMapa {
+  const b = limitesSvgLocal(svg);
+  return {
+    x: Math.min(Math.max(p.x, b.x), b.x + b.width),
+    y: Math.min(Math.max(p.y, b.y), b.y + b.height),
+  };
+}
+
+/** `clipPath` = união das geometrias `.area` do croqui (marcas só visíveis dentro das regiões). */
+function garantirClipUniaoAreas(svg: SVGSVGElement): void {
+  const doc = svg.ownerDocument!;
+  let defs = svg.querySelector('defs');
+  if (!defs) {
+    defs = doc.createElementNS(SVG_NS, 'defs');
+    svg.insertBefore(defs, svg.firstChild);
+  }
+  svg.getElementById('mapa-overlay-clip')?.remove();
+
+  const cp = doc.createElementNS(SVG_NS, 'clipPath');
+  cp.setAttribute('id', 'mapa-overlay-clip');
+  cp.setAttribute('clipPathUnits', 'userSpaceOnUse');
+
+  const areas = svg.querySelectorAll<SVGGraphicsElement>('.area');
+  if (areas.length > 0) {
+    areas.forEach((el) => {
+      const clone = el.cloneNode(true) as SVGGraphicsElement;
+      clone.removeAttribute('class');
+      clone.removeAttribute('style');
+      clone.removeAttribute('data-id');
+      clone.removeAttribute('id');
+      cp.appendChild(clone);
+    });
+  } else {
+    const b = limitesSvgLocal(svg);
+    const rect = doc.createElementNS(SVG_NS, 'rect');
+    rect.setAttribute('x', String(b.x));
+    rect.setAttribute('y', String(b.y));
+    rect.setAttribute('width', String(b.width));
+    rect.setAttribute('height', String(b.height));
+    cp.appendChild(rect);
+  }
+  defs.appendChild(cp);
+}
+
+/** Filtros de mancha (uma vez por documento SVG do croqui). */
+function garantirDefesMapaOverlay(svg: SVGSVGElement): void {
+  const doc = svg.ownerDocument!;
+  let defs = svg.querySelector('defs');
+  if (!defs) {
+    defs = doc.createElementNS(SVG_NS, 'defs');
+    svg.insertBefore(defs, svg.firstChild);
+  }
+  const padFiltro = () => {
+    const b = limitesSvgLocal(svg);
+    return Math.max(b.width, b.height) * 0.08 + 24;
+  };
+  if (!svg.getElementById('mapa-mancha-hem-soft')) {
+    const b = limitesSvgLocal(svg);
+    const pad = padFiltro();
+    const filter = doc.createElementNS(SVG_NS, 'filter');
+    filter.setAttribute('id', 'mapa-mancha-hem-soft');
+    filter.setAttribute('filterUnits', 'userSpaceOnUse');
+    filter.setAttribute('x', String(b.x - pad));
+    filter.setAttribute('y', String(b.y - pad));
+    filter.setAttribute('width', String(b.width + pad * 2));
+    filter.setAttribute('height', String(b.height + pad * 2));
+    const blur = doc.createElementNS(SVG_NS, 'feGaussianBlur');
+    blur.setAttribute('in', 'SourceGraphic');
+    blur.setAttribute('stdDeviation', '5.5');
+    filter.appendChild(blur);
+    defs.appendChild(filter);
+  }
+  if (!svg.getElementById('mapa-mancha-hem-preview')) {
+    const b = limitesSvgLocal(svg);
+    const pad = padFiltro();
+    const filter = doc.createElementNS(SVG_NS, 'filter');
+    filter.setAttribute('id', 'mapa-mancha-hem-preview');
+    filter.setAttribute('filterUnits', 'userSpaceOnUse');
+    filter.setAttribute('x', String(b.x - pad));
+    filter.setAttribute('y', String(b.y - pad));
+    filter.setAttribute('width', String(b.width + pad * 2));
+    filter.setAttribute('height', String(b.height + pad * 2));
+    const blur = doc.createElementNS(SVG_NS, 'feGaussianBlur');
+    blur.setAttribute('in', 'SourceGraphic');
+    blur.setAttribute('stdDeviation', '2.1');
+    filter.appendChild(blur);
+    defs.appendChild(filter);
+  }
+}
+
+/** Mesmos parâmetros do traço de arrasto e da marca final (polígono hematoma). */
+function estiloTracoHematomaArrasto(svg: SVGSVGElement): {
+  largura: number;
+  cor: string;
+  opacidade: string;
+} {
+  const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 15);
+  return {
+    largura: Math.max(rx, ry) * 1.475,
+    cor: '#c62828',
+    opacidade: '0.82',
+  };
+}
+
+/** Espaçamento mínimo entre amostras do arrasto (coordenadas de utilizador do SVG). */
+function distanciaMinimaAmostragemSvg(svg: SVGSVGElement): number {
+  const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 2.5);
+  return Math.max(rx, ry, 0.8);
+}
+
+/** Comprimento da polilinha aberta (não fecha o último ao primeiro). */
+function comprimentoPolylineAberta(pts: CoordenadaMapa[]): number {
+  if (pts.length < 2) {
+    return 0;
+  }
+  let s = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1]!;
+    const b = pts[i]!;
+    s += Math.hypot(b.x - a.x, b.y - a.y);
+  }
+  return s;
+}
+
+function pontoDentroPoligono(px: number, py: number, pts: CoordenadaMapa[]): boolean {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const xi = pts[i]!.x;
+    const yi = pts[i]!.y;
+    const xj = pts[j]!.x;
+    const yj = pts[j]!.y;
+    if ((yi > py) !== (yj > py)) {
+      const dy = yj - yi;
+      if (Math.abs(dy) > 1e-12) {
+        const xInt = ((xj - xi) * (py - yi)) / dy + xi;
+        if (px < xInt) {
+          inside = !inside;
+        }
+      }
+    }
+  }
+  return inside;
+}
+
+function distanciaPontoSegmento(
+  px: number,
+  py: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): number {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len2 = dx * dx + dy * dy;
+  if (len2 === 0) {
+    return Math.hypot(px - x1, py - y1);
+  }
+  let t = ((px - x1) * dx + (py - y1) * dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  const nx = x1 + t * dx;
+  const ny = y1 + t * dy;
+  return Math.hypot(px - nx, py - ny);
+}
+
+function distanciaMinimaPontoAristasPoligono(px: number, py: number, pts: CoordenadaMapa[]): number {
+  let min = Infinity;
+  const n = pts.length;
+  for (let i = 0; i < n; i++) {
+    const p1 = pts[i]!;
+    const p2 = pts[(i + 1) % n]!;
+    min = Math.min(min, distanciaPontoSegmento(px, py, p1.x, p1.y, p2.x, p2.y));
+  }
+  return min;
+}
+
 /** Metade do braço da cruz em unidades de utilizador do SVG para ~`pixelsTela` no ecrã (horizontal / vertical). */
 function metadeBracoCruzEmUnidadesSvg(svg: SVGSVGElement, pixelsTela: number): { rx: number; ry: number } {
   const inv = svg.getScreenCTM()?.inverse();
@@ -498,31 +945,58 @@ function criarMarcaSvg(svg: SVGSVGElement, m: MapaMarcaPersistida): SVGGElement 
     case MapaTipoVestigio.PAF:
       return criarMarcaPaf(svg, m.x, m.y);
     case MapaTipoVestigio.FACA:
-      return criarMarcaFaca(svg, m.x, m.y);
+      return criarMarcaFaca(svg, m);
     case MapaTipoVestigio.TACO:
       return criarMarcaTaco(svg, m.x, m.y);
     case MapaTipoVestigio.HEMATOMA:
-      return criarMarcaHematoma(svg, m.x, m.y);
+      return criarMarcaHematoma(svg, m);
     default:
       return criarMarcaPaf(svg, m.x, m.y);
   }
 }
 
-function criarMarcaFaca(svg: SVGSVGElement, cx: number, cy: number): SVGGElement {
+function criarMarcaFaca(svg: SVGSVGElement, m: MapaMarcaPersistida): SVGGElement {
+  if (m.pontos && m.pontos.length >= 3) {
+    return criarMarcaFacaPoligono(svg, m.pontos);
+  }
+  return criarMarcaFacaPonto(svg, m.x, m.y);
+}
+
+/** Polígono da faca: contorno em risco (traço), sem preenchimento. */
+function criarMarcaFacaPoligono(svg: SVGSVGElement, pontos: CoordenadaMapa[]): SVGGElement {
   const doc = svg.ownerDocument!;
-  const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 9);
-  const w = rx * 1.05;
-  const h = ry * 0.72;
+  const g = doc.createElementNS(SVG_NS, 'g');
+  const poly = doc.createElementNS(SVG_NS, 'polygon');
+  const pts = pontos.map((p) => clampPontoAoSvg(svg, p));
+  poly.setAttribute('points', pts.map((p) => `${p.x},${p.y}`).join(' '));
+  poly.setAttribute('fill', 'none');
+  poly.setAttribute('stroke', '#ff1744');
+  const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 1.3);
+  poly.setAttribute('stroke-width', String(Math.max(rx, ry) * 1.4));
+  poly.setAttribute('stroke-opacity', '1');
+  poly.setAttribute('stroke-linejoin', 'round');
+  poly.setAttribute('stroke-linecap', 'round');
+  poly.setAttribute('vector-effect', 'non-scaling-stroke');
+  g.appendChild(poly);
+  return g;
+}
+
+/** Marca única (clique): lente biconvexa em vermelho vivo. */
+function criarMarcaFacaPonto(svg: SVGSVGElement, cx: number, cy: number): SVGGElement {
+  const doc = svg.ownerDocument!;
+  const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 10);
+  const w = rx * 1.22;
+  const h = ry * 0.98;
   const g = doc.createElementNS(SVG_NS, 'g');
   const path = doc.createElementNS(SVG_NS, 'path');
   path.setAttribute(
     'd',
     `M ${cx - w} ${cy} Q ${cx} ${cy - h} ${cx + w} ${cy} Q ${cx} ${cy + h} ${cx - w} ${cy} Z`,
   );
-  path.setAttribute('fill', '#ffcdd2');
-  path.setAttribute('fill-opacity', '0.9');
-  path.setAttribute('stroke', '#b71c1c');
-  path.setAttribute('stroke-width', '1.5');
+  path.setAttribute('fill', '#ff1744');
+  path.setAttribute('fill-opacity', '0.94');
+  path.setAttribute('stroke', '#d50000');
+  path.setAttribute('stroke-width', '0.95');
   path.setAttribute('vector-effect', 'non-scaling-stroke');
   g.appendChild(path);
   return g;
@@ -546,7 +1020,34 @@ function criarMarcaTaco(svg: SVGSVGElement, cx: number, cy: number): SVGGElement
   return g;
 }
 
-function criarMarcaHematoma(svg: SVGSVGElement, cx: number, cy: number): SVGGElement {
+function criarMarcaHematoma(svg: SVGSVGElement, m: MapaMarcaPersistida): SVGGElement {
+  if (m.pontos && m.pontos.length >= 3) {
+    return criarMarcaHematomaPoligono(svg, m.pontos);
+  }
+  return criarMarcaHematomaBlob(svg, m.x, m.y);
+}
+
+function criarMarcaHematomaPoligono(svg: SVGSVGElement, pontos: CoordenadaMapa[]): SVGGElement {
+  const doc = svg.ownerDocument!;
+  garantirDefesMapaOverlay(svg);
+  const { largura, cor, opacidade } = estiloTracoHematomaArrasto(svg);
+  const g = doc.createElementNS(SVG_NS, 'g');
+  const poly = doc.createElementNS(SVG_NS, 'polygon');
+  const pts = pontos.map((p) => clampPontoAoSvg(svg, p));
+  poly.setAttribute('points', pts.map((p) => `${p.x},${p.y}`).join(' '));
+  poly.setAttribute('fill', 'none');
+  poly.setAttribute('stroke', cor);
+  poly.setAttribute('stroke-width', String(largura));
+  poly.setAttribute('stroke-opacity', opacidade);
+  poly.setAttribute('stroke-linejoin', 'round');
+  poly.setAttribute('stroke-linecap', 'round');
+  poly.setAttribute('vector-effect', 'non-scaling-stroke');
+  poly.setAttribute('filter', 'url(#mapa-mancha-hem-preview)');
+  g.appendChild(poly);
+  return g;
+}
+
+function criarMarcaHematomaBlob(svg: SVGSVGElement, cx: number, cy: number): SVGGElement {
   const doc = svg.ownerDocument!;
   const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 11);
   const ax = rx * 1.2;

@@ -9,6 +9,8 @@ export interface MapaMarcaPersistida {
   y: number;
   /** Ausente em dados antigos: tratar como PAF (cruz). */
   tipo?: MapaTipoVestigio;
+  /** Hematoma ou faca em polígono (arrasto); se definido, a marca é o polígono fechado (quantidade 1). */
+  pontos?: { x: number; y: number }[];
 }
 
 export function parseMapaMarcacoesJson(json: string | null | undefined): MapaMarcaPersistida[] {
@@ -33,7 +35,21 @@ export function parseMapaMarcacoesJson(json: string | null | undefined): MapaMar
       const y = Number(o['y']);
       const tipoRaw = o['tipo'] != null ? String(o['tipo']) : '';
       const tipo = parseMapaTipoVestigio(tipoRaw) ?? MapaTipoVestigio.PAF;
-      if (!visao || !id || !Number.isFinite(x) || !Number.isFinite(y)) {
+      const pontos = parsePontosMarca(o['pontos']);
+      if (!visao || !id) {
+        continue;
+      }
+      if (pontos && pontos.length >= 3) {
+        let cx = Number(o['x']);
+        let cy = Number(o['y']);
+        if (!Number.isFinite(cx) || !Number.isFinite(cy)) {
+          cx = pontos.reduce((s, p) => s + p.x, 0) / pontos.length;
+          cy = pontos.reduce((s, p) => s + p.y, 0) / pontos.length;
+        }
+        out.push({ visao, id, x: cx, y: cy, tipo, pontos });
+        continue;
+      }
+      if (!Number.isFinite(x) || !Number.isFinite(y)) {
         continue;
       }
       out.push({ visao, id, x, y, tipo });
@@ -42,4 +58,24 @@ export function parseMapaMarcacoesJson(json: string | null | undefined): MapaMar
   } catch {
     return [];
   }
+}
+
+function parsePontosMarca(raw: unknown): { x: number; y: number }[] | undefined {
+  if (!Array.isArray(raw) || raw.length < 3) {
+    return undefined;
+  }
+  const out: { x: number; y: number }[] = [];
+  for (const c of raw) {
+    if (!c || typeof c !== 'object') {
+      return undefined;
+    }
+    const cc = c as Record<string, unknown>;
+    const x = Number(cc['x']);
+    const y = Number(cc['y']);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      return undefined;
+    }
+    out.push({ x, y });
+  }
+  return out;
 }

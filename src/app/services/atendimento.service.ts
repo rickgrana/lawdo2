@@ -181,7 +181,8 @@ export class AtendimentoService {
     return await updateDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       local: atendimento.fields.local,
-      equipes: atendimento.fields.equipes
+      equipes: atendimento.fields.equipes,
+      presentes: atendimento.fields.presentes
     });
   }
 

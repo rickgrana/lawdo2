@@ -1,7 +1,38 @@
 import { SecaoSubExames } from './secaoSubExames'; 
 import { Paragraph, TextRun} from 'docx';
-import { Atendimento } from 'src/app/models/atendimento.model';
+import { PresenteNoLocal } from 'src/app/models/atendimento.model';
 
+function paragrafoPresenteDocx(p: PresenteNoLocal): Paragraph {
+    const nome = (p.nome || '').trim();
+    const cargo = (p.cargo || '').trim();
+    const orgao = (p.orgao || '').trim();
+    const origem = (p.origem || '').trim();
+    const veiculo = (p.veiculo || '').trim();
+    const parts: string[] = [];
+    if (orgao) {
+        parts.push(orgao);
+    }
+    if (cargo) {
+        parts.push(cargo);
+    }
+    if (origem) {
+        parts.push(origem);
+    }
+    if (veiculo) {
+        parts.push('VTR Nº ' + veiculo);
+    }
+    const inner = parts.length ? parts.join(', ') : '—';
+    return new Paragraph({
+        style: 'Normal',
+        bullet: {
+            level: 1,
+        },
+        children: [
+            new TextRun({ text: nome || '—', bold: true }),
+            new TextRun({ text: ' (' + inner + ');' }),
+        ],
+    });
+}
 
 export class SecaoIsolamento extends SecaoSubExames{
 
@@ -29,6 +60,20 @@ export class SecaoIsolamento extends SecaoSubExames{
                 ]
             })
         ];
+
+        const presentesList = model.fields.presentes || [];
+        const temPresentesNovos = presentesList.some((p: PresenteNoLocal) =>
+            !!(p.nome?.trim() || p.cargo?.trim() || p.origem?.trim() || p.veiculo?.trim())
+        );
+
+        if (temPresentesNovos) {
+            for (const p of presentesList) {
+                if (!(p.nome?.trim() || p.cargo?.trim() || p.origem?.trim() || p.veiculo?.trim())) {
+                    continue;
+                }
+                retorno = retorno.concat([paragrafoPresenteDocx(p)]);
+            }
+        } else {
 
         if(model.fields.equipes.pm.representante.length > 0){
 
@@ -108,6 +153,8 @@ export class SecaoIsolamento extends SecaoSubExames{
                     children: equipe_pc
                 }),
             ]);
+        }
+
         }
 
         retorno.push(

@@ -7,58 +7,75 @@
     </ion-toolbar>
 </ion-header>
 <ion-content *ngIf="form">
-    <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+    <form class="form" [formGroup]="form!"  (ngSubmit)="tentarSalvar()">
         <ion-grid>
             <ion-row>
-                <ion-col  size-xs="12" size-md="12">
+                <ion-col size-xs="12" size-md="12">
                     <ion-list-header position="floating" color="light">
-                         Investigação (PC)
+                        Presentes no Local
                     </ion-list-header>
+                    <div formArrayName="presentes">
+                        <ion-row *ngFor="let _ of presentesArray.controls; let i = index" [formGroupName]="i" class="presente-bloco">
+                            <ion-col size="12" class="presente-toolbar">
+                                <ion-button type="button" fill="clear" color="danger" size="small" (click)="removerPresente(i)" [attr.aria-label]="'Remover presente ' + (i + 1)">
+                                    <ion-icon name="trash-outline" slot="start"></ion-icon>
+                                    Remover
+                                </ion-button>
+                            </ion-col>
+                            <ion-col size-xs="12" size-md="6">
+                                <ion-item>
+                                    <ion-select
+                                        label="Órgão"
+                                        labelPlacement="floating"
+                                        okText="Selecionar"
+                                        cancelText="Fechar"
+                                        formControlName="orgao">
+                                        <ion-select-option *ngFor="let o of orgaosPresentes" [value]="o">{{ o }}</ion-select-option>
+                                    </ion-select>
+                                </ion-item>
+                            </ion-col>
+                            <ion-col size-xs="12" size-md="6">
+                                <ion-item [class.ion-invalid]="getNomeControl(i)?.invalid && getNomeControl(i)?.touched">
+                                    <ion-input label="Nome" labelPlacement="floating" formControlName="nome"></ion-input>
+                                    <ion-note slot="error" *ngIf="getNomeControl(i)?.invalid && getNomeControl(i)?.touched" color="danger">
+                                        Informe o nome
+                                    </ion-note>
+                                </ion-item>
+                            </ion-col>
+                            <ion-col size-xs="12" size-md="4">
+                                <ion-item>
+                                    <ion-input label="Cargo" labelPlacement="floating" formControlName="cargo"></ion-input>
+                                </ion-item>
+                            </ion-col>
+                            <ion-col size-xs="12" size-md="4">
+                                <ion-item>
+                                    <ion-input label="Origem" labelPlacement="floating" formControlName="origem"></ion-input>
+                                </ion-item>
+                            </ion-col>
+                            <ion-col size-xs="12" size-md="4">
+                                <ion-item>
+                                    <ion-input label="Veículo" labelPlacement="floating" placeholder="VTR / viatura" formControlName="veiculo"></ion-input>
+                                </ion-item>
+                            </ion-col>
+                        </ion-row>
+                    </div>
                     <ion-row>
-                        <ion-col  size-xs="12" size-md="6">
-                            <ion-item>
-                                <ion-input label="Delegado" labelPlacement="floating" placeholder="" formControlName="eqp_pc_delta" ></ion-input>
-                            </ion-item>
-                        </ion-col>
-                        <ion-col  size-xs="6" size-md="4">
-                            <ion-item>
-                                <ion-input label="Origem" labelPlacement="floating" placeholder="DIP" formControlName="eqp_pc_origem" ></ion-input>
-                            </ion-item>
-                        </ion-col>
-                        <ion-col  size-xs="6" size-md="2">
-                            <ion-item>
-                                <ion-input label="VTR" labelPlacement="floating" placeholder="" formControlName="eqp_pc_vtr" ></ion-input>
-                            </ion-item>
-                        </ion-col>
-                        <ion-col  size-xs="12" size-md="12">
-                            <ion-item>
-                                <ion-input label="Investigador(es)" labelPlacement="floating" placeholder="" formControlName="eqp_pc" ></ion-input>
-                            </ion-item>
-                        </ion-col>
-                    </ion-row>
-                </ion-col>
-                <ion-col  size-xs="12" size-md="12">
-                    <ion-list-header position="floating" color="light">
-                        Polícia Militar
-                    </ion-list-header>
-                    <ion-row>
-                        <ion-col  size-xs="12" size-md="6">
-                            <ion-item>
-                                <ion-input label="Representante" labelPlacement="floating" placeholder="" formControlName="eqp_pm" ></ion-input>
-                            </ion-item>
-                        </ion-col>
-                        <ion-col  size-xs="6" size-md="4">
-                            <ion-item>
-                                <ion-input
-                                    label="Origem"
-                                    labelPlacement="floating"
-                                    placeholder="CICOM" formControlName="eqp_pm_origem" ></ion-input>
-                            </ion-item>
-                        </ion-col>
-                        <ion-col  size-xs="6" size-md="2">
-                            <ion-item>
-                                <ion-input label="VTR" labelPlacement="floating" placeholder="" formControlName="eqp_pm_vtr" ></ion-input>
-                            </ion-item>
+                        <ion-col size="12" class="acoes-presentes">
+                            <ion-button type="button" fill="outline" size="small" expand="block" (click)="adicionarPresente()">
+                                Adicionar presente
+                            </ion-button>
+                            <ion-button type="button" fill="outline" size="small" expand="block" (click)="adicionarPresenteComPerfil('pm')">
+                                Adicionar PM
+                            </ion-button>
+                            <ion-button type="button" fill="outline" size="small" expand="block" (click)="adicionarPresenteComPerfil('delegado')">
+                                Adicionar delegado
+                            </ion-button>
+                            <ion-button type="button" fill="outline" size="small" expand="block" (click)="adicionarPresenteComPerfil('investigador')">
+                                Adicionar investigador
+                            </ion-button>
+                            <ion-button type="button" fill="outline" size="small" expand="block" (click)="adicionarPresenteComPerfil('iml')">
+                                Adicionar IML
+                            </ion-button>
                         </ion-col>
                     </ion-row>
                 </ion-col>
@@ -108,14 +125,14 @@
     </form>
 </ion-content>
 <ion-footer>
-    <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+    <form class="form" [formGroup]="form!"  (ngSubmit)="tentarSalvar()">
         <ion-toolbar>
             <ion-button  routerLink="/atendimento/local"  routerDirection="backward" slot="start" fill="flat">
                 &lt; Anterior
             </ion-button>
             <ion-button 
                 class="submit-btn" type="submit"  color="success" expand="" slot="end"  fill="flat"
-                [disabled]="form!.invalid" >Próximo >
+                >Próximo >
             </ion-button>
         </ion-toolbar>
     </form>

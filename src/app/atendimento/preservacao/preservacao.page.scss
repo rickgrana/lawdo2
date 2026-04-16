@@ -1,0 +1,59 @@
+.presente-bloco {
+  --presente-stripe: var(--ion-color-primary);
+
+  position: relative;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.5rem 0.75rem 0.75rem;
+  border-bottom: 1px solid var(--ion-color-light, #e0e0e0);
+  border-radius: 0 6px 6px 0;
+  background: var(--ion-item-background, var(--ion-background-color, #fff));
+  box-shadow: inset 4px 0 0 0 var(--presente-stripe);
+}
+
+/* Faixa de cor que alterna a cada presente */
+.presente-bloco:nth-child(5n + 1) {
+  --presente-stripe: var(--ion-color-primary);
+}
+
+.presente-bloco:nth-child(5n + 2) {
+  --presente-stripe: var(--ion-color-secondary);
+}
+
+.presente-bloco:nth-child(5n + 3) {
+  --presente-stripe: var(--ion-color-tertiary);
+}
+
+.presente-bloco:nth-child(5n + 4) {
+  --presente-stripe: var(--ion-color-success);
+}
+
+.presente-bloco:nth-child(5n + 5) {
+  --presente-stripe: var(--ion-color-warning);
+}
+
+.presente-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.25rem;
+}
+
+.acoes-presentes {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.35rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.acoes-presentes ion-button {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+.acoes-presentes ion-button::part(native) {
+  font-size: clamp(0.55rem, 1.65vw, 0.8rem);
+  line-height: 1.15;
+  white-space: normal;
+  padding-inline: 0.2rem;
+}

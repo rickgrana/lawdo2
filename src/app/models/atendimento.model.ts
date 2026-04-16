@@ -22,6 +22,15 @@ export interface Imagem{
     colunas?: number;
 }
 
+/** Pessoa ou equipe presente no local do exame (preservação). */
+export interface PresenteNoLocal {
+    orgao: string;
+    nome: string;
+    cargo: string;
+    origem: string;
+    veiculo: string;
+}
+
 export class Atendimento {
 
     static SIT_ABERTO      = 0;
@@ -113,6 +122,8 @@ export class Atendimento {
                 vtr: ''
             }
         },
+
+        presentes: [] as PresenteNoLocal[],
 
         armas: {
             encontradas: false,
@@ -323,6 +334,44 @@ export class Atendimento {
         return opcoes.get(this.fields.situacao);
     }
 
+    /** Monta lista a partir do formato antigo (PC/PM) para atendimentos sem `presentes`. */
+    static migrateLegacyEquipesToPresentes(equipes: any): PresenteNoLocal[] {
+        const out: PresenteNoLocal[] = [];
+        const pm = equipes?.pm;
+        const pc = equipes?.pc;
+        if (pm?.representante?.trim()) {
+            out.push({
+                orgao: 'Polícia Militar',
+                nome: pm.representante.trim(),
+                cargo: '',
+                origem: (pm.origem ?? '').trim(),
+                veiculo: (pm.vtr ?? '').trim()
+            });
+        }
+        if (pc?.delegado?.trim()) {
+            out.push({
+                orgao: 'Polícia Civil',
+                nome: pc.delegado.trim(),
+                cargo: 'Delegado',
+                origem: (pc.origem ?? '').trim(),
+                veiculo: (pc.vtr ?? '').trim()
+            });
+        }
+        if (pc?.investigacao?.trim()) {
+            const nomes = pc.investigacao.split(',').map((s: string) => s.trim()).filter(Boolean);
+            for (const nome of nomes) {
+                out.push({
+                    orgao: 'Polícia Civil',
+                    nome,
+                    cargo: 'Investigador',
+                    origem: (pc.origem ?? '').trim(),
+                    veiculo: (pc.vtr ?? '').trim()
+                });
+            }
+        }
+        return out;
+    }
+
     static loadFromDoc(doc: any) {
         let model = new Atendimento();
         model.isNew = false;
@@ -389,6 +438,25 @@ export class Atendimento {
 
         if(data.equipes){
             this.fields.equipes     = this.getValue(data.equipes);
+        }
+
+        if (data.presentes && Array.isArray(data.presentes) && data.presentes.length > 0) {
+            this.fields.presentes = data.presentes.map((p: any) => ({
+                orgao: this.getValue(p.orgao),
+                nome: this.getValue(p.nome),
+                cargo: this.getValue(p.cargo),
+                origem: this.getValue(p.origem),
+                veiculo: this.getValue(p.veiculo)
+            }));
+        } else {
+            this.fields.presentes = [];
+        }
+
+        if (this.fields.presentes.length === 0) {
+            const migrated = Atendimento.migrateLegacyEquipesToPresentes(this.fields.equipes);
+            if (migrated.length > 0) {
+                this.fields.presentes = migrated;
+            }
         }
 
         if(data.conclusao){
@@ -552,6 +620,7 @@ export class Atendimento {
             requisicao: this.fields.requisicao ,
             local: this.fields.local,
             equipes: this.fields.equipes,
+            presentes: this.fields.presentes,
             conclusao: this.fields.conclusao,
             dinamica: this.fields.dinamica,
             dtcriacao: this.fields.dtcriacao,

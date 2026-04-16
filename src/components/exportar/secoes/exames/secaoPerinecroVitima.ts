@@ -2,6 +2,9 @@ import { Secao } from '../../secao';
 import { Paragraph, TextRun} from 'docx';
 import { NumberHelper } from 'src/app/extensions/numberHelper';
 import { Vitima } from 'src/app/models/vitima.model';
+import { MapaTipoVestigio } from 'src/app/atendimento/vitima/mapa/mapa-ferramenta.enum';
+import { REGIOES_CORPO_FRENTE } from 'src/app/const/regioes-corpo-frente';
+import { REGIOES_CORPO_VERSO } from 'src/app/const/regioes-corpo-verso';
 
 export class SecaoPerinecroVitima extends Secao{
 
@@ -45,7 +48,8 @@ export class SecaoPerinecroVitima extends Secao{
         ]);
 
 
-        const ferimentos = await this.getParagrafoFerimentos();
+        const ferimentosResultado = await this.getParagrafoFerimentos();
+        const ferimentos = ferimentosResultado.secoes;
 
         if(ferimentos.length > 0){
 
@@ -57,7 +61,7 @@ export class SecaoPerinecroVitima extends Secao{
                     },
                     children: [
                         new TextRun({
-                            text: 'A presença de ferimento(s) produzido(s) por instrumento perfuro-contundente e compatíveis aos produzidos por projéteis de arma de fogo curta, nas seguintes quantidades e regiões:',
+                            text: this.getTextoResumoFerimentos(ferimentosResultado.totalVestigios),
                         }),
                     ],
                 })
@@ -219,182 +223,78 @@ export class SecaoPerinecroVitima extends Secao{
 
     }
 
-    async getParagrafoFerimentos(): Promise<any[]> {
+    private getTextoResumoFerimentos(totalVestigios: number): string {
+        const plural = totalVestigios !== 1;
+        const totalExtenso = NumberHelper.getExtenso(totalVestigios, 'M');
+
+        return 'A presença de ' +
+            totalVestigios.toString().padStart(2, '0') +
+            ' (' + totalExtenso + ') ' +
+            'ferimento' + (plural ? 's' : '') +
+            ' produzido' + (plural ? 's' : '') +
+            ' por instrumento perfuro-contundente e compatíve' + (plural ? 'is' : 'l') +
+            ' ao' + (plural ? 's' : '') +
+            ' produzido' + (plural ? 's' : '') +
+            ' por projétei' + (plural ? 's' : '') +
+            ' de arma de fogo curta, nas seguintes quantidades e regiões:';
+    }
+
+    private normalizarNomeRegiao(nomeRegiao: string): string {
+        return nomeRegiao.replace(/^Região\s+/i, '').trim();
+    }
+
+    async getParagrafoFerimentos(): Promise<{ secoes: any[]; totalVestigios: number }> {
 
         let secoes: any[] = [];
     
-        var pafs_frente = new Map();
-        var pafs_costas = new Map();
-        var qtde = 0;
+        const pafsPorRegiao = new Map<string, number>();
     
-        // Conta qtde de PAFs por regiao
-        for(const regiao of this.vitima.paf_frente.split(",")){
-            
-            if (pafs_frente.has(regiao.trim())) {
-                qtde = pafs_frente.get(regiao.trim());
-            } else {
-                qtde = 0;
-            }
-    
-            pafs_frente.set(regiao.trim(), qtde + 1);
-        }
-    
-        for(const regiao of this.vitima.paf_costas.split(",")){
-       
-            if (pafs_costas.has(regiao.trim())) {
-                qtde = pafs_costas.get(regiao.trim());
-            } else {
-                qtde = 0;
-            }
-    
-            pafs_costas.set(regiao.trim(), qtde + 1);
-        }
-    
-    
-        const regioes_frontal = new Map([
-            ['1' , 'Frontal'],
-            ['2E' , 'Orbitária Esquerda'],
-            ['2D' , 'Orbitária Direita'],
-            ['3' , 'Nasal'],
-            ['4E' , 'Malar Esquerda'],
-            ['4D' , 'Malar Direita'],
-            ['5E' , 'Masseterina Esquerda'],
-            ['5D' , 'Masseterina Direita'],
-            ['6E' , 'Bucinadora Esquerda'],
-            ['6D' , 'Bucinadora Direita'],
-            ['7' , 'Labial'],
-            ['8' , 'Mentoniana'],
-            ['9' , 'Supra-Hióidea'],
-            ['10' , 'Infra-Hióidea'],
-            ['11E' , 'Carotidiana Esquerda'],
-            ['11D' , 'Carotidiana Direita'],
-            ['12E' , 'Supraclavicular Esquerda'],
-            ['12D' , 'Supraclavicular Direita'],
-            ['13E' , 'Clavicular Esquerda'],
-            ['13D' , 'Clavicular Direita'],
-            ['14E' , 'Infraclavicular Esquerda'],
-            ['14D' , 'Infraclavicular Direita'],
-            ['15', 'Esternal'],
-            ['16E', 'Torácica Esquerda'],
-            ['16D', 'Torácica Direita'],
-            ['17E', 'Mamária Esquerda'],
-            ['17D', 'Mamária Direita'],
-            ['18', 'Epigástrica'],
-            ['19E', 'Hipocôndrica Esquerda'],
-            ['19D', 'Hipocôndrica Direita'],
-            ['20', 'Mesogástrica'],
-            ['21', 'Umbilical'],
-            ['22E', 'Flanco Esquerdo'],
-            ['22D', 'Flanco Direito'],
-            ['23', 'Hipogástrica'],
-            ['24E', 'Fossa Ilíaca Esquerda'],
-            ['24D', 'Fossa Ilíaca Direita'],
-            ['25', 'Pubiana'],
-            ['26D', 'Inguina Direita'],
-            ['26E', 'Inguina Esquerda'],
-            ['27D', 'Crural Direita'],
-            ['27E', 'Crural Esquerda'],
-            ['28', 'Penianna'],
-            ['29', 'Escrotal'],
-            ['30D', 'do TERÇO SUPERIOR do BRAÇO DIREITO'],
-            ['30E', 'do TERÇO SUPERIOR do BRAÇO ESQUERDO'],
-
-            ['31E', 'do TERÇO MÉDIO do BRAÇO ESQUERDO'],
-            ['31D', 'do TERÇO MÉDIO do BRAÇO DIREITO'],
-            ['32E', 'do TERÇO INFERIOR do BRAÇO ESQUERDO'],
-            ['32D', 'do TERÇO INFERIOR do BRAÇO DIREITO'],
-            ['33E', 'das PREGRAS do COTOVELO ESQUERDO'],
-            ['33D', 'das PREGRAS do COTOVELO DIREITO'],
-            ['34E', 'do Terço superior do antebraço esquerdo'],
-            ['34D', 'do Terço superior do antebraço direito'],
-            ['35E', 'do Terço médio do antebraço esquerdo'],
-            ['35D', 'do Terço médio do antebraço direito'],
-            ['30E', 'do Terço superior do braço esquerdo'],
-            ['38E', 'Côncava da Mão Esquerda']
-        ]);
-    
-        const regioes_costas = new Map([
-            ['1' , 'Parietal'],
-            ['1E' , 'Parietal Esquerda'],
-            ['1D', 'Parietal Direita'],
-            ['2' , 'Occipital'],
-            ['3' , 'Temporal'],
-            ['4' , 'Nuca'],
-            ['5', 'Vertebral'],
-            ['6E', 'Escapular Esquerda'],
-            ['6D', 'Escapular Direita'],
-            ['7E', 'Infra-escapular Esquerda'],
-            ['7D', 'Infra-escapular Direita'],
-            ['8E', 'Lombar Esquerda'],
-            ['8D', 'Lombar Direita'],
-            ['9E', 'Lateral Esquerda do Abdomem'],
-            ['9D', 'Lateral Direita do Abdomem'],
-            ['10', 'Sacral'],
-            ['11', 'Glútea'],
-            ['11E', 'Glútea Esquerda'],
-            ['11D', 'Glútea Direita'],
-            ['21E', 'Deltóidea Esquerda'],
-            ['21D', 'Deltóidea Direita'],
-            ['22E', 'do TERÇO PROXIMAL da parte POSTERIOR do BRAÇO ESQUERDO'],
-            ['22D', 'do TERÇO PROXIMAL da parte POSTERIOR do BRAÇO DIREITO'],
-        ]);
     
         var regiao_traduzida= '';
     
     
-        // exibe os registros por região (FRENTE)
-       
-        for await(let [regiao, qtde] of pafs_frente){
-        
-            regiao_traduzida = regioes_frontal!.get(regiao.trim())!;
-
-            if(regiao_traduzida) {
-    
-                secoes = secoes.concat([
-                    new Paragraph ({
-                        style: 'Normal',
-                        bullet: {
-                            level: 1,
-                        },
-                        children: [
-                            new TextRun({
-                                text: qtde.toString().padStart(2, '0') + 
-                                ' (' + NumberHelper.getExtenso(qtde, 'F') + ')' + 
-                                ' perfuraç' + ((qtde > 1) ? 'ões' : 'ão') + ' na região '
-                            }),
-                            new TextRun({ text: regiao_traduzida.toUpperCase(), bold: true }),
-                            new TextRun(';')
-                        ],
-                    }),
-                ]);
+        for (const vestigio of this.vitima.vestigios ?? []) {
+            if (vestigio.tipoVestigio !== MapaTipoVestigio.PAF) {
+                continue;
             }
+            const regiao = String(vestigio.regiao ?? '').trim();
+            if (!regiao) {
+                continue;
+            }
+            const quantidade = Number(vestigio.quantidade);
+            const quantidadeValida = Number.isFinite(quantidade) && quantidade > 0 ? quantidade : 1;
+            const atual = pafsPorRegiao.get(regiao) ?? 0;
+            pafsPorRegiao.set(regiao, atual + quantidadeValida);
         }
-    
-        // exibe os registros por região (COSTAS)
-        for await(let [regiao, qtde] of pafs_costas){
-       
-            regiao_traduzida = regioes_costas!.get(regiao.trim())!;
-    
-            if(regiao_traduzida) {
-    
-                secoes = secoes.concat([
-                    new Paragraph ({
-                        style: 'Normal',
-                        bullet: {
-                            level: 1,
-                        },
-                        children: [
-                            new TextRun({
-                                text: qtde.toString().padStart(2, '0') + 
-                                ' (' + NumberHelper.getExtenso(qtde, 'F') + ')' + 
-                                ' perfuraç' + ((qtde > 1) ? 'ões' : 'ão') + ' na região '
-                            }),
-                            new TextRun({ text: regiao_traduzida.toUpperCase(), bold: true }),
-                            new TextRun(';')
-                        ],
-                    }),
-                ]);
-            }
+
+        let totalVestigios = 0;
+        const regioes = new Map<string, string>([
+            ...REGIOES_CORPO_FRENTE,
+            ...REGIOES_CORPO_VERSO
+        ]);
+
+        for (const [regiao, qtde] of pafsPorRegiao) {
+            regiao_traduzida = regioes.get(regiao.trim()) ?? regiao.trim();
+            const nomeRegiao = this.normalizarNomeRegiao(regiao_traduzida).toUpperCase();
+            totalVestigios += Number(qtde);
+
+            secoes = secoes.concat([
+                new Paragraph ({
+                    style: 'Normal',
+                    bullet: {
+                        level: 1,
+                    },
+                    children: [
+                        new TextRun({
+                            text: qtde.toString().padStart(2, '0') + 
+                            ' (' + NumberHelper.getExtenso(qtde, 'F') + ')' + 
+                            ' perfuraç' + ((qtde > 1) ? 'ões' : 'ão') + ' na região '
+                        }),
+                        new TextRun({ text: nomeRegiao, bold: true }),
+                        new TextRun(';')
+                    ],
+                }),
+            ]);
         }
     
         if(secoes.length > 0){
@@ -459,7 +359,7 @@ export class SecaoPerinecroVitima extends Secao{
             ]);
         });*/
     
-        return secoes;
+        return { secoes, totalVestigios };
       }
 
 }

@@ -16,6 +16,18 @@ function nomePresenteNaoVazio(control: AbstractControl): ValidationErrors | null
   return v.length ? null : { required: true };
 }
 
+const ORGAOS_PREDEFINIDOS = ['Polícia Militar', 'Polícia Civil', 'IML'] as const;
+
+function orgaoOutroSeNecessarioValidator(g: AbstractControl): ValidationErrors | null {
+  const fg = g as FormGroup;
+  const tipo = fg.get('orgaoTipo')?.value;
+  const outro = (fg.get('orgaoOutro')?.value ?? '').toString().trim();
+  if (tipo === 'Outro' && !outro.length) {
+    return { orgaoOutro: true };
+  }
+  return null;
+}
+
 @Component({
   selector: 'app-preservacao',
   templateUrl: './preservacao.page.html',
@@ -35,7 +47,9 @@ export class PreservacaoPage extends AtendimentoBasePage implements OnInit {
     addIcons({ trashOutline });
   }
 
-  readonly orgaosPresentes = ['Polícia Militar', 'Polícia Civil', 'IML'] as const;
+  readonly ORGAO_OUTRO = 'Outro';
+  /** Lista do select: predefinidos + Outro (texto livre). */
+  readonly orgaosSelect: readonly string[] = [...ORGAOS_PREDEFINIDOS, 'Outro'];
 
   cidades = Cidades;
   bairros = Bairros;
@@ -57,17 +71,29 @@ export class PreservacaoPage extends AtendimentoBasePage implements OnInit {
   }
 
   createPresenteGroup(p?: Partial<PresenteNoLocal>): FormGroup {
-    return this.formBuilder.group({
-      orgao: new FormControl<string>(p?.orgao ?? 'Polícia Civil'),
-      nome: new FormControl<string>(p?.nome ?? '', nomePresenteNaoVazio),
-      cargo: new FormControl<string>(p?.cargo ?? ''),
-      origem: new FormControl<string>(p?.origem ?? ''),
-      veiculo: new FormControl<string>(p?.veiculo ?? '')
-    });
+    const o = (p?.orgao ?? '').trim();
+    const isPredef = (ORGAOS_PREDEFINIDOS as readonly string[]).includes(o);
+    return this.formBuilder.group(
+      {
+        orgaoTipo: new FormControl<string>(
+          o && isPredef ? o : o ? this.ORGAO_OUTRO : 'Polícia Civil'
+        ),
+        orgaoOutro: new FormControl<string>(isPredef ? '' : o),
+        nome: new FormControl<string>(p?.nome ?? '', nomePresenteNaoVazio),
+        cargo: new FormControl<string>(p?.cargo ?? ''),
+        origem: new FormControl<string>(p?.origem ?? ''),
+        veiculo: new FormControl<string>(p?.veiculo ?? '')
+      },
+      { validators: [orgaoOutroSeNecessarioValidator] }
+    );
   }
 
   getNomeControl(i: number): AbstractControl | null {
     return this.presentesArray.at(i)?.get('nome') ?? null;
+  }
+
+  isOrgaoOutro(i: number): boolean {
+    return this.presentesArray.at(i)?.get('orgaoTipo')?.value === this.ORGAO_OUTRO;
   }
 
   get presentesArray(): FormArray<FormGroup> {
@@ -105,7 +131,7 @@ export class PreservacaoPage extends AtendimentoBasePage implements OnInit {
 
   private marcarPresentesTouched() {
     this.presentesArray.controls.forEach(g => {
-      g.get('nome')?.markAsTouched();
+      g.markAsTouched();
     });
   }
 
@@ -124,13 +150,18 @@ export class PreservacaoPage extends AtendimentoBasePage implements OnInit {
     this.model!.fields.local.isolamento = record.isolamento;
     this.model!.fields.local.condicoes = record.condicoes;
 
-    const rows: PresenteNoLocal[] = (record.presentes || []).map((r: any) => ({
-      orgao: (r.orgao ?? '').trim(),
-      nome: (r.nome ?? '').trim(),
-      cargo: (r.cargo ?? '').trim(),
-      origem: (r.origem ?? '').trim(),
-      veiculo: (r.veiculo ?? '').trim()
-    })).filter((r: PresenteNoLocal) => !!r.nome);
+    const rows: PresenteNoLocal[] = (record.presentes || []).map((r: any) => {
+      const tipo = (r.orgaoTipo ?? '').toString().trim();
+      const outro = (r.orgaoOutro ?? '').toString().trim();
+      const orgao = tipo === this.ORGAO_OUTRO ? outro : tipo;
+      return {
+        orgao,
+        nome: (r.nome ?? '').trim(),
+        cargo: (r.cargo ?? '').trim(),
+        origem: (r.origem ?? '').trim(),
+        veiculo: (r.veiculo ?? '').trim()
+      };
+    }).filter((r: PresenteNoLocal) => !!r.nome);
 
     this.model!.fields.presentes = rows;
 

@@ -29,8 +29,8 @@
                                         labelPlacement="floating"
                                         okText="Selecionar"
                                         cancelText="Fechar"
-                                        formControlName="orgao">
-                                        <ion-select-option *ngFor="let o of orgaosPresentes" [value]="o">{{ o }}</ion-select-option>
+                                        formControlName="orgaoTipo">
+                                        <ion-select-option *ngFor="let o of orgaosSelect" [value]="o">{{ o }}</ion-select-option>
                                     </ion-select>
                                 </ion-item>
                             </ion-col>
@@ -39,6 +39,14 @@
                                     <ion-input label="Nome" labelPlacement="floating" formControlName="nome"></ion-input>
                                     <ion-note slot="error" *ngIf="getNomeControl(i)?.invalid && getNomeControl(i)?.touched" color="danger">
                                         Informe o nome
+                                    </ion-note>
+                                </ion-item>
+                            </ion-col>
+                            <ion-col size="12" *ngIf="isOrgaoOutro(i)">
+                                <ion-item [class.ion-invalid]="presentesArray.at(i)?.errors?.['orgaoOutro'] && presentesArray.at(i)?.touched">
+                                    <ion-input label="Qual órgão?" labelPlacement="floating" formControlName="orgaoOutro"></ion-input>
+                                    <ion-note slot="error" *ngIf="presentesArray.at(i)?.errors?.['orgaoOutro'] && presentesArray.at(i)?.touched" color="danger">
+                                        Informe o órgão
                                     </ion-note>
                                 </ion-item>
                             </ion-col>

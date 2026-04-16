@@ -35,11 +35,49 @@ ion-content::part(scroll) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  min-height: 0;
   padding: 10px 6px;
   box-sizing: border-box;
   border-right: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
   background: var(--ion-toolbar-background, var(--ion-background-color, #fff));
+}
+
+.mapa-toolbox-ferramentas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+}
+
+.mapa-toolbox-desfazer-wrap {
+  flex-shrink: 0;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mapa-toolbox-desfazer {
+  margin: 0;
+}
+
+.mapa-toolbox-desfazer ion-icon {
+  font-size: 26px;
+}
+
+.mapa-toolbox-desfazer-label {
+  font-size: 10px;
+  line-height: 1.1;
+  color: var(--ion-color-medium-shade, #666);
+  text-align: center;
+  max-width: 64px;
 }
 
 .mapa-toolbox ion-button {

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, Input, NgZone, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -7,12 +7,14 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
   IonTitle,
   IonToolbar,
   ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
+  arrowUndoOutline,
   backspaceOutline,
   cutOutline,
   ellipse,
@@ -30,7 +32,14 @@ import { MapaRegiao, parseMapaRegiao } from './mapa-regiao.enum';
 import { MapaMarcaPersistida, parseMapaMarcacoesJson } from './mapa-marcacoes';
 import { MapaVisao, mapaSrcParaVisao, parseMapaVisao } from './mapa-visao.enum';
 
-addIcons({ flashOutline, cutOutline, hammerOutline, ellipse, backspaceOutline });
+addIcons({
+  flashOutline,
+  cutOutline,
+  hammerOutline,
+  ellipse,
+  backspaceOutline,
+  arrowUndoOutline,
+});
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -71,12 +80,14 @@ function eventoTemCoordenadasCliente(ev: Event): ev is EventoComCoordenadasClien
     IonTitle,
     IonButtons,
     IonButton,
+    IonIcon,
     IonContent
   ],
 })
 export class MapaPage extends AtendimentoBasePage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly ngZone = inject(NgZone);
   private readonly modalCtrl = inject(ModalController);
 
   readonly MapaVisao = MapaVisao;
@@ -96,6 +107,10 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
 
   private svgInteracaoAbort?: AbortController;
   private svgRaizAtual: SVGSVGElement | null = null;
+
+  private readonly pilhaDesfazerMax = 40;
+  /** Lista plana de marcações antes de cada alteração (mesmo formato que `definirMarcacoes`). */
+  private pilhaDesfazer: MapaMarcaPersistida[][] = [];
 
   /** Arrasto livre para mancha poligonal (hematoma ou faca). */
   private manchaPoligonoArrasto: {
@@ -171,39 +186,45 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
       el.addEventListener(
         'click',
         (ev) => {
-          if (
-            this.ferramentaAtiva === MapaFerramenta.HEMATOMA ||
-            this.ferramentaAtiva === MapaFerramenta.FACA
-          ) {
-            return;
-          }
-          ev.preventDefault();
-          ev.stopPropagation();
-          if (!eventoTemCoordenadasCliente(ev)) {
-            return;
-          }
-          this.registrarCliqueArea(el, svg, overlay, ev);
+          // O SVG está num documento do <object>: o evento corre fora da NgZone e o template
+          // (ex.: botão Desfazer) não atualiza até ao próximo ciclo fora do croqui.
+          this.ngZone.run(() => {
+            if (
+              this.ferramentaAtiva === MapaFerramenta.HEMATOMA ||
+              this.ferramentaAtiva === MapaFerramenta.FACA
+            ) {
+              return;
+            }
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (!eventoTemCoordenadasCliente(ev)) {
+              return;
+            }
+            this.registrarCliqueArea(el, svg, overlay, ev);
+          });
         },
         { signal: ac.signal, capture: true },
       );
       el.addEventListener(
         'pointerdown',
         (ev) => {
-          const f = this.ferramentaAtiva;
-          if (f !== MapaFerramenta.HEMATOMA && f !== MapaFerramenta.FACA) {
-            return;
-          }
-          if (ev.button !== 0) {
-            return;
-          }
-          ev.preventDefault();
-          ev.stopPropagation();
-          if (!eventoTemCoordenadasCliente(ev)) {
-            return;
-          }
-          const tipo =
-            f === MapaFerramenta.FACA ? MapaTipoVestigio.FACA : MapaTipoVestigio.HEMATOMA;
-          this.iniciarArrastoManchaPoligono(el, svg, overlay, ev, tipo);
+          this.ngZone.run(() => {
+            const f = this.ferramentaAtiva;
+            if (f !== MapaFerramenta.HEMATOMA && f !== MapaFerramenta.FACA) {
+              return;
+            }
+            if (ev.button !== 0) {
+              return;
+            }
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (!eventoTemCoordenadasCliente(ev)) {
+              return;
+            }
+            const tipo =
+              f === MapaFerramenta.FACA ? MapaTipoVestigio.FACA : MapaTipoVestigio.HEMATOMA;
+            this.iniciarArrastoManchaPoligono(el, svg, overlay, ev, tipo);
+          });
         },
         { signal: ac.signal, capture: true },
       );
@@ -215,6 +236,20 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
   selecionarFerramenta(f: MapaFerramenta) {
     this.ferramentaAtiva = f;
     this.atualizarCursorFerramenta();
+  }
+
+  get podeDesfazer(): boolean {
+    return this.pilhaDesfazer.length > 0 && !!this.vitima;
+  }
+
+  desfazer(ev?: Event) {
+    ev?.stopPropagation();
+    ev?.preventDefault();
+    if (!this.podeDesfazer) {
+      return;
+    }
+    const anterior = this.pilhaDesfazer.pop()!;
+    this.aplicarMarcacoesSnapshot(anterior);
   }
 
   private atualizarCursorFerramenta() {
@@ -358,69 +393,71 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
     };
 
     const finalizar = (e: Event) => {
-      if (!this.manchaPoligonoArrasto) {
-        return;
-      }
-      const st = this.manchaPoligonoArrasto;
-      this.manchaPoligonoArrasto = null;
-      ac.abort();
-      try {
-        el.releasePointerCapture((e as PointerEvent).pointerId);
-      } catch {
-        /* ignore */
-      }
-      st.preview.remove();
-      const pts = st.pontos.map((q) => clampPontoAoSvg(svg, q));
-      const minD = distanciaMinimaAmostragemSvg(svg);
+      this.ngZone.run(() => {
+        if (!this.manchaPoligonoArrasto) {
+          return;
+        }
+        const st = this.manchaPoligonoArrasto;
+        this.manchaPoligonoArrasto = null;
+        ac.abort();
+        try {
+          el.releasePointerCapture((e as PointerEvent).pointerId);
+        } catch {
+          /* ignore */
+        }
+        st.preview.remove();
+        const pts = st.pontos.map((q) => clampPontoAoSvg(svg, q));
+        const minD = distanciaMinimaAmostragemSvg(svg);
 
-      if (st.tipoVestigio === MapaTipoVestigio.FACA) {
-        const comp = comprimentoPolylineAberta(pts);
-        const arrastoRisco = pts.length >= 3 && comp >= minD * 8;
-        if (!arrastoRisco) {
+        if (st.tipoVestigio === MapaTipoVestigio.FACA) {
+          const comp = comprimentoPolylineAberta(pts);
+          const arrastoRisco = pts.length >= 3 && comp >= minD * 8;
+          if (!arrastoRisco) {
+            const cx = pts.reduce((s, q) => s + q.x, 0) / pts.length;
+            const cy = pts.reduce((s, q) => s + q.y, 0) / pts.length;
+            const { x, y } = aplicarOffsetFacaNaCoordenada(svg, cx, cy);
+            const marcaLente: MapaMarcaPersistida = {
+              visao: this.visao!,
+              id: st.areaId,
+              x,
+              y,
+              tipo: MapaTipoVestigio.FACA,
+            };
+            this.appendMarcaMapa(marcaLente);
+            overlay.appendChild(criarMarcaSvg(svg, marcaLente));
+            return;
+          }
           const cx = pts.reduce((s, q) => s + q.x, 0) / pts.length;
           const cy = pts.reduce((s, q) => s + q.y, 0) / pts.length;
-          const { x, y } = aplicarOffsetFacaNaCoordenada(svg, cx, cy);
-          const marcaLente: MapaMarcaPersistida = {
+          const marcaRisco: MapaMarcaPersistida = {
             visao: this.visao!,
             id: st.areaId,
-            x,
-            y,
+            x: cx,
+            y: cy,
             tipo: MapaTipoVestigio.FACA,
+            pontos: pts.map((q) => ({ x: q.x, y: q.y })),
           };
-          this.appendMarcaMapa(marcaLente);
-          overlay.appendChild(criarMarcaSvg(svg, marcaLente));
+          this.appendMarcaMapa(marcaRisco);
+          overlay.appendChild(criarMarcaSvg(svg, marcaRisco));
+          return;
+        }
+
+        if (pts.length < 3) {
           return;
         }
         const cx = pts.reduce((s, q) => s + q.x, 0) / pts.length;
         const cy = pts.reduce((s, q) => s + q.y, 0) / pts.length;
-        const marcaRisco: MapaMarcaPersistida = {
+        const marca: MapaMarcaPersistida = {
           visao: this.visao!,
           id: st.areaId,
           x: cx,
           y: cy,
-          tipo: MapaTipoVestigio.FACA,
+          tipo: st.tipoVestigio,
           pontos: pts.map((q) => ({ x: q.x, y: q.y })),
         };
-        this.appendMarcaMapa(marcaRisco);
-        overlay.appendChild(criarMarcaSvg(svg, marcaRisco));
-        return;
-      }
-
-      if (pts.length < 3) {
-        return;
-      }
-      const cx = pts.reduce((s, q) => s + q.x, 0) / pts.length;
-      const cy = pts.reduce((s, q) => s + q.y, 0) / pts.length;
-      const marca: MapaMarcaPersistida = {
-        visao: this.visao!,
-        id: st.areaId,
-        x: cx,
-        y: cy,
-        tipo: st.tipoVestigio,
-        pontos: pts.map((q) => ({ x: q.x, y: q.y })),
-      };
-      this.appendMarcaMapa(marca);
-      overlay.appendChild(criarMarcaSvg(svg, marca));
+        this.appendMarcaMapa(marca);
+        overlay.appendChild(criarMarcaSvg(svg, marca));
+      });
     };
 
     const docRoot = doc;
@@ -451,9 +488,46 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
     const vestigios = converterMarcacoesParaVestigios(lista);
     this.formularioVitima?.get('vestigios')?.setValue(vestigios);
     v.vestigios = vestigios;
+    // `vestigiosMapaAtuais()` volta ao legado quando o array está vazio; sem limpar,
+    // desfazer ou apagar todas as marcas PAF reapareciam a partir de `paf_mapa_marcacoes`.
+    const legadoCtrl = this.formularioVitima?.get('paf_mapa_marcacoes');
+    if (legadoCtrl) {
+      legadoCtrl.setValue('');
+    }
+    v.paf_mapa_marcacoes = '';
+  }
+
+  private clonarMarcacoes(marcacoes: MapaMarcaPersistida[]): MapaMarcaPersistida[] {
+    return JSON.parse(JSON.stringify(marcacoes)) as MapaMarcaPersistida[];
+  }
+
+  private registrarHistoricoAntesAlteracao() {
+    if (!this.vitima) {
+      return;
+    }
+    const atual = this.clonarMarcacoes(this.marcacoesAtuais());
+    this.pilhaDesfazer.push(atual);
+    while (this.pilhaDesfazer.length > this.pilhaDesfazerMax) {
+      this.pilhaDesfazer.shift();
+    }
+  }
+
+  /** Restaura o mesmo caminho que qualquer edição no mapa: `definirMarcacoes` + redesenho. */
+  private aplicarMarcacoesSnapshot(marcacoes: MapaMarcaPersistida[]) {
+    if (!this.vitima) {
+      return;
+    }
+    const clone = this.clonarMarcacoes(marcacoes);
+    this.definirMarcacoes(clone);
+    const svg = this.svgRaizAtual;
+    if (svg) {
+      const overlay = this.garantirGrupoOverlay(svg);
+      this.restaurarMarcasSalvas(svg, overlay);
+    }
   }
 
   private appendMarcaMapa(marca: MapaMarcaPersistida) {
+    this.registrarHistoricoAntesAlteracao();
     const lista = this.marcacoesAtuais();
     lista.push(marca);
     this.definirMarcacoes(lista);
@@ -512,6 +586,7 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
       return;
     }
 
+    this.registrarHistoricoAntesAlteracao();
     this.definirMarcacoes(restantes);
     this.restaurarMarcasSalvas(svg, overlay);
   }

@@ -13,6 +13,7 @@
     *ngIf="visao && (visao === MapaVisao.CORPO_FRENTE || visao === MapaVisao.CORPO_VERSO || imagemSrc)"
   >
     <aside class="mapa-toolbox" aria-label="Ferramentas do mapa">
+      <div class="mapa-toolbox-ferramentas">
       <ion-button
         [fill]="ferramentaAtiva === MapaFerramenta.PISTOLA ? 'solid' : 'clear'"
         [color]="ferramentaAtiva === MapaFerramenta.PISTOLA ? 'primary' : 'medium'"
@@ -63,6 +64,22 @@
       >
         <img slot="icon-only" class="mapa-toolbox-img" src="assets/toolbox/limpar.svg" alt="" />
       </ion-button>
+      </div>
+      <div class="mapa-toolbox-desfazer-wrap">
+        <ion-button
+          class="mapa-toolbox-desfazer"
+          type="button"
+          fill="clear"
+          color="medium"
+          [disabled]="!podeDesfazer"
+          (click)="desfazer($event)"
+          title="Desfazer última alteração no mapa"
+          aria-label="Desfazer última alteração no mapa"
+        >
+          <ion-icon slot="icon-only" name="arrow-undo-outline" aria-hidden="true"></ion-icon>
+        </ion-button>
+        <span class="mapa-toolbox-desfazer-label" aria-hidden="true">Desfazer</span>
+      </div>
     </aside>
     <div class="mapa-container" [style.cursor]="cursorFerramentaCss">
     <object

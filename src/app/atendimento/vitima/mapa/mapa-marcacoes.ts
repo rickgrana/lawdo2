@@ -1,4 +1,4 @@
-import { MapaTipoMarca, parseMapaTipoMarca } from './mapa-ferramenta.enum';
+import { MapaTipoVestigio, parseMapaTipoVestigio } from './mapa-ferramenta.enum';
 import { MapaVisao, parseMapaVisao } from './mapa-visao.enum';
 
 /** Marcação de clique no croqui (coordenadas no espaço de utilizador do SVG). */
@@ -8,7 +8,7 @@ export interface MapaMarcaPersistida {
   x: number;
   y: number;
   /** Ausente em dados antigos: tratar como PAF (cruz). */
-  tipo?: MapaTipoMarca;
+  tipo?: MapaTipoVestigio;
 }
 
 export function parseMapaMarcacoesJson(json: string | null | undefined): MapaMarcaPersistida[] {
@@ -32,7 +32,7 @@ export function parseMapaMarcacoesJson(json: string | null | undefined): MapaMar
       const x = Number(o['x']);
       const y = Number(o['y']);
       const tipoRaw = o['tipo'] != null ? String(o['tipo']) : '';
-      const tipo = parseMapaTipoMarca(tipoRaw) ?? MapaTipoMarca.PAF;
+      const tipo = parseMapaTipoVestigio(tipoRaw) ?? MapaTipoVestigio.PAF;
       if (!visao || !id || !Number.isFinite(x) || !Number.isFinite(y)) {
         continue;
       }

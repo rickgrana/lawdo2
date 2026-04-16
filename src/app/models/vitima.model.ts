@@ -1,7 +1,22 @@
-import { Vestigio } from './vestigio.model';
 import { Cabelo } from './cabelo.model';
 import {Atendimento } from './atendimento.model';
 import { Base } from './base.model';
+import { MapaTipoVestigio } from '../atendimento/vitima/mapa/mapa-ferramenta.enum';
+import { MapaRegiao, parseMapaRegiao } from '../atendimento/vitima/mapa/mapa-regiao.enum';
+import { MapaVisao, parseMapaVisao } from '../atendimento/vitima/mapa/mapa-visao.enum';
+
+export interface VitimaVestigioCoordenada {
+    x: number;
+    y: number;
+}
+
+export interface VitimaVestigio {
+    visao: MapaVisao;
+    regiao: MapaRegiao;
+    tipoVestigio: MapaTipoVestigio;
+    quantidade: number;
+    coordenadas: VitimaVestigioCoordenada[];
+}
 
 export class Vitima extends Base {
 
@@ -44,7 +59,7 @@ export class Vitima extends Base {
 
     observacoes = '';
 
-    vestigios = [];
+    vestigios: VitimaVestigio[] = [];
 
     /*vestigios = new Map([
         ['cabeca_frente', new Vestigio()],
@@ -113,24 +128,7 @@ export class Vitima extends Base {
 
         //console.log(data);
 
-        if (data.vestigios) {
-
-            /*['cabeca-verso', 'cabeca-frente', 'cabeca-direita', 'cabeca-esquerda',
-            'corpo_verso', 'corpo-frente', 'corpo_direita', 'corpo_esquerda'].forEach((item) => {
-                if (data.visoes.has(item)) {
-                    let dataAux = this.visoes.get(item);
-
-                    let visao = new Visao();
-                    visao.load(dataAux);
-
-                    this.visoes.set(item, visao);
-                }
-            });*/
-            data.vestigios.forEach((item: any) => {
-                const vestigio = new Vestigio();
-                vestigio.load(item);
-            });
-        }
+        this.vestigios              = normalizarVestigios(data.vestigios);
 
     }
 
@@ -272,6 +270,7 @@ export class Vitima extends Base {
             paf_frente: this.paf_frente,
             paf_costas: this.paf_costas,
             paf_mapa_marcacoes: this.paf_mapa_marcacoes,
+            vestigios: this.vestigios,
             observacoes: this.observacoes
           };
 
@@ -279,4 +278,43 @@ export class Vitima extends Base {
     }
 
 
+}
+
+function normalizarVestigios(raw: unknown): VitimaVestigio[] {
+    if (!Array.isArray(raw)) {
+        return [];
+    }
+    const out: VitimaVestigio[] = [];
+    for (const item of raw) {
+        if (!item || typeof item !== 'object') {
+            continue;
+        }
+        const o = item as Record<string, unknown>;
+        const visao = parseMapaVisao(String(o['visao'] ?? ''));
+        const regiao = parseMapaRegiao(String(o['regiao'] ?? '').trim());
+        const tipoVestigioRaw = String(o['tipoVestigio'] ?? '').trim().toUpperCase();
+        const tipoVestigio = (Object.values(MapaTipoVestigio) as string[]).includes(tipoVestigioRaw)
+            ? (tipoVestigioRaw as MapaTipoVestigio)
+            : null;
+        const coordenadasRaw = Array.isArray(o['coordenadas']) ? o['coordenadas'] : [];
+        const coordenadas: VitimaVestigioCoordenada[] = [];
+        for (const c of coordenadasRaw) {
+            if (!c || typeof c !== 'object') {
+                continue;
+            }
+            const cc = c as Record<string, unknown>;
+            const x = Number(cc['x']);
+            const y = Number(cc['y']);
+            if (Number.isFinite(x) && Number.isFinite(y)) {
+                coordenadas.push({ x, y });
+            }
+        }
+        if (!visao || !regiao || !tipoVestigio || coordenadas.length === 0) {
+            continue;
+        }
+        const quantidadeRaw = Number(o['quantidade']);
+        const quantidade = Number.isFinite(quantidadeRaw) ? quantidadeRaw : coordenadas.length;
+        out.push({ visao, regiao, tipoVestigio, quantidade, coordenadas });
+    }
+    return out;
 }

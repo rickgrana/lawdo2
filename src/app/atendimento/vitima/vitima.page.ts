@@ -79,6 +79,7 @@ export class VitimaPage extends AtendimentoBasePage implements OnInit {
       paf_frente: new FormControl<string>(this.vitima!.paf_frente),
       paf_costas: new FormControl<string>(this.vitima!.paf_costas),
       paf_mapa_marcacoes: new FormControl<string>(this.vitima!.paf_mapa_marcacoes),
+      vestigios: new FormControl<any[]>(this.vitima!.vestigios ?? []),
       observacoes: new FormControl<string>(this.vitima!.observacoes)
     });
 
@@ -115,6 +116,7 @@ export class VitimaPage extends AtendimentoBasePage implements OnInit {
     this.vitima!.paf_frente = record.paf_frente;
     this.vitima!.paf_costas = record.paf_costas;
     this.vitima!.paf_mapa_marcacoes = record.paf_mapa_marcacoes ?? '';
+    this.vitima!.vestigios = Array.isArray(record.vestigios) ? record.vestigios : (this.vitima!.vestigios ?? []);
     this.vitima!.observacoes = record.observacoes;
 
     if(this.vitima!.isNewRecord()) {

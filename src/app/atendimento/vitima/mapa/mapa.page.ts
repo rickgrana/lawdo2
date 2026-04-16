@@ -23,11 +23,12 @@ import { CommonModule } from '@angular/common';
 import { AtendimentoBasePage } from '../../atendimento-base.page';
 import {
   MapaFerramenta,
-  MapaTipoMarca,
-  ferramentaParaTipoMarca,
+  MapaTipoVestigio,
+  ferramentaParaTipoVestigio,
 } from './mapa-ferramenta.enum';
+import { MapaRegiao, parseMapaRegiao } from './mapa-regiao.enum';
 import { MapaMarcaPersistida, parseMapaMarcacoesJson } from './mapa-marcacoes';
-import { MapaVisao, campoPafParaVisao, mapaSrcParaVisao, parseMapaVisao } from './mapa-visao.enum';
+import { MapaVisao, mapaSrcParaVisao, parseMapaVisao } from './mapa-visao.enum';
 
 addIcons({ flashOutline, cutOutline, hammerOutline, ellipse, backspaceOutline });
 
@@ -35,6 +36,15 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /** Evento com `clientX`/`clientY` (ex.: clique no SVG dentro de `<object>`, outro `Window` que falha em `instanceof MouseEvent`). */
 type EventoComCoordenadasCliente = Event & { readonly clientX: number; readonly clientY: number };
+type CoordenadaMapa = { x: number; y: number };
+
+interface MapaVestigioItem {
+  visao: MapaVisao;
+  regiao: MapaRegiao;
+  tipoVestigio: MapaTipoVestigio;
+  quantidade: number;
+  coordenadas: CoordenadaMapa[];
+}
 
 function eSvgRaiz(el: Element | null): el is SVGSVGElement {
   return !!el && el.namespaceURI === SVG_NS && el.localName === 'svg';
@@ -212,21 +222,17 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
       return;
     }
 
-    const tipo = ferramentaParaTipoMarca(this.ferramentaAtiva);
+    const tipo = ferramentaParaTipoVestigio(this.ferramentaAtiva);
     if (!tipo) {
       return;
     }
 
     const pontoMarca =
-      tipo === MapaTipoMarca.PAF
+      tipo === MapaTipoVestigio.PAF
         ? aplicarOffsetPistolaNaCoordenada(svg, cx, cy)
-        : tipo === MapaTipoMarca.FACA
+        : tipo === MapaTipoVestigio.FACA
           ? aplicarOffsetFacaNaCoordenada(svg, cx, cy)
           : { x: cx, y: cy };
-
-    if (tipo === MapaTipoMarca.PAF) {
-      this.appendIdAoCampoPaf(campoPafParaVisao(this.visao), id);
-    }
 
     const marca: MapaMarcaPersistida = { visao: this.visao, id, x: pontoMarca.x, y: pontoMarca.y, tipo };
     this.appendMarcaMapa(marca);
@@ -234,9 +240,7 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
   }
 
   private marcacoesAtuais(): MapaMarcaPersistida[] {
-    const v = this.vitima;
-    const json = String(this.formularioVitima?.get('paf_mapa_marcacoes')?.value ?? v?.paf_mapa_marcacoes ?? '');
-    return parseMapaMarcacoesJson(json);
+    return extrairMarcacoesDeVestigios(this.vestigiosMapaAtuais());
   }
 
   private definirMarcacoes(lista: MapaMarcaPersistida[]) {
@@ -244,9 +248,9 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
     if (!v) {
       return;
     }
-    const novo = JSON.stringify(lista);
-    this.formularioVitima?.get('paf_mapa_marcacoes')?.setValue(novo);
-    v.paf_mapa_marcacoes = novo;
+    const vestigios = converterMarcacoesParaVestigios(lista);
+    this.formularioVitima?.get('vestigios')?.setValue(vestigios);
+    v.vestigios = vestigios;
   }
 
   private appendMarcaMapa(marca: MapaMarcaPersistida) {
@@ -294,49 +298,19 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
       return;
     }
 
-    const campo = campoPafParaVisao(visao);
-    for (const rem of removidos) {
-      const tipo = rem.tipo ?? MapaTipoMarca.PAF;
-      if (tipo === MapaTipoMarca.PAF) {
-        this.removerIdDoCampoPaf(campo, rem.id);
-      }
-    }
-
     this.definirMarcacoes(restantes);
     this.restaurarMarcasSalvas(svg, overlay);
   }
 
-  private removerIdDoCampoPaf(campo: 'paf_frente' | 'paf_costas', id: string) {
+  private vestigiosMapaAtuais(): MapaVestigioItem[] {
     const v = this.vitima;
-    if (!v) {
-      return;
+    const fonte = this.formularioVitima?.get('vestigios')?.value ?? v?.vestigios ?? [];
+    const parsed = parseVestigiosMapa(fonte);
+    if (parsed.length > 0) {
+      return parsed;
     }
-    const control = this.formularioVitima?.get(campo);
-    const partes = String(control?.value ?? v[campo] ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const idx = partes.indexOf(id);
-    if (idx >= 0) {
-      partes.splice(idx, 1);
-    }
-    const novo = partes.join(', ');
-    control?.setValue(novo);
-    v[campo] = novo;
-  }
-
-  private appendIdAoCampoPaf(campo: 'paf_frente' | 'paf_costas', id: string) {
-    const v = this.vitima;
-    if (!v) {
-      return;
-    }
-    const control = this.formularioVitima?.get(campo);
-    const atual = String(control?.value ?? v[campo] ?? '')
-      .trim()
-      .replace(/^,+|,+$/g, '');
-    const novo = atual ? `${atual}, ${id}` : id;
-    control?.setValue(novo);
-    v[campo] = novo;
+    const legado = parseMapaMarcacoesJson(v?.paf_mapa_marcacoes ?? '');
+    return legado.length > 0 ? converterMarcacoesParaVestigios(legado) : [];
   }
 
   async fechar() {
@@ -354,6 +328,135 @@ export class MapaPage extends AtendimentoBasePage implements OnInit {
     });
     super.loadForm();
   }
+}
+
+function parseVestigiosMapa(raw: unknown): MapaVestigioItem[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const out: MapaVestigioItem[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') {
+      continue;
+    }
+    const o = item as Record<string, unknown>;
+    const visao = parseMapaVisao(String(o['visao'] ?? ''));
+    if (!visao) {
+      continue;
+    }
+    // Formato novo (plano): { visao, regiao, tipoVestigio, quantidade, coordenadas }
+    if ('regiao' in o || 'tipoVestigio' in o) {
+      const regiao = parseMapaRegiao(String(o['regiao'] ?? '').trim());
+      const tipoVestigio = normalizarTipoMarca(o['tipoVestigio']);
+      const coordenadas = parseCoordenadas(o['coordenadas']);
+      if (!regiao || !tipoVestigio || coordenadas.length === 0) {
+        continue;
+      }
+      const quantidadeRaw = Number(o['quantidade']);
+      const quantidade = Number.isFinite(quantidadeRaw) ? quantidadeRaw : coordenadas.length;
+      out.push({ visao, regiao, tipoVestigio, quantidade, coordenadas });
+      continue;
+    }
+
+    // Compatibilidade com formato antigo agrupado:
+    // { visao, marcas: [{ tipo, regioes: [{ regiao, quantidade, coordenadas }] }] }
+    const marcasRaw = Array.isArray(o['marcas']) ? o['marcas'] : [];
+    for (const m of marcasRaw) {
+      if (!m || typeof m !== 'object') {
+        continue;
+      }
+      const mm = m as Record<string, unknown>;
+      const tipoVestigio = normalizarTipoMarca(mm['tipo']);
+      if (!tipoVestigio) {
+        continue;
+      }
+      const regioesRaw = Array.isArray(mm['regioes']) ? mm['regioes'] : [];
+      for (const r of regioesRaw) {
+        if (!r || typeof r !== 'object') {
+          continue;
+        }
+        const rr = r as Record<string, unknown>;
+        const regiao = parseMapaRegiao(String(rr['regiao'] ?? '').trim());
+        const coordenadas = parseCoordenadas(rr['coordenadas']);
+        if (!regiao || coordenadas.length === 0) {
+          continue;
+        }
+        const quantidadeRaw = Number(rr['quantidade']);
+        const quantidade = Number.isFinite(quantidadeRaw) ? quantidadeRaw : coordenadas.length;
+        out.push({ visao, regiao, tipoVestigio, quantidade, coordenadas });
+      }
+    }
+  }
+  return out;
+}
+
+function extrairMarcacoesDeVestigios(vestigios: MapaVestigioItem[]): MapaMarcaPersistida[] {
+  const out: MapaMarcaPersistida[] = [];
+  for (const item of vestigios) {
+    for (const c of item.coordenadas) {
+      out.push({ visao: item.visao, tipo: item.tipoVestigio, id: item.regiao, x: c.x, y: c.y });
+    }
+  }
+  return out;
+}
+
+function converterMarcacoesParaVestigios(lista: MapaMarcaPersistida[]): MapaVestigioItem[] {
+  const index = new Map<string, CoordenadaMapa[]>();
+  for (const m of lista) {
+    const tipo = m.tipo ?? MapaTipoVestigio.PAF;
+    const regiao = parseMapaRegiao(String(m.id ?? '').trim());
+    if (!regiao) {
+      continue;
+    }
+    const key = `${m.visao}||${tipo}||${regiao}`;
+    const coords = index.get(key) ?? [];
+    coords.push({ x: m.x, y: m.y });
+    index.set(key, coords);
+  }
+
+  const out: MapaVestigioItem[] = [];
+  for (const [key, coordenadas] of index.entries()) {
+    const [visaoRaw, tipoRaw, regiaoRaw] = key.split('||');
+    const visao = parseMapaVisao(visaoRaw);
+    const tipoVestigio = normalizarTipoMarca(tipoRaw);
+    const regiao = parseMapaRegiao(regiaoRaw);
+    if (!visao || !tipoVestigio || !regiao) {
+      continue;
+    }
+    out.push({
+      visao,
+      regiao,
+      tipoVestigio,
+      quantidade: coordenadas.length,
+      coordenadas,
+    });
+  }
+  return out;
+}
+
+function parseCoordenadas(raw: unknown): CoordenadaMapa[] {
+  const arr = Array.isArray(raw) ? raw : [];
+  const out: CoordenadaMapa[] = [];
+  for (const c of arr) {
+    if (!c || typeof c !== 'object') {
+      continue;
+    }
+    const cc = c as Record<string, unknown>;
+    const x = Number(cc['x']);
+    const y = Number(cc['y']);
+    if (Number.isFinite(x) && Number.isFinite(y)) {
+      out.push({ x, y });
+    }
+  }
+  return out;
+}
+
+function normalizarTipoMarca(value: unknown): MapaTipoVestigio | null {
+  const tipo = String(value ?? '').trim().toUpperCase();
+  if (!tipo) {
+    return null;
+  }
+  return (Object.values(MapaTipoVestigio) as string[]).includes(tipo) ? (tipo as MapaTipoVestigio) : null;
 }
 
 function pontoSvgNoCliente(svg: SVGSVGElement, ev: EventoComCoordenadasCliente): { x: number; y: number } {
@@ -380,8 +483,8 @@ function metadeBracoCruzEmUnidadesSvg(svg: SVGSVGElement, pixelsTela: number): {
   };
 }
 
-function tipoMarcaDe(m: MapaMarcaPersistida): MapaTipoMarca {
-  return m.tipo ?? MapaTipoMarca.PAF;
+function tipoMarcaDe(m: MapaMarcaPersistida): MapaTipoVestigio {
+  return m.tipo ?? MapaTipoVestigio.PAF;
 }
 
 function raioApagarEmUnidadesSvg2(svg: SVGSVGElement, pixelsTela: number): number {
@@ -392,109 +495,117 @@ function raioApagarEmUnidadesSvg2(svg: SVGSVGElement, pixelsTela: number): numbe
 
 function criarMarcaSvg(svg: SVGSVGElement, m: MapaMarcaPersistida): SVGGElement {
   switch (tipoMarcaDe(m)) {
-    case MapaTipoMarca.PAF:
-      return criarCruzVermelhaCentrada(svg, m.x, m.y);
-    case MapaTipoMarca.FACA:
+    case MapaTipoVestigio.PAF:
+      return criarMarcaPaf(svg, m.x, m.y);
+    case MapaTipoVestigio.FACA:
       return criarMarcaFaca(svg, m.x, m.y);
-    case MapaTipoMarca.TACO:
+    case MapaTipoVestigio.TACO:
       return criarMarcaTaco(svg, m.x, m.y);
-    case MapaTipoMarca.HEMATOMA:
+    case MapaTipoVestigio.HEMATOMA:
       return criarMarcaHematoma(svg, m.x, m.y);
     default:
-      return criarCruzVermelhaCentrada(svg, m.x, m.y);
+      return criarMarcaPaf(svg, m.x, m.y);
   }
 }
 
 function criarMarcaFaca(svg: SVGSVGElement, cx: number, cy: number): SVGGElement {
   const doc = svg.ownerDocument!;
   const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 9);
+  const w = rx * 1.05;
+  const h = ry * 0.72;
   const g = doc.createElementNS(SVG_NS, 'g');
-  const a = doc.createElementNS(SVG_NS, 'line');
-  a.setAttribute('x1', String(cx - rx * 0.85));
-  a.setAttribute('y1', String(cy + ry * 0.85));
-  a.setAttribute('x2', String(cx + rx * 0.85));
-  a.setAttribute('y2', String(cy - ry * 0.85));
-  const b = doc.createElementNS(SVG_NS, 'line');
-  b.setAttribute('x1', String(cx - rx * 0.35));
-  b.setAttribute('y1', String(cy - ry * 0.95));
-  b.setAttribute('x2', String(cx + rx * 0.95));
-  b.setAttribute('y2', String(cy + ry * 0.35));
-  for (const linha of [a, b]) {
-    linha.setAttribute('stroke', '#0d47a1');
-    linha.setAttribute('stroke-width', '2');
-    linha.setAttribute('vector-effect', 'non-scaling-stroke');
-    g.appendChild(linha);
-  }
+  const path = doc.createElementNS(SVG_NS, 'path');
+  path.setAttribute(
+    'd',
+    `M ${cx - w} ${cy} Q ${cx} ${cy - h} ${cx + w} ${cy} Q ${cx} ${cy + h} ${cx - w} ${cy} Z`,
+  );
+  path.setAttribute('fill', '#ffcdd2');
+  path.setAttribute('fill-opacity', '0.9');
+  path.setAttribute('stroke', '#b71c1c');
+  path.setAttribute('stroke-width', '1.5');
+  path.setAttribute('vector-effect', 'non-scaling-stroke');
+  g.appendChild(path);
   return g;
 }
 
 function criarMarcaTaco(svg: SVGSVGElement, cx: number, cy: number): SVGGElement {
   const doc = svg.ownerDocument!;
-  const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 10);
+  const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 12);
+  const r = Math.max(rx, ry) * 1.15;
   const g = doc.createElementNS(SVG_NS, 'g');
-  const linha = doc.createElementNS(SVG_NS, 'line');
-  linha.setAttribute('x1', String(cx - rx * 1.1));
-  linha.setAttribute('y1', String(cy));
-  linha.setAttribute('x2', String(cx + rx * 1.1));
-  linha.setAttribute('y2', String(cy));
-  linha.setAttribute('stroke', '#5d4037');
-  linha.setAttribute('stroke-width', '5');
-  linha.setAttribute('stroke-linecap', 'round');
-  linha.setAttribute('vector-effect', 'non-scaling-stroke');
-  g.appendChild(linha);
-  const ponto = doc.createElementNS(SVG_NS, 'circle');
-  ponto.setAttribute('cx', String(cx + rx * 1.05));
-  ponto.setAttribute('cy', String(cy));
-  ponto.setAttribute('r', String(Math.max(rx, ry) * 0.45));
-  ponto.setAttribute('fill', '#6d4c41');
-  ponto.setAttribute('stroke', 'none');
-  g.appendChild(ponto);
+  const area = doc.createElementNS(SVG_NS, 'circle');
+  area.setAttribute('cx', String(cx));
+  area.setAttribute('cy', String(cy));
+  area.setAttribute('r', String(r));
+  area.setAttribute('fill', '#e1bee7');
+  area.setAttribute('fill-opacity', '0.92');
+  area.setAttribute('stroke', '#7b1fa2');
+  area.setAttribute('stroke-width', '1');
+  area.setAttribute('vector-effect', 'non-scaling-stroke');
+  g.appendChild(area);
   return g;
 }
 
 function criarMarcaHematoma(svg: SVGSVGElement, cx: number, cy: number): SVGGElement {
   const doc = svg.ownerDocument!;
   const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 11);
+  const ax = rx * 1.2;
+  const by = ry * 1.12;
   const g = doc.createElementNS(SVG_NS, 'g');
-  const el = doc.createElementNS(SVG_NS, 'ellipse');
-  el.setAttribute('cx', String(cx));
-  el.setAttribute('cy', String(cy));
-  el.setAttribute('rx', String(rx * 1.15));
-  el.setAttribute('ry', String(ry * 0.85));
-  el.setAttribute('fill', '#6a1b9a');
-  el.setAttribute('fill-opacity', '0.45');
-  el.setAttribute('stroke', '#4a148c');
-  el.setAttribute('stroke-width', '1');
-  el.setAttribute('vector-effect', 'non-scaling-stroke');
-  g.appendChild(el);
+  const mancha = doc.createElementNS(SVG_NS, 'path');
+  mancha.setAttribute(
+    'd',
+    [
+      `M ${cx + ax * 0.85} ${cy + by * 0.15}`,
+      `C ${cx + ax * 1.05} ${cy - by * 0.22} ${cx + ax * 0.52} ${cy - by * 1.02} ${cx} ${cy - by * 0.88}`,
+      `C ${cx - ax * 0.48} ${cy - by * 1.04} ${cx - ax * 1.02} ${cy - by * 0.38} ${cx - ax * 0.9} ${cy + by * 0.06}`,
+      `C ${cx - ax * 0.98} ${cy + by * 0.48} ${cx - ax * 0.38} ${cy + by * 1.0} ${cx + ax * 0.32} ${cy + by * 0.93}`,
+      `C ${cx + ax * 0.72} ${cy + by * 1.0} ${cx + ax * 1.02} ${cy + by * 0.42} ${cx + ax * 0.85} ${cy + by * 0.15}`,
+      'Z',
+    ].join(' '),
+  );
+  mancha.setAttribute('fill', '#ff1744');
+  mancha.setAttribute('fill-opacity', '0.9');
+  mancha.setAttribute('stroke', '#d50000');
+  mancha.setAttribute('stroke-width', '0.75');
+  mancha.setAttribute('vector-effect', 'non-scaling-stroke');
+  g.appendChild(mancha);
+  const gota = doc.createElementNS(SVG_NS, 'ellipse');
+  gota.setAttribute('cx', String(cx + ax * 0.62));
+  gota.setAttribute('cy', String(cy - by * 0.52));
+  gota.setAttribute('rx', String(rx * 0.28));
+  gota.setAttribute('ry', String(ry * 0.22));
+  gota.setAttribute('transform', `rotate(-22 ${cx + ax * 0.62} ${cy - by * 0.52})`);
+  gota.setAttribute('fill', '#ff5252');
+  gota.setAttribute('fill-opacity', '0.72');
+  gota.setAttribute('stroke', 'none');
+  g.appendChild(gota);
   return g;
 }
 
-function criarCruzVermelhaCentrada(svg: SVGSVGElement, cx: number, cy: number): SVGGElement {
+/** Marca PAF: X em azul escuro. */
+function criarMarcaPaf(svg: SVGSVGElement, cx: number, cy: number): SVGGElement {
   const doc = svg.ownerDocument!;
-  const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 7);
-
+  const { rx, ry } = metadeBracoCruzEmUnidadesSvg(svg, 3.5);
   const g = doc.createElementNS(SVG_NS, 'g');
-
-  const horizontal = doc.createElementNS(SVG_NS, 'line');
-  horizontal.setAttribute('x1', String(cx - rx));
-  horizontal.setAttribute('y1', String(cy));
-  horizontal.setAttribute('x2', String(cx + rx));
-  horizontal.setAttribute('y2', String(cy));
-
-  const vertical = doc.createElementNS(SVG_NS, 'line');
-  vertical.setAttribute('x1', String(cx));
-  vertical.setAttribute('y1', String(cy - ry));
-  vertical.setAttribute('x2', String(cx));
-  vertical.setAttribute('y2', String(cy + ry));
-
-  for (const linha of [horizontal, vertical]) {
-    linha.setAttribute('stroke', '#ff0000');
+  const azul = '#0d47a1';
+  const diag1 = doc.createElementNS(SVG_NS, 'line');
+  diag1.setAttribute('x1', String(cx - rx));
+  diag1.setAttribute('y1', String(cy - ry));
+  diag1.setAttribute('x2', String(cx + rx));
+  diag1.setAttribute('y2', String(cy + ry));
+  const diag2 = doc.createElementNS(SVG_NS, 'line');
+  diag2.setAttribute('x1', String(cx - rx));
+  diag2.setAttribute('y1', String(cy + ry));
+  diag2.setAttribute('x2', String(cx + rx));
+  diag2.setAttribute('y2', String(cy - ry));
+  for (const linha of [diag1, diag2]) {
+    linha.setAttribute('stroke', azul);
     linha.setAttribute('stroke-width', '2');
+    linha.setAttribute('stroke-linecap', 'square');
     linha.setAttribute('vector-effect', 'non-scaling-stroke');
     g.appendChild(linha);
   }
-
   return g;
 }
 

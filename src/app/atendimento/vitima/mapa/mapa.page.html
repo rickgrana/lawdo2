@@ -10,7 +10,14 @@
 <ion-content *ngIf="form" [scrollY]="false">
   <div
     class="mapa-layout"
-    *ngIf="visao && (visao === MapaVisao.CORPO_FRENTE || visao === MapaVisao.CORPO_VERSO || imagemSrc)"
+    *ngIf="
+      visao &&
+      (visao === MapaVisao.CORPO_FRENTE ||
+        visao === MapaVisao.CORPO_VERSO ||
+        visao === MapaVisao.CABECA_ANTERIOR ||
+        visao === MapaVisao.CABECA_LE ||
+        imagemSrc)
+    "
   >
     <aside class="mapa-toolbox" aria-label="Ferramentas do mapa">
       <div class="mapa-toolbox-ferramentas">
@@ -100,8 +107,31 @@
       title="Corpo (verso)"
       (load)="onCroquiSvgCarregado($event)"
     ></object>
+    <object
+      *ngIf="visao === MapaVisao.CABECA_ANTERIOR"
+      class="mapa-croqui"
+      type="image/svg+xml"
+      data="assets/mapas/cabeca-anterior/cabeca-anterior.svg"
+      aria-label="Mapa cabeça (anterior)"
+      title="Cabeça (anterior)"
+      (load)="onCroquiSvgCarregado($event)"
+    ></object>
+    <object
+      *ngIf="visao === MapaVisao.CABECA_LE"
+      class="mapa-croqui"
+      type="image/svg+xml"
+      data="assets/mapas/cabeca-le/cabeca-le.svg"
+      aria-label="Mapa cabeça (lateral esquerda)"
+      title="Cabeça (lateral esquerda)"
+      (load)="onCroquiSvgCarregado($event)"
+    ></object>
     <img
-      *ngIf="visao !== MapaVisao.CORPO_FRENTE && visao !== MapaVisao.CORPO_VERSO"
+      *ngIf="
+        visao !== MapaVisao.CORPO_FRENTE &&
+        visao !== MapaVisao.CORPO_VERSO &&
+        visao !== MapaVisao.CABECA_ANTERIOR &&
+        visao !== MapaVisao.CABECA_LE
+      "
       class="mapa-imagem"
       [src]="imagemSrc"
       alt="Mapa"

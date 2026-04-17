@@ -3,6 +3,9 @@ import { Paragraph, TextRun} from 'docx';
 import { NumberHelper } from 'src/app/extensions/numberHelper';
 import { Vitima } from 'src/app/models/vitima.model';
 import { MapaTipoVestigio } from 'src/app/atendimento/vitima/mapa/mapa-ferramenta.enum';
+import { MapaVisao } from 'src/app/atendimento/vitima/mapa/mapa-visao.enum';
+import { REGIOES_CABECA_ANTERIOR } from 'src/app/const/regioes-cabeca-anterior';
+import { REGIOES_CABECA_LATERAL } from 'src/app/const/regioes-cabeca-lateral';
 import { REGIOES_CORPO_FRENTE } from 'src/app/const/regioes-corpo-frente';
 import { REGIOES_CORPO_VERSO } from 'src/app/const/regioes-corpo-verso';
 
@@ -262,6 +265,37 @@ export class SecaoPerinecroVitima extends Secao{
         return 'hematoma' + (quantidade > 1 ? 's' : '');
     }
 
+    private traduzirRegiaoPorVisao(visao: MapaVisao, regiao: string): string {
+        const codigoRegiao = regiao.trim();
+        const regioesCabececaLateral = REGIOES_CABECA_LATERAL;
+
+        if (visao === MapaVisao.CABECA_ANTERIOR) {
+            return REGIOES_CABECA_ANTERIOR.get(codigoRegiao) ?? codigoRegiao;
+        }
+
+        if (visao === MapaVisao.CABECA_LE) {
+            return (
+                regioesCabececaLateral.get(codigoRegiao) ??
+                regioesCabececaLateral.get(`${codigoRegiao}E`) ??
+                codigoRegiao
+            );
+        }
+
+        if (visao === MapaVisao.CABECA_LD) {
+            return (
+                regioesCabececaLateral.get(codigoRegiao) ??
+                regioesCabececaLateral.get(`${codigoRegiao}D`) ??
+                codigoRegiao
+            );
+        }
+
+        if (visao === MapaVisao.CORPO_VERSO) {
+            return REGIOES_CORPO_VERSO.get(codigoRegiao) ?? codigoRegiao;
+        }
+
+        return REGIOES_CORPO_FRENTE.get(codigoRegiao) ?? codigoRegiao;
+    }
+
     async getParagrafosVestigiosPorTipo(): Promise<any[]> {
         const secoes: any[] = [];
         const tiposOrdem = [
@@ -270,16 +304,15 @@ export class SecaoPerinecroVitima extends Secao{
             MapaTipoVestigio.TACO,
             MapaTipoVestigio.HEMATOMA
         ];
-        const regioes = new Map<string, string>([
-            ...REGIOES_CORPO_FRENTE,
-            ...REGIOES_CORPO_VERSO
-        ]);
 
         for (const tipo of tiposOrdem) {
-            const vestigiosPorRegiao = new Map<string, number>();
+            const vestigiosPorRegiao = new Map<string, { visao: MapaVisao; regiao: string; quantidade: number }>();
 
             for (const vestigio of this.vitima.vestigios ?? []) {
                 if (vestigio.tipoVestigio !== tipo) {
+                    continue;
+                }
+                if (!vestigio.visao) {
                     continue;
                 }
                 const regiao = String(vestigio.regiao ?? '').trim();
@@ -288,13 +321,22 @@ export class SecaoPerinecroVitima extends Secao{
                 }
                 const quantidade = Number(vestigio.quantidade);
                 const quantidadeValida = Number.isFinite(quantidade) && quantidade > 0 ? quantidade : 1;
-                const atual = vestigiosPorRegiao.get(regiao) ?? 0;
-                vestigiosPorRegiao.set(regiao, atual + quantidadeValida);
+                const chave = `${vestigio.visao}::${regiao}`;
+                const atual = vestigiosPorRegiao.get(chave);
+                if (atual) {
+                    atual.quantidade += quantidadeValida;
+                } else {
+                    vestigiosPorRegiao.set(chave, {
+                        visao: vestigio.visao,
+                        regiao,
+                        quantidade: quantidadeValida,
+                    });
+                }
             }
 
             let totalVestigios = 0;
-            for (const qtde of vestigiosPorRegiao.values()) {
-                totalVestigios += Number(qtde);
+            for (const item of vestigiosPorRegiao.values()) {
+                totalVestigios += Number(item.quantidade);
             }
 
             if (totalVestigios === 0) {
@@ -315,8 +357,9 @@ export class SecaoPerinecroVitima extends Secao{
                 })
             );
 
-            for (const [regiao, qtde] of vestigiosPorRegiao) {
-                const regiaoTraduzida = regioes.get(regiao.trim()) ?? regiao.trim();
+            for (const item of vestigiosPorRegiao.values()) {
+                const qtde = item.quantidade;
+                const regiaoTraduzida = this.traduzirRegiaoPorVisao(item.visao, item.regiao);
                 const nomeRegiao = this.normalizarNomeRegiao(regiaoTraduzida).toUpperCase();
                 const termoItem = this.getTermoItemTipoVestigio(tipo, qtde);
 

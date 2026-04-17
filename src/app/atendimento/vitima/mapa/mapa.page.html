@@ -15,6 +15,7 @@
       (visao === MapaVisao.CORPO_FRENTE ||
         visao === MapaVisao.CORPO_VERSO ||
         visao === MapaVisao.CABECA_ANTERIOR ||
+        visao === MapaVisao.CABECA_LD ||
         visao === MapaVisao.CABECA_LE ||
         imagemSrc)
     "
@@ -117,6 +118,15 @@
       (load)="onCroquiSvgCarregado($event)"
     ></object>
     <object
+      *ngIf="visao === MapaVisao.CABECA_LD"
+      class="mapa-croqui"
+      type="image/svg+xml"
+      data="assets/mapas/cabeca-ld/cabeca-ld.svg"
+      aria-label="Mapa cabeça (lateral direita)"
+      title="Cabeça (lateral direita)"
+      (load)="onCroquiSvgCarregado($event)"
+    ></object>
+    <object
       *ngIf="visao === MapaVisao.CABECA_LE"
       class="mapa-croqui"
       type="image/svg+xml"
@@ -130,6 +140,7 @@
         visao !== MapaVisao.CORPO_FRENTE &&
         visao !== MapaVisao.CORPO_VERSO &&
         visao !== MapaVisao.CABECA_ANTERIOR &&
+        visao !== MapaVisao.CABECA_LD &&
         visao !== MapaVisao.CABECA_LE
       "
       class="mapa-imagem"

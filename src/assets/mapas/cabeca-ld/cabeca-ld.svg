@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 419 504" width="100%" class="croqui" preserveAspectRatio="xMidYMid meet">
+  <style>
+    .area {
+      fill: transparent;
+      stroke: transparent;
+      stroke-width: 1;
+      cursor: pointer;
+    }
+    .area:hover {
+      fill: rgba(255, 0, 0, 0.25);
+      stroke: #c62828;
+      stroke-width: 1.5;
+    }
+    image {
+      pointer-events: none;
+    }
+  </style>
+
+  <image href="cabeca-ld.png" width="419" height="504" />
+
+  <polygon class="area" data-id="1D" points="352,125 331,116 302,121 277,143 252,125 230,106 202,72 172,7 232,5 275,25 311,51 340,89 350,107" />
+  <circle class="area" data-id="2D" cx="317" cy="146" r="36" />
+  <polygon class="area" data-id="3D" points="279,158 247,176 209,180 175,173 151,177 128,191 121,207 123,236 130,245 82,266 56,254 19,236 5,198 9,148 31,98 57,57 99,24 128,15 169,5 187,47 206,75 230,110 260,129 276,144" />
+  <polygon class="area" data-id="4" points="383,237 361,238 347,223 344,205 341,194 337,174 357,142 377,169 398,184 412,194 416,209 404,216" />
+  <polygon class="area" data-id="5D" points="360,236 285,246 311,179 335,174 343,199 344,215" />
+  <polygon class="area" data-id="6D" points="288,247 220,252 217,230 309,180" />
+  <polygon class="area" data-id="7D" points="308,180 218,230 205,203 189,191 173,186 153,193 142,217 146,238 165,269 181,280 140,313 85,263 130,244 121,214 129,192 158,172 193,172 221,179 245,172 281,154 289,164" />
+  <circle class="area" data-id="8D" cx="183" cy="233" r="46" />
+  <polygon class="area" data-id="10" points="135,314 98,342 68,306 33,262 18,237 94,269" />
+  <polygon class="area" data-id="11" points="392,290 376,299 349,290 347,262 360,237 381,234" />
+  <polygon class="area" data-id="12D" points="362,363 292,341 282,291 288,245 361,236 345,266 346,279 357,292 375,298 357,317 349,338" />
+  <polygon class="area" data-id="13D" points="293,344 225,334 183,279 211,270 221,252 288,245 280,282" />
+  <polygon class="area" data-id="14" points="397,339 379,354 362,360 351,341 355,323 370,307 385,293 398,315" />
+  <polygon class="area" data-id="15" points="360,359 328,413 275,426 226,334" />
+  <polygon class="area" data-id="16D" points="296,482 271,489 237,483 205,405 173,355 142,312 183,279 240,353 278,434" />
+  <polygon class="area" data-id="17D" points="238,485 197,480 150,478 90,500 133,437 149,395 143,342 134,317 141,311 181,366 212,417" />
+  <polygon class="area" data-id="18" points="88,503 53,465 96,419 108,384 101,342 133,318 147,361 148,409 124,449 148,398 113,464" />
+  <polygon class="area" data-id="19" points="327,410 317,470 296,482 277,423" />
+</svg>

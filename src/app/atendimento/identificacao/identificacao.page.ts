@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { MessageService } from 'src/app/services/message.service';
 import { Atendimento } from 'src/app/models/atendimento.model';
@@ -30,17 +29,19 @@ import { User } from 'src/app/models/user.model';
   templateUrl: './identificacao.page.html',
   styleUrls: ['./identificacao.page.scss'],
   standalone: true,
-  imports: [IonicModule, IonDatetimeButton, IonModal, IonBackButton, IonItem, IonButton, FormsModule, ReactiveFormsModule,
+  imports: [IonDatetimeButton, IonModal, IonBackButton, IonItem, IonButton, FormsModule, ReactiveFormsModule,
     IonGrid, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar,
-    IonRow, IonCol, IonLabel, IonSelectOption, IonFooter, IonModal,
+    IonRow, IonCol, IonLabel, IonSelectOption, IonFooter,
     IonInput, IonDatetime, IonSelect, IonIcon, IonSpinner,
-    CommonModule, ReactiveFormsModule,
+    CommonModule,
     MatAutocompleteModule, MatFormFieldModule, MatInputModule,
   ]
 })
 export class IdentificacaoPage implements OnInit {
   form!: FormGroup;
   user: User | null = null;
+  /** Loader do salvamento — dismiss explícito evita fechar o overlay da próxima rota (race com visualizar). */
+  private saveLoading: HTMLIonLoadingElement | null = null;
   cidades = Cidades;
   bairros = Bairros;
 
@@ -246,42 +247,34 @@ export class IdentificacaoPage implements OnInit {
     this.model!.fields.endereco.pontoref = record.pontoref;
 
     if (this.model!.isNew) {
+      await this.presentLoading();
+      try {
+        const ref = await this.atendimentoService.create(this.model!);
+        this.model!.id = ref.id;
+        this.model!.isNew = false;
+        this.atendimentoService.model = this.model;
 
-        await this.presentLoading();
+        await this.hideLoader();
 
-        this.atendimentoService.create(this.model!)
-          .then(async (ref) => {
-              this.model!.id = ref.id;
-              this.model!.isNew = false;
-              this.atendimentoService.model = this.model;
-
-              await this.hideLoader();
-
-              this.presentAlertSalvo('Dados salvos com sucesso');
-              this.voltar();
-            })
-          .catch(async (error: any) => {
-
-              await this.hideLoader();
-
-              console.log(error);
-
-              this.presentError(error.message);
-          });
-
-
+        await this.presentAlertSalvo('Dados salvos com sucesso');
+        this.voltar();
+      } catch (error: any) {
+        await this.hideLoader();
+        console.log(error);
+        this.presentError(error.message);
+      }
     } else {
       await this.presentLoading();
-
-      this.atendimentoService.updateIdentificacao(this.model!).then(resp => {
-        this.hideLoader();
-        this.presentAlertSalvo('Dados alterados com sucesso');
+      try {
+        await this.atendimentoService.updateIdentificacao(this.model!);
+        await this.hideLoader();
+        await this.presentAlertSalvo('Dados alterados com sucesso');
         this.voltar();
-      }).catch(error => {
-          this.hideLoader();
-          console.log(error);
-          this.presentError(error.message);
-        });
+      } catch (error: any) {
+        await this.hideLoader();
+        console.log(error);
+        this.presentError(error.message);
+      }
     }
 
     this.loadForm();
@@ -312,17 +305,28 @@ export class IdentificacaoPage implements OnInit {
   }
 
   async presentLoading() {
-    const loading = await this.loadingController.create({
+    await this.dismissSaveLoading();
+    this.saveLoading = await this.loadingController.create({
       message: 'Processando...',
       showBackdrop: false
     });
-    return await loading.present();
+    return this.saveLoading.present();
   }
 
   async hideLoader() {
-    setTimeout(async () => {
-      await this.loadingController.dismiss();
-    }, 500);
+    await this.dismissSaveLoading();
+  }
+
+  private async dismissSaveLoading(): Promise<void> {
+    if (!this.saveLoading) {
+      return;
+    }
+    try {
+      await this.saveLoading.dismiss();
+    } catch {
+      /* overlay já encerrado */
+    }
+    this.saveLoading = null;
   }
 
   bairroSelecionado(valor: string) {

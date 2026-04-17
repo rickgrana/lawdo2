@@ -298,8 +298,13 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
 
       console.log('Número de detecções:', response.quantidade);
 
-      if (response.quantidade > 0) {
-        this.legenda = this.legenda + `${response.quantidade} perfurações por arma de fogo detectadas`;
+      const q = response.quantidade;
+      if (q === 0) {
+        this.legenda = this.legenda + 'Nenhuma perfuração por arma de fogo detectada';
+      } else if (q === 1) {
+        this.legenda = this.legenda + '1 perfuração por arma de fogo detectada';
+      } else {
+        this.legenda = this.legenda + `${q} perfurações por arma de fogo detectadas`;
       }
 
       const img = new Image();

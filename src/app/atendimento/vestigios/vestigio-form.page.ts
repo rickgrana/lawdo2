@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IonBackButton, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonInput, IonItem, IonLabel, IonSelect, IonSelectOption, IonTitle, IonToolbar, ToastController } from '@ionic/angular/standalone';
 import { AtendimentoService } from '../../services/atendimento.service';
+import { VestigioCategoria } from './enums/vestigio-categoria.enum';
 import { CATEGORIAS_VESTIGIOS, TIPOS_POR_CATEGORIA, VestigioItem, getCategoriaByKey } from './vestigios.data';
 
 @Component({
@@ -27,7 +28,7 @@ export class VestigioFormPage implements OnInit {
     private toastController: ToastController
   ) {
     this.form = this.formBuilder.group({
-      categoria: new FormControl<string>('fisicos', Validators.required),
+      categoria: new FormControl<VestigioCategoria>(VestigioCategoria.Fisicos, Validators.required),
       tipo: new FormControl<string>('', Validators.required),
       tipoOutro: new FormControl<string>(''),
       descricao: new FormControl<string>('', Validators.required),
@@ -39,8 +40,11 @@ export class VestigioFormPage implements OnInit {
 
   ngOnInit() {
     this.route.paramMap.subscribe((params) => {
-      const categoriaParam = params.get('categoriaKey') || 'fisicos';
-      const categoriaInicial = getCategoriaByKey(categoriaParam) ? categoriaParam : 'fisicos';
+      const categoriaKeyParam = params.get('categoriaKey');
+      const categoriaInicial: VestigioCategoria =
+        categoriaKeyParam !== null && getCategoriaByKey(categoriaKeyParam)
+          ? (categoriaKeyParam as VestigioCategoria)
+          : VestigioCategoria.Fisicos;
       const indexParam = params.get('index');
       const hasIndexParam = indexParam !== null;
       const index = hasIndexParam ? Number(indexParam) : -1;
@@ -61,8 +65,13 @@ export class VestigioFormPage implements OnInit {
         const vestigio = this.atendimentoService.model.fields.vestigios[index] as any;
         this.vestigioIndex = index;
         this.isEdicao = true;
+        const catV = vestigio.categoria;
+        const categoriaPatch: VestigioCategoria =
+          typeof catV === 'string' && catV !== '' && getCategoriaByKey(catV)
+            ? (catV as VestigioCategoria)
+            : categoriaInicial;
         this.form.patchValue({
-          categoria: vestigio.categoria || categoriaInicial,
+          categoria: categoriaPatch,
           tipo: vestigio.tipo || '',
           tipoOutro: '',
           descricao: vestigio.descricao || '',
@@ -81,8 +90,8 @@ export class VestigioFormPage implements OnInit {
     });
   }
 
-  get categoriaSelecionadaKey(): string {
-    return this.form?.value?.categoria || 'fisicos';
+  get categoriaSelecionadaKey(): VestigioCategoria {
+    return this.form?.value?.categoria ?? VestigioCategoria.Fisicos;
   }
 
   get tiposDaCategoriaSelecionada(): string[] {
@@ -125,7 +134,7 @@ export class VestigioFormPage implements OnInit {
     }
 
     const novoVestigio: VestigioItem = {
-      categoria: value.categoria || 'fisicos',
+      categoria: (value.categoria || VestigioCategoria.Fisicos) as VestigioCategoria,
       tipo: tipoFinal,
       descricao: (value.descricao || '').trim(),
       quantidade: value.quantidade ?? null,

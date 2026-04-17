@@ -1,10 +1,14 @@
+import { VestigioCategoria } from './enums/vestigio-categoria.enum';
+
+export { VestigioCategoria } from './enums/vestigio-categoria.enum';
+
 export interface CategoriaVestigio {
-  key: string;
+  key: VestigioCategoria;
   nome: string;
 }
 
 export interface VestigioItem {
-  categoria: string;
+  categoria: VestigioCategoria;
   tipo: string;
   descricao: string;
   quantidade: number | null;
@@ -13,16 +17,18 @@ export interface VestigioItem {
 }
 
 export const CATEGORIAS_VESTIGIOS: CategoriaVestigio[] = [
-  { key: 'biologicos', nome: '🔴 Vestígios Biológicos' },
-  { key: 'balisticos', nome: '🔫 Vestígios Balísticos' },
-  { key: 'papiloscopicos', nome: '🖐️ Vestígios Papiloscópicos' },
-  { key: 'impressoes-marcas', nome: '👣 Vestígios de Impressões e Marcas' },
-  { key: 'fisicos', nome: '🧥 Vestígios Físicos' },
-  { key: 'comportamentais-contextuais', nome: '🧠 Vestígios Comportamentais / Contextuais' },
+  { key: VestigioCategoria.Biologicos, nome: '🔴 Vestígios Biológicos' },
+  { key: VestigioCategoria.Balisticos, nome: '🔫 Vestígios Balísticos' },
+  { key: VestigioCategoria.Papiloscopicos, nome: '🖐️ Vestígios Papiloscópicos' },
+  { key: VestigioCategoria.ImpressoesMarcas, nome: '👣 Vestígios de Impressões e Marcas' },
+  { key: VestigioCategoria.Fisicos, nome: '🧥 Vestígios Físicos' },
+  { key: VestigioCategoria.Quimicos, nome: '🧪 Vestígios Químicos' },
+  { key: VestigioCategoria.Microvestigios, nome: '🔬 Microvestígios' },
+  { key: VestigioCategoria.ComportamentaisContextuais, nome: '🧠 Vestígios Comportamentais / Contextuais' },
 ];
 
-export const TIPOS_POR_CATEGORIA: Record<string, string[]> = {
-  biologicos: [
+export const TIPOS_POR_CATEGORIA: Record<VestigioCategoria, string[]> = {
+  [VestigioCategoria.Biologicos]: [
     'Sangue',
     'Sêmen',
     'Saliva',
@@ -32,7 +38,7 @@ export const TIPOS_POR_CATEGORIA: Record<string, string[]> = {
     'Pelos',
     'Material genético (DNA)',
   ],
-  balisticos: [
+  [VestigioCategoria.Balisticos]: [
     'Projéteis',
     'Fragmentos',
     'Cápsulas/estojos',
@@ -40,25 +46,53 @@ export const TIPOS_POR_CATEGORIA: Record<string, string[]> = {
     'Trajetórias balísticas',
     'Resíduos de pólvora',
   ],
-  papiloscopicos: [
+  [VestigioCategoria.Papiloscopicos]: [
     'Impressões digitais',
     'Palmares e plantares',
     'Marcas de contato em superfícies',
   ],
-  'impressoes-marcas': [
+  [VestigioCategoria.ImpressoesMarcas]: [
     'Pegadas',
     'Marcas de pneus',
     'Marcas de ferramentas',
     'Marcas de arrasto',
   ],
-  fisicos: [
+  [VestigioCategoria.Fisicos]: [
     'Fibras de tecido',
     'Fragmentos de vidro',
     'Partículas de tinta',
     'Solo/poeira',
     'Resíduos diversos',
   ],
-  'comportamentais-contextuais': [
+  [VestigioCategoria.Quimicos]: [
+    'Resíduos de combustíveis e acelerantes (ex: gasolina, solventes)',
+    'Resíduos de disparo de arma de fogo (GSR)',
+    'Drogas e substâncias entorpecentes',
+    'Medicamentos e substâncias tóxicas (venenos)',
+    'Explosivos e seus resíduos',
+    'Lubrificantes e óleos industriais',
+    'Tintas, vernizes e solventes',
+    'Adesivos e colas',
+    'Resíduos de limpeza (água sanitária, detergentes, desinfetantes)',
+    'Metais e íons metálicos (chumbo, bário, antimônio, etc.)',
+    'Polímeros e plásticos (composição química)',
+    'Resíduos de pólvora',
+    'Substâncias corrosivas (ácidos e bases)',
+    'Compostos orgânicos voláteis (VOCs)',
+  ],
+  [VestigioCategoria.Microvestigios]: [
+    'Fibras têxteis',
+    'Partículas de solo e minerais',
+    'Fragmentos de vidro',
+    'Partículas de tinta',
+    'Resíduos de disparo de arma de fogo (GSR)',
+    'Microvestígios biológicos',
+    'Pólens e esporos',
+    'Fragmentos metálicos',
+    'Partículas de plástico e polímeros',
+    'Resíduos químicos',
+  ],
+  [VestigioCategoria.ComportamentaisContextuais]: [
     'Posicionamento de objetos',
     'Cena simulada ou alterada',
     'Indícios de motivação (ex: crime passional, execução)',
@@ -78,17 +112,19 @@ export function normalizeText(valor: string): string {
     .trim();
 }
 
-export function resolveCategoriaKey(vestigio: any): string {
+export function resolveCategoriaKey(vestigio: any): VestigioCategoria {
   const categoria = normalizeText(vestigio?.categoria || vestigio?.tipoCategoria || vestigio?.grupo || '');
   const tipo = normalizeText(vestigio?.tipo || '');
   const referencia = `${categoria} ${tipo}`;
 
-  if (referencia.includes('biologic')) return 'biologicos';
-  if (referencia.includes('balistic')) return 'balisticos';
-  if (referencia.includes('papilosc')) return 'papiloscopicos';
-  if (referencia.includes('impress') || referencia.includes('marca')) return 'impressoes-marcas';
-  if (referencia.includes('fisic')) return 'fisicos';
-  if (referencia.includes('comport') || referencia.includes('context')) return 'comportamentais-contextuais';
+  if (referencia.includes('microvestigi')) return VestigioCategoria.Microvestigios;
+  if (referencia.includes('biologic')) return VestigioCategoria.Biologicos;
+  if (referencia.includes('balistic')) return VestigioCategoria.Balisticos;
+  if (referencia.includes('papilosc')) return VestigioCategoria.Papiloscopicos;
+  if (referencia.includes('impress') || referencia.includes('marca')) return VestigioCategoria.ImpressoesMarcas;
+  if (referencia.includes('fisic')) return VestigioCategoria.Fisicos;
+  if (referencia.includes('quimic')) return VestigioCategoria.Quimicos;
+  if (referencia.includes('comport') || referencia.includes('context')) return VestigioCategoria.ComportamentaisContextuais;
 
-  return 'fisicos';
+  return VestigioCategoria.Fisicos;
 }

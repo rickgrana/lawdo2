@@ -5,6 +5,7 @@ import { AtendimentoService } from '../../services/atendimento.service';
 import { Router } from '@angular/router';
 import { chevronForward } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
+import { VestigioCategoria } from './enums/vestigio-categoria.enum';
 import { CATEGORIAS_VESTIGIOS, resolveCategoriaKey } from './vestigios.data';
 
 @Component({
@@ -25,11 +26,11 @@ export class VestigiosPage {
     return this.atendimentoService.model?.fields?.vestigios ?? [];
   }
 
-  abrirCategoria(categoriaKey: string) {
+  abrirCategoria(categoriaKey: VestigioCategoria) {
     this.router.navigate(['atendimento/vestigios/categoria', categoriaKey]);
   }
 
-  getContadorCategoria(categoriaKey: string): number {
+  getContadorCategoria(categoriaKey: VestigioCategoria): number {
     return this.vestigios.filter((v) => resolveCategoriaKey(v) === categoriaKey).length;
   }
 }

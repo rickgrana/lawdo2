@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, IonBackButton, IonBadge, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonTitle, IonToolbar, ToastController } from '@ionic/angular/standalone';
+import { AlertController, IonBackButton, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonTitle, IonToolbar, ToastController } from '@ionic/angular/standalone';
 import { AtendimentoService } from '../../services/atendimento.service';
+import { VestigioCategoria } from './enums/vestigio-categoria.enum';
 import { CATEGORIAS_VESTIGIOS, getCategoriaByKey, resolveCategoriaKey } from './vestigios.data';
 import { addIcons } from 'ionicons';
 import { create, trash } from 'ionicons/icons';
@@ -12,11 +13,11 @@ import { create, trash } from 'ionicons/icons';
   templateUrl: './vestigios-categoria.page.html',
   styleUrls: ['./vestigios-categoria.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonContent, IonList, IonItem, IonLabel, IonFooter, IonButton, IonBadge, IonIcon]
+  imports: [CommonModule, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonContent, IonList, IonItem, IonLabel, IonFooter, IonButton, IonIcon]
 })
 export class VestigiosCategoriaPage implements OnInit {
   categorias = CATEGORIAS_VESTIGIOS;
-  categoriaKey = 'fisicos';
+  categoriaKey: VestigioCategoria | string = VestigioCategoria.Fisicos;
 
   constructor(
     private atendimentoService: AtendimentoService,
@@ -29,8 +30,8 @@ export class VestigiosCategoriaPage implements OnInit {
   }
 
   ngOnInit() {
-    const categoriaParam = this.route.snapshot.paramMap.get('categoriaKey') || 'fisicos';
-    this.categoriaKey = getCategoriaByKey(categoriaParam) ? categoriaParam : 'fisicos';
+    const categoriaParam = this.route.snapshot.paramMap.get('categoriaKey') || VestigioCategoria.Fisicos;
+    this.categoriaKey = getCategoriaByKey(categoriaParam) ? categoriaParam : VestigioCategoria.Fisicos;
   }
 
   get categoriaNome(): string {
@@ -41,7 +42,7 @@ export class VestigiosCategoriaPage implements OnInit {
     const vestigios = this.atendimentoService.model?.fields?.vestigios || [];
     return vestigios
       .map((vestigio: any, index: number) => ({ vestigio, index }))
-      .filter((item) => resolveCategoriaKey(item.vestigio) === this.categoriaKey);
+      .filter((item) => resolveCategoriaKey(item.vestigio) === (this.categoriaKey as VestigioCategoria));
   }
 
   abrirFormulario() {

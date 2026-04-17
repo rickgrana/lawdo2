@@ -1,7 +1,7 @@
 import { Secao } from './secao';
 import { Documento } from './documento';
 
-import { Paragraph, TextRun, TabStopType } from 'docx';
+import { Paragraph, TextRun } from 'docx';
 
 export const INDICE_NUMERADO    = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 export const INDICE_LETRADO     = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
@@ -67,11 +67,6 @@ export class SecaoNumerada extends Secao{
                     text: this.getTitulo()
                 }),
             ],
-
-            tabStops: [{
-                position: 0,
-                type: TabStopType.LEFT
-            }]
         });
     }
 

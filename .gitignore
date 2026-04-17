@@ -77,3 +77,4 @@ google-services.json
 GoogleService-Info.plist
 src/environments/environment.*
 src/assets/svg/corpo-verso.png:Zone.Identifier
+ml-services/bloodstain-detection-api/best.pt:Zone.Identifier

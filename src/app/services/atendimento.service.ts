@@ -119,7 +119,7 @@ export class AtendimentoService {
 
     const data = new Date(atendimento.fields.data);
 
-    return await updateDoc(atendimentoRef, {
+    return await this.updateSanitizedDoc(atendimentoRef, {
       tipoExame: atendimento.fields.tipoExame,
       data: Timestamp.fromDate(data),
       hora: atendimento.fields.hora,
@@ -149,7 +149,7 @@ export class AtendimentoService {
       recebimento: atendimento.fields.requisicao.recebimento
     };
 
-    return await updateDoc(atendimentoRef, {
+    return await this.updateSanitizedDoc(atendimentoRef, {
       requisicao: dados,
       dtupdate: Timestamp.now()
     });
@@ -160,7 +160,7 @@ export class AtendimentoService {
 
     let quesitos = atendimento.quesitos.map(q => q.rawData());
     
-    return await updateDoc(atendimentoRef, {
+    return await this.updateSanitizedDoc(atendimentoRef, {
       quesitos,
       dtupdate: Timestamp.now()
     });
@@ -169,7 +169,7 @@ export class AtendimentoService {
   async updateLocal(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await updateDoc(atendimentoRef, {
+    return await this.updateSanitizedDoc(atendimentoRef, {
       local: atendimento.fields.local,
       dtupdate: Timestamp.now()
     });
@@ -178,7 +178,7 @@ export class AtendimentoService {
   async updatePreservacao(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await updateDoc(atendimentoRef, {
+    return await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       local: atendimento.fields.local,
       equipes: atendimento.fields.equipes,
@@ -191,7 +191,7 @@ export class AtendimentoService {
 
     const vitimas = atendimento.fields.vitimas.map(v => v.rawData());
     
-    return await updateDoc(atendimentoRef, {
+    return await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       vitimas
     });
@@ -200,7 +200,7 @@ export class AtendimentoService {
   async updateConclusao(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await updateDoc(atendimentoRef, {
+    return await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       dinamica: atendimento.fields.dinamica,
       conclusao: atendimento.fields.conclusao
@@ -210,7 +210,7 @@ export class AtendimentoService {
   async updateLaudo(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await updateDoc(atendimentoRef, {
+    return await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       laudo: atendimento.fields.laudo
     });
@@ -219,16 +219,49 @@ export class AtendimentoService {
   async updateVeiculos(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await updateDoc(atendimentoRef, {
+    return await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       veiculos: atendimento.fields.veiculos.map(v => v.rawData())
     });
   }
 
+  async updateVestigios(atendimento: Atendimento) {
+    const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
+    const vestigios = atendimento.fields.vestigios.map((vestigio: any) => this.sanitizeForFirestore(vestigio));
+
+    return await this.updateSanitizedDoc(atendimentoRef, {
+      dtupdate: Timestamp.now(),
+      vestigios
+    });
+  }
+
+  private async updateSanitizedDoc(atendimentoRef: any, payload: any) {
+    return await updateDoc(atendimentoRef, this.sanitizeForFirestore(payload));
+  }
+
+  private sanitizeForFirestore(data: any): any {
+    if (Array.isArray(data)) {
+      return data.map((item) => this.sanitizeForFirestore(item));
+    }
+
+    if (data !== null && typeof data === 'object') {
+      const sanitized: any = {};
+      Object.keys(data).forEach((key) => {
+        const value = this.sanitizeForFirestore(data[key]);
+        if (value !== undefined) {
+          sanitized[key] = value;
+        }
+      });
+      return sanitized;
+    }
+
+    return data === undefined ? null : data;
+  }
+
   async updateImagens(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await updateDoc(atendimentoRef, {
+    return await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       imagens: atendimento.imagens
     });
@@ -237,7 +270,7 @@ export class AtendimentoService {
   async concluir(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await updateDoc(atendimentoRef, {
+    return await this.updateSanitizedDoc(atendimentoRef, {
       situacao: Atendimento.SIT_CONCLUIDO,
       dtconcluido: Timestamp.now()
     });

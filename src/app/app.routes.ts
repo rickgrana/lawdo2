@@ -93,6 +93,26 @@ export const routes: Routes = [
     canActivate: [AuthGuard, AtendimentoGuard]
   },
   {
+    path: 'atendimento/vestigios',
+    loadComponent: () => import('./atendimento/vestigios/vestigios.page').then( m => m.VestigiosPage),
+    canActivate: [AuthGuard, AtendimentoGuard]
+  },
+  {
+    path: 'atendimento/vestigios/categoria/:categoriaKey',
+    loadComponent: () => import('./atendimento/vestigios/vestigios-categoria.page').then( m => m.VestigiosCategoriaPage),
+    canActivate: [AuthGuard, AtendimentoGuard]
+  },
+  {
+    path: 'atendimento/vestigios/novo/:categoriaKey',
+    loadComponent: () => import('./atendimento/vestigios/vestigio-form.page').then( m => m.VestigioFormPage),
+    canActivate: [AuthGuard, AtendimentoGuard]
+  },
+  {
+    path: 'atendimento/vestigios/editar/:categoriaKey/:index',
+    loadComponent: () => import('./atendimento/vestigios/vestigio-form.page').then( m => m.VestigioFormPage),
+    canActivate: [AuthGuard, AtendimentoGuard]
+  },
+  {
     path: 'atendimento/imagens',
     loadComponent: () => import('./atendimento/imagens/imagens.page').then( m => m.ImagensPage),
     canActivate: [AuthGuard, AtendimentoGuard]

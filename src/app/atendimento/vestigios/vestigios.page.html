@@ -1,0 +1,23 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Vestígios</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item
+      button
+      detail
+      *ngFor="let categoria of categorias"
+      (click)="abrirCategoria(categoria.key)"
+    >
+      <ion-label>{{ categoria.nome }}</ion-label>
+      <ion-badge color="primary" slot="end">{{ getContadorCategoria(categoria.key) }}</ion-badge>
+      <ion-icon name="chevron-forward" slot="end" color="medium"></ion-icon>
+    </ion-item>
+  </ion-list>
+</ion-content>

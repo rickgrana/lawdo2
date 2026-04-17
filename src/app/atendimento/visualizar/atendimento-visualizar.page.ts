@@ -15,7 +15,7 @@ import { ToastController } from '@ionic/angular/standalone';
 import { LoadingController } from '@ionic/angular/standalone';
 import { AtendimentoService } from '../../services/atendimento.service';
 import { AuthenticationService } from 'src/app/authentication.service';
-import { arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline } from 'ionicons/icons';
+import { arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline, flask } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonBadge, IonNote,
     IonRow, IonCol, IonLabel, IonInfiniteScroll, IonInfiniteScrollContent, IonIcon, IonButton, IonItem, IonBackButton } from '@ionic/angular/standalone';
@@ -59,7 +59,7 @@ export class AtendimentoVisualizarPage implements OnInit {
     private authService: AuthenticationService,
     public actionSheetController: ActionSheetController
     ) {
-      addIcons({ arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline });
+      addIcons({ arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline, flask });
     }
 
   get model() {
@@ -175,6 +175,11 @@ export class AtendimentoVisualizarPage implements OnInit {
   async abrirVeiculos(model: any) {
     this.atendimentoService.model = model;
     this.router.navigate(['atendimento/veiculos']);
+  }
+
+  async abrirVestigios(model: any) {
+    this.atendimentoService.model = model;
+    this.router.navigate(['atendimento/vestigios']);
   }
 
   abrirImagens() {

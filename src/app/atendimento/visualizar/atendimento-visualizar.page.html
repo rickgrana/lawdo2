@@ -86,6 +86,10 @@
                         <ion-badge color="primary" slot="end">{{ model.fields.veiculos.length }}</ion-badge>
                     </ion-item>
 
+                    <ion-item button (click)="abrirVestigios(model)" lines="none" detail color="white" class="secao_atendimento">
+                        <ion-icon name="flask" slot="start" color="danger"></ion-icon> Vestígios
+                    </ion-item>
+
                     <ion-item button (click)="abrirImagens()" lines="none" detail color="white" class="secao_atendimento">
                         <ion-icon name="images" slot="start" color="danger"></ion-icon> Imagens
                             <ion-badge color="primary" slot="end">{{ model.imagens.length }}</ion-badge>

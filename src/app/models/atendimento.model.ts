@@ -492,9 +492,12 @@ export class Atendimento {
             });
         }
 
-        if(data.vestigios) {
-            data.vestigios.forEach((vestigio: Vestigio) => {
-                //this.fields.vestigios.push(Vitima.loadFrom(vitima));
+        this.fields.vestigios = [];
+        if (data.vestigios && Array.isArray(data.vestigios)) {
+            data.vestigios.forEach((item: any) => {
+                const vestigio = new Vestigio();
+                vestigio.load(item);
+                this.fields.vestigios.push({ ...item, ...vestigio } as any);
             });
         }
 
@@ -599,6 +602,11 @@ export class Atendimento {
             quesitos.push(quesito.rawData());
         });
 
+        const vestigios: any[] = [];
+        this.fields.vestigios.forEach((vestigio: any) => {
+            vestigios.push(vestigio);
+        });
+
         const imagens: any[] = [];
         this.imagens.forEach((imagem) => {
             /*if(!imagem.colunas){
@@ -627,6 +635,7 @@ export class Atendimento {
             dtupdate: this.fields.dtupdate,
             vitimas: vitimas,
             quesitos: quesitos,
+            vestigios: vestigios,
             veiculos: veiculos,
             imagens: imagens
         };

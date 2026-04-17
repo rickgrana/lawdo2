@@ -1,0 +1,66 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'atendimento/vestigios/categoria/' + categoriaSelecionadaKey"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ isEdicao ? 'Alterar Vestígio' : 'Novo Vestígio' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="form">
+    <ion-item>
+      <ion-label position="stacked">Categoria</ion-label>
+      <ion-select formControlName="categoria" interface="popover" (ionChange)="onCategoriaChange()">
+        <ion-select-option *ngFor="let categoria of categorias" [value]="categoria.key">
+          {{ categoria.nome }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item *ngIf="!usaTiposPredefinidos">
+      <ion-label position="stacked">Tipo *</ion-label>
+      <ion-input formControlName="tipo"></ion-input>
+    </ion-item>
+
+    <ion-item *ngIf="usaTiposPredefinidos">
+      <ion-label position="stacked">Tipo *</ion-label>
+      <ion-select formControlName="tipo" interface="popover" placeholder="Selecione o tipo">
+        <ion-select-option *ngFor="let tipo of tiposDaCategoriaComOutros" [value]="tipo">
+          {{ tipo }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item *ngIf="selecionouTipoOutros">
+      <ion-label position="stacked">Qual tipo? *</ion-label>
+      <ion-input formControlName="tipoOutro"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Descrição *</ion-label>
+      <ion-input formControlName="descricao"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Quantidade</ion-label>
+      <ion-input type="number" formControlName="quantidade"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Localização</ion-label>
+      <ion-input formControlName="localizacao"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Lacre</ion-label>
+      <ion-input formControlName="lacre"></ion-input>
+    </ion-item>
+  </form>
+</ion-content>
+
+<ion-footer>
+  <ion-button expand="block" color="success" (click)="salvar()">
+    {{ isEdicao ? 'Salvar Alterações' : 'Salvar Vestígio' }}
+  </ion-button>
+</ion-footer>

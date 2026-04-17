@@ -48,29 +48,9 @@ export class SecaoPerinecroVitima extends Secao{
         ]);
 
 
-        const ferimentosResultado = await this.getParagrafoFerimentos();
-        const ferimentos = ferimentosResultado.secoes;
-
-        if(ferimentos.length > 0){
-
-            retorno = retorno.concat([
-                new Paragraph ({
-                    style: 'padrao',
-                    bullet: {
-                        level: 0,
-                    },
-                    children: [
-                        new TextRun({
-                            text: this.getTextoResumoFerimentos(ferimentosResultado.totalVestigios),
-                        }),
-                    ],
-                })
-            ]);
-
-            
-            for(const ferimento of ferimentos){
-                retorno = retorno.concat(ferimento);
-            }
+        const paragrafosVestigios = await this.getParagrafosVestigiosPorTipo();
+        if(paragrafosVestigios.length > 0){
+            retorno = retorno.concat(paragrafosVestigios);
         }
 
         if(this.documento.atendimento.isSuicidio){
@@ -223,143 +203,146 @@ export class SecaoPerinecroVitima extends Secao{
 
     }
 
-    private getTextoResumoFerimentos(totalVestigios: number): string {
-        const plural = totalVestigios !== 1;
-        const totalExtenso = NumberHelper.getExtenso(totalVestigios, 'M');
-
-        return 'A presença de ' +
-            totalVestigios.toString().padStart(2, '0') +
-            ' (' + totalExtenso + ') ' +
-            'ferimento' + (plural ? 's' : '') +
-            ' produzido' + (plural ? 's' : '') +
-            ' por instrumento perfuro-contundente e compatíve' + (plural ? 'is' : 'l') +
-            ' ao' + (plural ? 's' : '') +
-            ' produzido' + (plural ? 's' : '') +
-            ' por projétei' + (plural ? 's' : '') +
-            ' de arma de fogo curta, nas seguintes quantidades e regiões:';
-    }
-
     private normalizarNomeRegiao(nomeRegiao: string): string {
         return nomeRegiao.replace(/^Região\s+/i, '').trim();
     }
 
-    async getParagrafoFerimentos(): Promise<{ secoes: any[]; totalVestigios: number }> {
+    private getCabecalhoTipoVestigio(tipo: MapaTipoVestigio, totalVestigios: number): string {
+        const plural = totalVestigios !== 1;
+        const totalExtenso = NumberHelper.getExtenso(totalVestigios, 'M');
 
-        let secoes: any[] = [];
-    
-        const pafsPorRegiao = new Map<string, number>();
-    
-    
-        var regiao_traduzida= '';
-    
-    
-        for (const vestigio of this.vitima.vestigios ?? []) {
-            if (vestigio.tipoVestigio !== MapaTipoVestigio.PAF) {
-                continue;
-            }
-            const regiao = String(vestigio.regiao ?? '').trim();
-            if (!regiao) {
-                continue;
-            }
-            const quantidade = Number(vestigio.quantidade);
-            const quantidadeValida = Number.isFinite(quantidade) && quantidade > 0 ? quantidade : 1;
-            const atual = pafsPorRegiao.get(regiao) ?? 0;
-            pafsPorRegiao.set(regiao, atual + quantidadeValida);
+        if(tipo === MapaTipoVestigio.PAF){
+            return 'A presença de ' +
+                totalVestigios.toString().padStart(2, '0') +
+                ' (' + totalExtenso + ') ' +
+                'ferimento' + (plural ? 's' : '') +
+                ' produzido' + (plural ? 's' : '') +
+                ' por instrumento perfuro-contundente e compatíve' + (plural ? 'is' : 'l') +
+                ' ao' + (plural ? 's' : '') +
+                ' produzido' + (plural ? 's' : '') +
+                ' por projétei' + (plural ? 's' : '') +
+                ' de arma de fogo curta, nas seguintes quantidades e regiões:';
         }
 
-        let totalVestigios = 0;
+        if(tipo === MapaTipoVestigio.FACA){
+            return 'A presença de ' +
+                totalVestigios.toString().padStart(2, '0') +
+                ' (' + totalExtenso + ') ' +
+                'ferimento' + (plural ? 's' : '') +
+                ' produzido' + (plural ? 's' : '') +
+                ' por instrumento perfuro-cortante, nas seguintes quantidades e regiões:';
+        }
+
+        if(tipo === MapaTipoVestigio.TACO){
+            return 'A presença de ' +
+                totalVestigios.toString().padStart(2, '0') +
+                ' (' + totalExtenso + ') ' +
+                'les' + (plural ? 'ões' : 'ão') +
+                ' produzida' + (plural ? 's' : '') +
+                ' por instrumento contundente, nas seguintes quantidades e regiões:';
+        }
+
+        return 'A presença de ' +
+            totalVestigios.toString().padStart(2, '0') +
+            ' (' + totalExtenso + ') ' +
+            'hematoma' + (plural ? 's' : '') +
+            ', nas seguintes quantidades e regiões:';
+    }
+
+    private getTermoItemTipoVestigio(tipo: MapaTipoVestigio, quantidade: number): string {
+        if(tipo === MapaTipoVestigio.PAF){
+            return 'perfuraç' + (quantidade > 1 ? 'ões' : 'ão');
+        }
+        if(tipo === MapaTipoVestigio.FACA){
+            return 'les' + (quantidade > 1 ? 'ões' : 'ão');
+        }
+        if(tipo === MapaTipoVestigio.TACO){
+            return 'les' + (quantidade > 1 ? 'ões' : 'ão');
+        }
+        return 'hematoma' + (quantidade > 1 ? 's' : '');
+    }
+
+    async getParagrafosVestigiosPorTipo(): Promise<any[]> {
+        const secoes: any[] = [];
+        const tiposOrdem = [
+            MapaTipoVestigio.PAF,
+            MapaTipoVestigio.FACA,
+            MapaTipoVestigio.TACO,
+            MapaTipoVestigio.HEMATOMA
+        ];
         const regioes = new Map<string, string>([
             ...REGIOES_CORPO_FRENTE,
             ...REGIOES_CORPO_VERSO
         ]);
 
-        for (const [regiao, qtde] of pafsPorRegiao) {
-            regiao_traduzida = regioes.get(regiao.trim()) ?? regiao.trim();
-            const nomeRegiao = this.normalizarNomeRegiao(regiao_traduzida).toUpperCase();
-            totalVestigios += Number(qtde);
+        for (const tipo of tiposOrdem) {
+            const vestigiosPorRegiao = new Map<string, number>();
 
-            secoes = secoes.concat([
-                new Paragraph ({
-                    style: 'Normal',
-                    bullet: {
-                        level: 1,
-                    },
-                    children: [
-                        new TextRun({
-                            text: qtde.toString().padStart(2, '0') + 
-                            ' (' + NumberHelper.getExtenso(qtde, 'F') + ')' + 
-                            ' perfuraç' + ((qtde > 1) ? 'ões' : 'ão') + ' na região '
-                        }),
-                        new TextRun({ text: nomeRegiao, bold: true }),
-                        new TextRun(';')
-                    ],
-                }),
-            ]);
-        }
-    
-        if(secoes.length > 0){
-            secoes = secoes.concat([
-                new Paragraph ('')
-            ]);
-        }
-        
-    
-        /*const lesoes = new Map();
-        let qtde = 0;
-    
-        for (let item of data.ferimentos.cabeca_anterior.items) {
-            if (lesoes.has(item.regiao)) {
-                qtde = lesoes.get(item.regiao);
-            } else {
-                qtde = 0;
+            for (const vestigio of this.vitima.vestigios ?? []) {
+                if (vestigio.tipoVestigio !== tipo) {
+                    continue;
+                }
+                const regiao = String(vestigio.regiao ?? '').trim();
+                if (!regiao) {
+                    continue;
+                }
+                const quantidade = Number(vestigio.quantidade);
+                const quantidadeValida = Number.isFinite(quantidade) && quantidade > 0 ? quantidade : 1;
+                const atual = vestigiosPorRegiao.get(regiao) ?? 0;
+                vestigiosPorRegiao.set(regiao, atual + quantidadeValida);
             }
-    
-            lesoes.set(item.regiao, qtde + 1);
-        }
-    
-        for (let item of data.ferimentos.cabeca_posterior.items) {
-            if (lesoes.has(item.regiao)) {
-                qtde = lesoes.get(item.regiao);
-            } else {
-                qtde = 0;
+
+            let totalVestigios = 0;
+            for (const qtde of vestigiosPorRegiao.values()) {
+                totalVestigios += Number(qtde);
             }
-    
-            lesoes.set(item.regiao, qtde + 1);
-        }
-        
-        for (let item of data.ferimentos.cabeca_lateral.items) {
-            if (lesoes.has(item.regiao)) {
-                qtde = lesoes.get(item.regiao);
-            } else {
-                qtde = 0;
+
+            if (totalVestigios === 0) {
+                continue;
             }
-    
-            lesoes.set(item.regiao, qtde + 1);
-        }
-    
-        lesoes.forEach((qtde, regiao) => {
-    
-    
-            secoes = secoes.concat([
-                new Paragraph ({
+
+            secoes.push(
+                new Paragraph({
                     style: 'padrao',
                     bullet: {
                         level: 0,
                     },
                     children: [
                         new TextRun({
-                            text: qtde.toString().padStart(2, '0') + 
-                            ' (' + NumberHelper.getExtenso(qtde) + ')' + 
-                            ' perfuraç' + ((qtde > 1) ? 'ões' : 'ão') + ' na região '
+                            text: this.getCabecalhoTipoVestigio(tipo, totalVestigios),
                         }),
-                        new TextRun({ text: regiao.toUpperCase(), bold: true }),
-                        new TextRun(';')
                     ],
-                }),
-            ]);
-        });*/
-    
-        return { secoes, totalVestigios };
-      }
+                })
+            );
+
+            for (const [regiao, qtde] of vestigiosPorRegiao) {
+                const regiaoTraduzida = regioes.get(regiao.trim()) ?? regiao.trim();
+                const nomeRegiao = this.normalizarNomeRegiao(regiaoTraduzida).toUpperCase();
+                const termoItem = this.getTermoItemTipoVestigio(tipo, qtde);
+
+                secoes.push(
+                    new Paragraph({
+                        style: 'Normal',
+                        bullet: {
+                            level: 1,
+                        },
+                        children: [
+                            new TextRun({
+                                text: qtde.toString().padStart(2, '0') +
+                                    ' (' + NumberHelper.getExtenso(qtde, 'F') + ') ' +
+                                    termoItem + ' na região '
+                            }),
+                            new TextRun({ text: nomeRegiao, bold: true }),
+                            new TextRun(';')
+                        ],
+                    })
+                );
+            }
+
+            secoes.push(new Paragraph(''));
+        }
+
+        return secoes;
+    }
 
 }

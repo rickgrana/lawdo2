@@ -88,6 +88,7 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
   onSelectFile(event: any) {
     let promises = [];
     let imagens = [];
+    const input = event.target as HTMLInputElement;
 
     if (event.target.files && event.target.files[0]) {
 
@@ -153,11 +154,13 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
 
           this.atendimentoService.updateImagens(this.model!).then(async (resp) => {
              this.hideLoader();
+             input.value = '';
           });
         });
 
       }catch(error){
         this.hideLoader();
+        input.value = '';
         console.log(error);
       }
 

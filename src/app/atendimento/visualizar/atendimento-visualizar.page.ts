@@ -66,7 +66,7 @@ export class AtendimentoVisualizarPage implements OnInit {
     return this.atendimentoService.model;
   }
 
-  async ngOnInit() {
+  async ngOnInit(): Promise<void> {
     if(this.model == null){
       this.router.navigate(['/']);
     } else{
@@ -75,6 +75,9 @@ export class AtendimentoVisualizarPage implements OnInit {
       ).subscribe((user: User) => {
         this.user = user;
       });
+
+      // Evita overlay "Processando..." da tela anterior (dismiss global na ordem errada).
+      await this.dismissAllLoadingOverlays();
 
       // carrega das imagens
       this.presentLoading('Carregando imagens...');
@@ -254,6 +257,20 @@ export class AtendimentoVisualizarPage implements OnInit {
     return await this.loading.present();
 
     // return await new Promise(resolve => requestAnimationFrame(resolve));
+  }
+
+  /** Remove todos os ion-loading da pilha (ex.: órfão após navegação rápida). */
+  private async dismissAllLoadingOverlays(): Promise<void> {
+    let top = await this.loadingController.getTop();
+    while (top) {
+      try {
+        await top.dismiss();
+      } catch {
+        /* já removido */
+      }
+      top = await this.loadingController.getTop();
+    }
+    this.loading = null;
   }
 
   async ionViewDidLeave() {

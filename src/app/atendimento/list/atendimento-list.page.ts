@@ -29,6 +29,8 @@ import { User } from 'src/app/models/user.model';
 })
 export class ListAtendimentosPage implements OnInit {
   items: any[] = [];
+  /** Evita flash da mensagem de lista vazia antes da primeira resposta da API */
+  primeiraCargaCompleta = false;
   ultimo: any = null;
   connectedRef: any;
   user: User | null = null;
@@ -73,6 +75,8 @@ export class ListAtendimentosPage implements OnInit {
       this.messageService.hideLoader().then(() => {
         this.messageService.presentErro(error.message);
       });
+    } finally {
+      this.primeiraCargaCompleta = true;
     }
   }
 

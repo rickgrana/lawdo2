@@ -223,7 +223,7 @@ export class SecaoPerinecroVitima extends Secao{
                 ' por instrumento perfuro-contundente e compatíve' + (plural ? 'is' : 'l') +
                 ' ao' + (plural ? 's' : '') +
                 ' produzido' + (plural ? 's' : '') +
-                ' por projétei' + (plural ? 's' : '') +
+                ' por ' + (plural ? 'projéteis' : 'projétil') +
                 ' de arma de fogo curta, nas seguintes quantidades e regiões:';
         }
 
@@ -357,7 +357,10 @@ export class SecaoPerinecroVitima extends Secao{
                 })
             );
 
-            for (const item of vestigiosPorRegiao.values()) {
+            const itensPorRegiao = Array.from(vestigiosPorRegiao.values());
+            for (let i = 0; i < itensPorRegiao.length; i++) {
+                const item = itensPorRegiao[i];
+                const ultimoItemDoTipo = i === itensPorRegiao.length - 1;
                 const qtde = item.quantidade;
                 const regiaoTraduzida = this.traduzirRegiaoPorVisao(item.visao, item.regiao);
                 const nomeRegiao = this.normalizarNomeRegiao(regiaoTraduzida).toUpperCase();
@@ -376,7 +379,7 @@ export class SecaoPerinecroVitima extends Secao{
                                     termoItem + ' na região '
                             }),
                             new TextRun({ text: nomeRegiao, bold: true }),
-                            new TextRun(';')
+                            new TextRun(ultimoItemDoTipo ? '.' : ';')
                         ],
                     })
                 );

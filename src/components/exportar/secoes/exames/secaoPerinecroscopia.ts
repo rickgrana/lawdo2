@@ -71,11 +71,13 @@ export class SecaoPerinecroscopia extends SecaoSubExames{
                     })
                 ]);
 
-                for (const vestigio of itens) {
-                    const fraseVestigio = this.montarFraseVestigio(vestigio);
-                    if (!fraseVestigio) {
-                        continue;
-                    }
+                const linhasCategoria = itens
+                    .map((v) => this.montarCorpoFraseVestigio(v))
+                    .filter((texto) => texto.length > 0);
+
+                for (let i = 0; i < linhasCategoria.length; i++) {
+                    const ultimoNaCategoria = i === linhasCategoria.length - 1;
+                    const fraseVestigio = linhasCategoria[i] + (ultimoNaCategoria ? '.' : ';');
 
                     retorno = retorno.concat([
                         new Paragraph({
@@ -95,73 +97,12 @@ export class SecaoPerinecroscopia extends SecaoSubExames{
                 retorno = retorno.concat([new Paragraph('')]);
             }
         }
-    
-        retorno = retorno.concat([
-            new Paragraph ({
-                style: 'padrao',
-                children: [
-                    new TextRun({
-                        text: 'Ainda sobre os elementos observados no local de crime, constatou o perit' + 
-                                this.documento.perito.getArtigo() + ':'
-                    }),
-                ]
-            }),
-    
-            new Paragraph ({
-                style: 'Normal',
-                bullet: {
-                    level: 0,
-                },
-                children: [
-                    new TextRun({
-                        text: 'A presença de X () estojo(s) de munição de arma de fogo, calibre X, localização, devidamente entregue(s) à Autoridade Policial no local;'
-                    }),
-                ]
-            }),
-    
-    
-            new Paragraph ({
-                style: 'Normal',
-                bullet: {
-                    level: 0,
-                },
-                children: [
-                    new TextRun({
-                        text: 'A presença de X () massa(s) deflagrada(s) e deformada(s)  de munição de arma de fogo, localização, devidamente entregue(s) à Autoridade Policial no local;'
-                    }),
-                ]
-            }),
-    
-            new Paragraph ({
-                style: 'Normal',
-                bullet: {
-                    level: 0,
-                },
-                children: [
-                    new TextRun({
-                        text: 'A presença de mancha de sangue, localizada....'
-                    }),
-                ]
-            }),
-    
-            new Paragraph ({
-                style: 'Normal',
-                bullet: {
-                    level: 0,
-                },
-                children: [
-                    new TextRun({
-                        text: 'A ausência de manchas de sangue ou outros vestígios de violêcia.'
-                    }),
-                ]
-            }),
-    
-        ]);
 
         return retorno;
     }
 
-    private montarFraseVestigio(vestigio: any): string {
+    /** Texto do item sem pontuação final (; ou .). */
+    private montarCorpoFraseVestigio(vestigio: any): string {
         const tipo = this.limpar(vestigio?.tipo);
         const descricao = this.limpar(vestigio?.descricao);
         const localizacao = this.limpar(vestigio?.localizacao);
@@ -206,7 +147,7 @@ export class SecaoPerinecroscopia extends SecaoSubExames{
             return '';
         }
 
-        return partes.join(', ') + ';';
+        return partes.join(', ');
     }
 
     private formatarTipoComQuantidade(tipo: string, quantidade: number): string {

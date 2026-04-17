@@ -39,8 +39,8 @@ export class UserService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const ref = collection(this.firestore, 'users');
-    const q = query(ref, where('email', '==', email));
+    const usersCollection = collection(this.firestore, 'users');
+    const q = query(usersCollection, where('email', '==', email));
     return await firstValueFrom(
       collectionData(q, { idField: 'uid' })
         .pipe(
@@ -49,7 +49,9 @@ export class UserService {
             if (!data || data.length === 0) {
               return null;
             }
-            return User.loadFromDb(ref, data[0]);
+            const row = data[0];
+            const userDocRef = doc(this.firestore, 'users', row.uid);
+            return User.loadFromDb(userDocRef, row);
           })
         )
       );

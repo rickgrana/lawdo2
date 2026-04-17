@@ -1,4 +1,17 @@
+.lista-vazia {
+  box-sizing: border-box;
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+  text-align: center;
+}
 
+.lista-vazia__texto {
+  margin: 0 0 1.25rem;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--ion-color-medium-shade, #666);
+}
 
 ion-toolbar ion-buttons ion-button {
   font-size: 1.5rem;

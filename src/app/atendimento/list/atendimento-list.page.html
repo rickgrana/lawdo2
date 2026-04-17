@@ -15,7 +15,17 @@
 </ion-header>
 
 <ion-content>
-  <ion-list>
+  <div class="lista-vazia" *ngIf="primeiraCargaCompleta && items.length === 0">
+    <p class="lista-vazia__texto">
+      Nenhum atendimento cadastrado. Deseja iniciar seu primeiro atendimento?
+    </p>
+    <ion-button expand="block" color="success" (click)="novo()">
+      <ion-icon slot="start" name="add-circle"></ion-icon>
+      Novo atendimento
+    </ion-button>
+  </div>
+
+  <ion-list *ngIf="items.length > 0">
     <ion-item button *ngFor="let item of items" (click)="abrir(item)">
       <ion-grid>
         <ion-row>
@@ -100,7 +110,7 @@
     </ion-item>
   </ion-list>
 
-  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+  <ion-infinite-scroll *ngIf="items.length > 0" threshold="100px" (ionInfinite)="loadData($event)">
     <ion-infinite-scroll-content
       loadingSpinner="bubbles"
       loadingText="Carregando mais dados...">

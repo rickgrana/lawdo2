@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { IonBackButton, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonInput, IonItem, IonLabel, IonSelect, IonSelectOption, IonTitle, IonToolbar, ToastController } from '@ionic/angular/standalone';
+import { IonBackButton, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonInput, IonItem, IonLabel, IonSelect, IonSelectOption, IonTitle, IonToolbar, LoadingController, ToastController } from '@ionic/angular/standalone';
 import { AtendimentoService } from '../../services/atendimento.service';
 import { VestigioCategoria } from './enums/vestigio-categoria.enum';
 import { CATEGORIAS_VESTIGIOS, TIPOS_POR_CATEGORIA, VestigioItem, getCategoriaByKey } from './vestigios.data';
@@ -19,13 +20,18 @@ export class VestigioFormPage implements OnInit {
   form;
   vestigioIndex: number | null = null;
   isEdicao = false;
+  saving = false;
+  private saveLoading: HTMLIonLoadingElement | null = null;
+
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     private atendimentoService: AtendimentoService,
     private route: ActivatedRoute,
     private router: Router,
     private formBuilder: FormBuilder,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private loadingController: LoadingController
   ) {
     this.form = this.formBuilder.group({
       categoria: new FormControl<VestigioCategoria>(VestigioCategoria.Fisicos, Validators.required),
@@ -39,7 +45,7 @@ export class VestigioFormPage implements OnInit {
   }
 
   ngOnInit() {
-    this.route.paramMap.subscribe((params) => {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const categoriaKeyParam = params.get('categoriaKey');
       const categoriaInicial: VestigioCategoria =
         categoriaKeyParam !== null && getCategoriaByKey(categoriaKeyParam)
@@ -115,7 +121,7 @@ export class VestigioFormPage implements OnInit {
   }
 
   async salvar() {
-    if (!this.atendimentoService.model) return;
+    if (!this.atendimentoService.model || this.saving) return;
 
     this.form.markAllAsTouched();
     if (this.form.invalid) {
@@ -133,35 +139,74 @@ export class VestigioFormPage implements OnInit {
       return;
     }
 
+    const rawQ = value.quantidade;
+    let quantidade: number | null = null;
+    if (rawQ !== null && rawQ !== undefined && String(rawQ).trim() !== '') {
+      const n = Number(rawQ);
+      quantidade = Number.isFinite(n) ? n : null;
+    }
+
     const novoVestigio: VestigioItem = {
       categoria: (value.categoria || VestigioCategoria.Fisicos) as VestigioCategoria,
       tipo: tipoFinal,
       descricao: (value.descricao || '').trim(),
-      quantidade: value.quantidade ?? null,
+      quantidade,
       localizacao: (value.localizacao || '').trim(),
       lacre: (value.lacre || '').trim(),
     };
 
-    let backup: any = null;
-    if (this.isEdicao && this.vestigioIndex !== null) {
-      backup = this.atendimentoService.model.fields.vestigios[this.vestigioIndex];
-      this.atendimentoService.model.fields.vestigios[this.vestigioIndex] = novoVestigio as any;
-    } else {
-      this.atendimentoService.model.fields.vestigios.push(novoVestigio as any);
-    }
-
+    this.saving = true;
     try {
-      await this.atendimentoService.updateVestigios(this.atendimentoService.model);
-      await this.showToast(this.isEdicao ? 'Vestígio alterado com sucesso.' : 'Vestígio adicionado com sucesso.');
-      this.router.navigate(['atendimento/vestigios/categoria', novoVestigio.categoria]);
-    } catch (error: any) {
-      if (this.isEdicao && this.vestigioIndex !== null) {
-        this.atendimentoService.model.fields.vestigios[this.vestigioIndex] = backup;
-      } else {
-        this.atendimentoService.model.fields.vestigios.pop();
+      await this.presentSaveLoading();
+      let backup: any = null;
+      try {
+        if (this.isEdicao && this.vestigioIndex !== null) {
+          backup = this.atendimentoService.model.fields.vestigios[this.vestigioIndex];
+          this.atendimentoService.model.fields.vestigios[this.vestigioIndex] = novoVestigio as any;
+        } else {
+          this.atendimentoService.model.fields.vestigios.push(novoVestigio as any);
+        }
+
+        await this.atendimentoService.updateVestigios(this.atendimentoService.model);
+        await this.showToast(this.isEdicao ? 'Vestígio alterado com sucesso.' : 'Vestígio adicionado com sucesso.');
+        await this.router.navigate(['atendimento/vestigios/categoria', novoVestigio.categoria]);
+      } catch (error: any) {
+        if (this.isEdicao && this.vestigioIndex !== null) {
+          this.atendimentoService.model.fields.vestigios[this.vestigioIndex] = backup;
+        } else {
+          this.atendimentoService.model.fields.vestigios.pop();
+        }
+        await this.showToast(error?.message || 'Erro ao salvar vestígio.');
       }
-      await this.showToast(error?.message || 'Erro ao salvar vestígio.');
+    } finally {
+      this.saving = false;
+      await this.dismissSaveLoading();
     }
+  }
+
+  async ionViewDidLeave() {
+    await this.dismissSaveLoading();
+  }
+
+  private async presentSaveLoading() {
+    await this.dismissSaveLoading();
+    this.saveLoading = await this.loadingController.create({
+      message: 'Salvando...',
+      backdropDismiss: false,
+    });
+    await this.saveLoading.present();
+  }
+
+  private async dismissSaveLoading() {
+    if (!this.saveLoading) {
+      return;
+    }
+    try {
+      await this.saveLoading.dismiss();
+    } catch {
+      /* já removido */
+    }
+    this.saveLoading = null;
   }
 
   private async showToast(message: string) {

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { map, take } from 'rxjs/operators';
 import { User } from '../models/user.model';
-import { Observable, firstValueFrom } from 'rxjs';
-import { collection, doc, addDoc, updateDoc, Timestamp, where, query, setDoc } from 'firebase/firestore';
-import { collectionData, docData, Firestore } from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
+import { doc, getDoc, updateDoc, Timestamp, setDoc } from 'firebase/firestore';
+import { docData, Firestore } from '@angular/fire/firestore';
 
 
 @Injectable({
@@ -16,6 +16,12 @@ export class UserService {
 
   async create(uid: string, data: any) {
     const userRef = doc(this.firestore, 'users', uid);
+
+    const existing = await getDoc(userRef);
+    if (existing.exists()) {
+      const row = { ...existing.data(), uid: existing.id };
+      return User.loadFromDb(userRef, row);
+    }
 
     const userData = {
       uid,
@@ -38,23 +44,19 @@ export class UserService {
       );
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    const usersCollection = collection(this.firestore, 'users');
-    const q = query(usersCollection, where('email', '==', email));
-    return await firstValueFrom(
-      collectionData(q, { idField: 'uid' })
-        .pipe(
-          take(1),
-          map((data: any[]) => {
-            if (!data || data.length === 0) {
-              return null;
-            }
-            const row = data[0];
-            const userDocRef = doc(this.firestore, 'users', row.uid);
-            return User.loadFromDb(userDocRef, row);
-          })
-        )
-      );
+  /**
+   * Documento em `users/{uid}` é a fonte de verdade (mesmo uid do Firebase Auth).
+   * Evita consulta por e-mail + take(1): o primeiro valor da query podia vir vazio e
+   * disparar create() com setDoc sem merge, apagando campos já salvos no Firestore.
+   */
+  async findByUid(uid: string): Promise<User | null> {
+    const userRef = doc(this.firestore, 'users', uid);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) {
+      return null;
+    }
+    const row = { ...snap.data(), uid: snap.id };
+    return User.loadFromDb(userRef, row);
   }
 
   async update(id: string, data: any) {

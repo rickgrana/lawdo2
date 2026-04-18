@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, IonBackButton, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonTitle, IonToolbar, ToastController } from '@ionic/angular/standalone';
@@ -19,6 +20,8 @@ export class VestigiosCategoriaPage implements OnInit {
   categorias = CATEGORIAS_VESTIGIOS;
   categoriaKey: VestigioCategoria | string = VestigioCategoria.Fisicos;
 
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor(
     private atendimentoService: AtendimentoService,
     private route: ActivatedRoute,
@@ -30,8 +33,10 @@ export class VestigiosCategoriaPage implements OnInit {
   }
 
   ngOnInit() {
-    const categoriaParam = this.route.snapshot.paramMap.get('categoriaKey') || VestigioCategoria.Fisicos;
-    this.categoriaKey = getCategoriaByKey(categoriaParam) ? categoriaParam : VestigioCategoria.Fisicos;
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const categoriaParam = params.get('categoriaKey') || VestigioCategoria.Fisicos;
+      this.categoriaKey = getCategoriaByKey(categoriaParam) ? categoriaParam : VestigioCategoria.Fisicos;
+    });
   }
 
   get categoriaNome(): string {

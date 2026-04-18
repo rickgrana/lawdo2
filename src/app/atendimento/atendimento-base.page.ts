@@ -1,4 +1,4 @@
-import { Component, Directive, inject, OnInit } from '@angular/core';
+import { Component, Directive, HostListener, inject, OnInit } from '@angular/core';
 import { AtendimentoService } from 'src/app/services/atendimento.service';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { ToastController } from '@ionic/angular/standalone';
@@ -99,6 +99,45 @@ export abstract class AtendimentoBasePage implements OnInit {
     if (this.loading) {
       await this.loading.dismiss().catch(() => {});
       this.loading = null;
+    }
+  }
+
+  hasUnsavedFormChanges(): boolean {
+    return !!this.form?.dirty && !this.form.disabled;
+  }
+
+  async confirmLeaveIfDirty(): Promise<boolean> {
+    if (!this.hasUnsavedFormChanges()) {
+      return true;
+    }
+    return new Promise((resolve) => {
+      void this.alertController
+        .create({
+          backdropDismiss: false,
+          header: 'Alterações não salvas',
+          message:
+            'Há alterações no formulário que precisam ser salvas. Deseja sair mesmo assim?',
+          buttons: [
+            {
+              text: 'Continuar editando',
+              role: 'cancel',
+              handler: () => resolve(false),
+            },
+            {
+              text: 'Sair',
+              handler: () => resolve(true),
+            },
+          ],
+        })
+        .then((a) => a.present());
+    });
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedFormChanges()) {
+      event.preventDefault();
+      event.returnValue = '';
     }
   }
 

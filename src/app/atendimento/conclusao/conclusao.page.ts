@@ -52,6 +52,7 @@ export class ConclusaoPage extends AtendimentoBasePage implements OnInit {
 
     this.atendimentoService.updateConclusao(this.model!).then(resp => {
       this.hideLoader();
+      this.form?.markAsPristine();
       this.presentAlertSalvo('Dados alterados com sucesso');
       this.navCtrl.navigateBack('atendimento/visualizar');
     })

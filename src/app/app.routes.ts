@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
 import { AtendimentoGuard } from './guards/atendimento.guard';
+import { atendimentoFormDeactivateGuard } from './guards/atendimento-form-deactivate.guard';
+import { identificacaoDeactivateGuard } from './guards/identificacao-deactivate.guard';
 
 export const routes: Routes = [
   {
@@ -35,7 +37,8 @@ export const routes: Routes = [
   {
     path: 'atendimento/identificacao',
     loadComponent: () => import('./atendimento/identificacao/identificacao.page').then( m => m.IdentificacaoPage),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard],
+    canDeactivate: [identificacaoDeactivateGuard],
   },
   {
     path: 'atendimento/visualizar',
@@ -45,17 +48,20 @@ export const routes: Routes = [
   {
     path: 'atendimento/requisicao',
     loadComponent: () => import('./atendimento/requisicao/requisicao.page').then( m => m.RequisicaoPage),
-    canActivate: [AuthGuard, AtendimentoGuard]
+    canActivate: [AuthGuard, AtendimentoGuard],
+    canDeactivate: [atendimentoFormDeactivateGuard],
   },
   {
     path: 'atendimento/local',
     loadComponent: () => import('./atendimento/local/local.page').then( m => m.LocalPage),
-    canActivate: [AuthGuard, AtendimentoGuard]
+    canActivate: [AuthGuard, AtendimentoGuard],
+    canDeactivate: [atendimentoFormDeactivateGuard],
   },
   {
     path: 'atendimento/preservacao',
     loadComponent: () => import('./atendimento/preservacao/preservacao.page').then( m => m.PreservacaoPage),
-    canActivate: [AuthGuard, AtendimentoGuard]
+    canActivate: [AuthGuard, AtendimentoGuard],
+    canDeactivate: [atendimentoFormDeactivateGuard],
   },
   {
     path: 'atendimento/vitimas',
@@ -65,7 +71,8 @@ export const routes: Routes = [
   { 
     path: 'atendimento/vitima',   
     loadComponent: () => import('./atendimento/vitima/vitima.page').then(m => m.VitimaPage),
-    canActivate: [AuthGuard, AtendimentoGuard]
+    canActivate: [AuthGuard, AtendimentoGuard],
+    canDeactivate: [atendimentoFormDeactivateGuard],
   },
   {
     path: 'atendimento/vitima/mapa/:visao',
@@ -75,12 +82,14 @@ export const routes: Routes = [
   {
     path: 'atendimento/conclusao',
     loadComponent: () => import('./atendimento/conclusao/conclusao.page').then(m => m.ConclusaoPage),
-    canActivate: [AuthGuard, AtendimentoGuard]
+    canActivate: [AuthGuard, AtendimentoGuard],
+    canDeactivate: [atendimentoFormDeactivateGuard],
   },
   {
     path: 'atendimento/laudo',
     loadComponent: () => import('./atendimento/laudo/laudo.page').then(m => m.LaudoPage),
-    canActivate: [AuthGuard, AtendimentoGuard]
+    canActivate: [AuthGuard, AtendimentoGuard],
+    canDeactivate: [atendimentoFormDeactivateGuard],
   },
   {
     path: 'atendimento/veiculos',

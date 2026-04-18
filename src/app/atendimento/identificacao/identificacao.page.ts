@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'src/app/services/message.service';
 import { Atendimento } from 'src/app/models/atendimento.model';
@@ -14,7 +14,7 @@ import { Bairros } from 'src/app/extensions/bairroHelper';
 import { Cidades } from 'src/app/extensions/cidadeHelper';
 import { LoadingController } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
-import { NavController } from '@ionic/angular/standalone';
+import { NavController, AlertController } from '@ionic/angular/standalone';
 import { DateTimeHelper } from 'src/app/extensions/dateTimeHelper';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -145,6 +145,7 @@ export class IdentificacaoPage implements OnInit {
     private formBuilder: FormBuilder,
     public loadingController: LoadingController,
     public toastController: ToastController,
+    private alertController: AlertController,
     private router: Router,
     private authService: AuthenticationService,
     private navCtrl: NavController,
@@ -256,6 +257,7 @@ export class IdentificacaoPage implements OnInit {
 
         await this.hideLoader();
 
+        this.form.markAsPristine();
         await this.presentAlertSalvo('Dados salvos com sucesso');
         this.voltar();
       } catch (error: any) {
@@ -268,6 +270,7 @@ export class IdentificacaoPage implements OnInit {
       try {
         await this.atendimentoService.updateIdentificacao(this.model!);
         await this.hideLoader();
+        this.form.markAsPristine();
         await this.presentAlertSalvo('Dados alterados com sucesso');
         this.voltar();
       } catch (error: any) {
@@ -418,5 +421,44 @@ export class IdentificacaoPage implements OnInit {
     const valorFormatado = valor.padStart(6, '0');
 
     control.setValue(valorFormatado, { emitEvent: false });
+  }
+
+  hasUnsavedFormChanges(): boolean {
+    return !!this.form?.dirty && !this.form.disabled;
+  }
+
+  async confirmLeaveIfDirty(): Promise<boolean> {
+    if (!this.hasUnsavedFormChanges()) {
+      return true;
+    }
+    return new Promise((resolve) => {
+      void this.alertController
+        .create({
+          backdropDismiss: false,
+          header: 'Alterações não salvas',
+          message:
+            'Há alterações no formulário que precisam ser salvas. Deseja sair mesmo assim?',
+          buttons: [
+            {
+              text: 'Continuar editando',
+              role: 'cancel',
+              handler: () => resolve(false),
+            },
+            {
+              text: 'Sair',
+              handler: () => resolve(true),
+            },
+          ],
+        })
+        .then((a) => a.present());
+    });
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedFormChanges()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
   }
 }

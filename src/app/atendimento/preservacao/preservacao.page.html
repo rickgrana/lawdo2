@@ -133,15 +133,14 @@
     </form>
 </ion-content>
 <ion-footer>
-    <form class="form" [formGroup]="form!"  (ngSubmit)="tentarSalvar()">
-        <ion-toolbar>
-            <ion-button  routerLink="/atendimento/local"  routerDirection="backward" slot="start" fill="flat">
-                &lt; Anterior
-            </ion-button>
-            <ion-button 
-                class="submit-btn" type="submit"  color="success" expand="" slot="end"  fill="flat"
-                >Próximo >
-            </ion-button>
-        </ion-toolbar>
+    <form class="form" [formGroup]="form!" (ngSubmit)="tentarSalvar()">
+        <ion-button
+            class="submit-btn"
+            type="submit"
+            color="primary"
+            expand="block"
+            [disabled]="form!.invalid"
+        >Salvar
+        </ion-button>
     </form>
 </ion-footer>

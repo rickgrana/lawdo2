@@ -48,7 +48,7 @@ export class SecaoLocal extends SecaoSubExames{
                 new Paragraph ({
                     style: 'padrao',
                     children: [
-                        new TextRun({ text: 'O perit' + this.documento.perito.getArtigo() + ' descreve o local como '
+                        new TextRun({ text: 'O perito descreve o local como '
                             + model.fields.local.descricao + '.'})
                     ]
                 })

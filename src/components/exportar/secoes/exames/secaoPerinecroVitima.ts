@@ -44,7 +44,7 @@ export class SecaoPerinecroVitima extends Secao{
                     }),
 
                     new TextRun({
-                        text: ', constatou o perit' + this.documento.perito.getArtigo() + ':'
+                        text: ', constatou o perito:'
                     })
                 ]
             })

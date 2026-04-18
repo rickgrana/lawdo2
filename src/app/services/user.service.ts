@@ -30,9 +30,13 @@ export class UserService {
       dtcriacao: Timestamp.now()
     };
 
-    await setDoc(userRef, userData, { merge: false });
+    // merge: true evita corrida com outro login/create ou com update de perfil no meio do
+    // getDoc → setDoc: setDoc sem merge substituía o documento inteiro e apagava campos já salvos.
+    await setDoc(userRef, userData, { merge: true });
 
-    return User.loadFromDb(userRef, userData);
+    const created = await getDoc(userRef);
+    const row = { ...created.data()!, uid: created.id };
+    return User.loadFromDb(userRef, row);
   }
 
   getOne(uid: string): Observable<User | null> {

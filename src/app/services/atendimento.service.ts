@@ -9,6 +9,7 @@ import { collectionData, Firestore } from '@angular/fire/firestore';
 import { collection, getDocs, limit, orderBy, query, startAfter, where, doc, addDoc, Timestamp, updateDoc, deleteField } from 'firebase/firestore';
 import { Conclusao } from '../interfaces/conclusao.interface';
 import { Observable } from 'rxjs';
+import { PreservacaoService } from './preservacao.service';
 
 @Injectable({
   providedIn: 'root'
@@ -30,7 +31,8 @@ export class AtendimentoService {
 
   constructor(
     private firestore: Firestore,
-    private auth: AuthenticationService
+    private auth: AuthenticationService,
+    private preservacaoService: PreservacaoService
   ) {
   }
 
@@ -185,13 +187,14 @@ export class AtendimentoService {
 
   async updatePreservacao(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
-    
-    return await this.updateSanitizedDoc(atendimentoRef, {
+
+    await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       local: atendimento.fields.local,
       equipes: atendimento.fields.equipes,
       presentes: atendimento.fields.presentes
     });
+    await this.preservacaoService.mergeCatalogoComPresentes(atendimento.fields.presentes ?? []);
   }
 
   async updateVitimas(atendimento: Atendimento) {

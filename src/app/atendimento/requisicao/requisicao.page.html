@@ -63,14 +63,23 @@
               </ion-item>
           </ion-col>
           <ion-col  size-xs="12" size-md="12">
-              <ion-item>
-                  <ion-input
-                    label="Autoridade Policial"
-                    labelPlacement="floating"
-                    placeholder=""
+              <ion-item lines="none">
+                  <ion-label position="stacked">Autoridade Policial</ion-label>
+                  <ion-searchbar
+                    placeholder="Pesquisar"
                     formControlName="delegado"
-                    ></ion-input>
+                    [debounce]="300"
+                    (ionInput)="handleDelegadoInput($event)"
+                    (ionClear)="handleDelegadoClear()"
+                  ></ion-searchbar>
               </ion-item>
+              <ion-list *ngIf="delegadoResults.length">
+                @for (result of delegadoResults; track result) {
+                <ion-item button (click)="selectDelegado(result)">
+                  <ion-label>{{ result }}</ion-label>
+                </ion-item>
+                }
+              </ion-list>
           </ion-col>
         </ion-row>
       </ion-grid>

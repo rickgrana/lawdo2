@@ -5,12 +5,13 @@ import { CommonModule } from '@angular/common';
 import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonBackButton, IonFooter,
     IonRow, IonCol, IonLabel, IonIcon, IonButton, IonItem,
     IonDatetime, IonModal, IonInput, ModalController ,
-  IonDatetimeButton } from '@ionic/angular/standalone';
+  IonDatetimeButton, IonSearchbar } from '@ionic/angular/standalone';
 import { ReactiveFormsModule } from '@angular/forms';
 import { filter } from 'rxjs';
 import { QuesitoPage } from '../quesito/quesito.page';
 import { AtendimentoBasePage } from '../atendimento-base.page';
 import { QuesitoService } from '../../services/quesito.service';
+import { DelegadoService } from '../../services/delegado.service';
 import { add, trash } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
@@ -22,14 +23,17 @@ import { addIcons } from 'ionicons';
   imports: [IonItem, IonButton, ReactiveFormsModule, IonFooter, IonInput,
     IonGrid, IonList, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar,
     IonRow, IonCol, IonLabel, IonIcon, IonBackButton,
-    CommonModule, IonDatetimeButton, IonDatetime, IonModal
+    CommonModule, IonDatetimeButton, IonDatetime, IonModal, IonSearchbar
   ]
 })
 export class RequisicaoPage extends AtendimentoBasePage implements OnInit {
 
+  delegadoResults: string[] = [];
+
   constructor(
     private modalCtrl: ModalController,
     private quesitoService: QuesitoService,
+    private delegadoService: DelegadoService,
   ) {
     super();
     addIcons({ trash });
@@ -42,7 +46,10 @@ export class RequisicaoPage extends AtendimentoBasePage implements OnInit {
       filter(user => !!user)
     ).subscribe(async user => {
       this.user = user;
-      await this.quesitoService.loadCatalogo();
+      await Promise.all([
+        this.quesitoService.loadCatalogo(),
+        this.delegadoService.loadNomes(),
+      ]);
       this.loadForm();
     });
   }
@@ -67,6 +74,32 @@ export class RequisicaoPage extends AtendimentoBasePage implements OnInit {
     if(this.model!.isConcluido() || this.model!.isArquivado()){
       this.form.disable();
     }
+
+    this.delegadoResults = [];
+  }
+
+  handleDelegadoInput(event: Event) {
+    const target = event.target as HTMLIonSearchbarElement;
+    const query = target.value?.toLowerCase() || '';
+
+    if (query.length > 2) {
+      this.delegadoResults = this.delegadoService.nomes.filter((d) =>
+        d.toLowerCase().includes(query)
+      );
+    } else {
+      this.delegadoResults = [];
+    }
+
+    this.form!.controls['delegado'].setValue(target.value);
+  }
+
+  handleDelegadoClear() {
+    this.delegadoResults = [];
+  }
+
+  selectDelegado(item: string) {
+    this.form?.get('delegado')?.setValue(item);
+    this.delegadoResults = [];
   }
 
   override async salvar(record: any) {
@@ -81,8 +114,13 @@ export class RequisicaoPage extends AtendimentoBasePage implements OnInit {
 
     await this.presentLoading();
 
-    this.atendimentoService.updateRequisicao(this.model!).then(resp => {
+    this.atendimentoService.updateRequisicao(this.model!).then(async () => {
       this.hideLoader();
+      try {
+        await this.delegadoService.ensureDelegado(record.delegado);
+      } catch (e) {
+        console.error('DelegadoService.ensureDelegado', e);
+      }
       this.navCtrl.navigateBack('atendimento/visualizar');
     })
     .catch(error => {

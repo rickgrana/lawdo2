@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'src/app/services/message.service';
 import { Atendimento } from 'src/app/models/atendimento.model';
@@ -38,6 +38,8 @@ import { User } from 'src/app/models/user.model';
   ]
 })
 export class IdentificacaoPage implements OnInit {
+  @ViewChild('protocoloInput', { read: IonInput }) private protocoloInput?: IonInput;
+
   form!: FormGroup;
   user: User | null = null;
   /** Loader do salvamento — dismiss explícito evita fechar o overlay da próxima rota (race com visualizar). */
@@ -169,6 +171,15 @@ export class IdentificacaoPage implements OnInit {
       this.user = user;
       this.loadForm();
     });
+  }
+
+  ionViewDidEnter(): void {
+    if (!this.model || this.model.isConcluido() || this.model.isArquivado()) {
+      return;
+    }
+    setTimeout(() => {
+      void this.protocoloInput?.setFocus();
+    }, 150);
   }
 
   loadForm() {

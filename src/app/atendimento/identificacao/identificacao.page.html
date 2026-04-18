@@ -36,6 +36,7 @@
         <ion-col  size-xs="6" size-md="3">
           <ion-item lines="none">
             <ion-input
+              #protocoloInput
               label="Protocolo"
               labelPlacement="floating"
               placeholder="XXXXX"
@@ -44,8 +45,14 @@
               class="input-protocolo"
             ></ion-input>
             
-            <ion-button fill="clear" aria-label="Show/hide" (click)="carregarProtocolo()" *ngIf="!(this.model!.isConcluido() && !this.model!.isArquivado())">
-              <ion-icon slot="icon-only"  name="search" aria-hidden="true" size="large"></ion-icon>
+            <ion-button
+              fill="clear"
+              title="Clique para obter dados do protocolo"
+              aria-label="Obter dados do protocolo"
+              (click)="carregarProtocolo()"
+              *ngIf="!(this.model!.isConcluido() && !this.model!.isArquivado()) && (form.get('protocolo')?.value ?? '').toString().trim().length > 0 && (form.get('protocoloAno')?.value ?? '').toString().trim().length > 0"
+            >
+              <ion-icon slot="icon-only" name="search" aria-hidden="true" size="large"></ion-icon>
             </ion-button>
 
             <ion-spinner name="bubbles" color="primary" *ngIf="loadingProtocolo"></ion-spinner>

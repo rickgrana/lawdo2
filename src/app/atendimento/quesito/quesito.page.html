@@ -11,10 +11,11 @@
 </ion-header>
 
 <ion-content *ngIf="form">
-  <form class="form" [formGroup]="form!"  (ngSubmit)="salvar(form!.value)">
+  <form class="form" [formGroup]="form!">
     <ion-item lines="none">
       <ion-label position="stacked">Quesito</ion-label>
       <ion-searchbar
+        placeholder="Pesquisar"
         formControlName="pergunta"
         [debounce]="300"
         (ionInput)="handleInput($event)"
@@ -33,6 +34,7 @@
     <ion-item lines="none">
       <ion-label position="stacked">Resposta</ion-label>
       <ion-searchbar
+        placeholder="Pesquisar"
         formControlName="resposta"
         [debounce]="300"
         (ionInput)="handleResposta($event)"
@@ -47,9 +49,18 @@
       </ion-item>
       }
     </ion-list>
-    
-    <ion-button  
-      class="submit-btn" type="submit"  color="success" expand="block">Salvar
-    </ion-button>
   </form>
 </ion-content>
+
+<ion-footer *ngIf="form">
+  <form class="form" [formGroup]="form!" (ngSubmit)="salvar(form!.value)">
+    <ion-button
+      class="submit-btn"
+      type="submit"
+      color="success"
+      expand="block"
+      [disabled]="form!.disabled">
+      Salvar
+    </ion-button>
+  </form>
+</ion-footer>

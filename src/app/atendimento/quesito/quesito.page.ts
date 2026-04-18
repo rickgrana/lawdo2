@@ -1,12 +1,13 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { AtendimentoService } from '../../services/atendimento.service';
+import { QuesitoService } from '../../services/quesito.service';
 import { Quesito } from 'src/app/models/quesito.model';
 import { Observable } from 'rxjs';
 import { LoadingController } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonBackButton,
-    IonLabel, IonButton, IonItem,
+    IonLabel, IonButton, IonItem, IonFooter,
      IonModal, ModalController, PopoverController, IonSearchbar,
  } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
@@ -18,13 +19,14 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [IonItem, IonButton, ReactiveFormsModule, IonSearchbar,
       IonList, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar,
-      IonLabel, IonBackButton,
+      IonLabel, IonBackButton, IonFooter,
       CommonModule
     ]
 })
 export class QuesitoPage implements OnInit {
 
   form?: FormGroup;
+  private loading?: HTMLIonLoadingElement;
 
   quesitosOptions?: Observable<string[]>;
   respostasOptions?: Observable<string[]>;
@@ -36,6 +38,7 @@ export class QuesitoPage implements OnInit {
 
   constructor(public modalController: ModalController, 
     private atendimentoService: AtendimentoService,
+    private quesitoService: QuesitoService,
     private formBuilder: FormBuilder,
     private loadingController: LoadingController,
     private toastController: ToastController,
@@ -75,7 +78,7 @@ export class QuesitoPage implements OnInit {
     const query = target.value?.toLowerCase() || '';
 
     if (query.length > 2) {
-      this.results = Quesito.perguntasPadrao.filter((d) => d.toLowerCase().includes(query));
+      this.results = this.quesitoService.catalogoPerguntas.filter((d) => d.toLowerCase().includes(query));
     }
 
     this.form!.controls['pergunta'].setValue(target.value);
@@ -95,7 +98,7 @@ export class QuesitoPage implements OnInit {
     const query = target.value?.toLowerCase() || '';
 
     if (query.length > 2) {
-      this.respostas = Quesito.respostasPadrao.filter((d) => d.toLowerCase().includes(query));
+      this.respostas = this.quesitoService.catalogoRespostas.filter((d) => d.toLowerCase().includes(query));
     }
 
     this.form!.controls['resposta'].setValue(target.value);
@@ -112,44 +115,67 @@ export class QuesitoPage implements OnInit {
 
   filter(value: string): string[] {
     const filterValue = value.toLowerCase();
-    return Quesito.perguntasPadrao.filter(option => option.toLowerCase().includes(filterValue));
+    return this.quesitoService.catalogoPerguntas.filter(option => option.toLowerCase().includes(filterValue));
   }
 
   filterRespostas(value: string): string[] {
     const filterValue = value.toLowerCase();
-    return Quesito.respostasPadrao.filter(option => option.toLowerCase().includes(filterValue));
+    return this.quesitoService.catalogoRespostas.filter(option => option.toLowerCase().includes(filterValue));
   }
 
   fechar() {
     this.modalController.dismiss();
   }
 
-  salvar(record: any) {
+  async salvar(record: any) {
     this.quesito!.pergunta = record.pergunta;
     this.quesito!.resposta = record.resposta;
 
-    if(this.quesito!.isNew){
-      let qtde = this.model!.quesitos.push(this.quesito!);
+    if (this.quesito!.isNew) {
+      this.model!.quesitos.push(this.quesito!);
       this.quesito!.isNew = false;
     }
 
-    this.atendimentoService.updateQuesitos(this.model!).then(resp => {
-      this.hideLoader();
+    await this.presentLoading('Salvando...');
+
+    try {
+      await this.atendimentoService.updateQuesitos(this.model!);
+      try {
+        await this.quesitoService.appendCatalogoEntries(record.pergunta, record.resposta);
+      } catch (e) {
+        console.error('appendCatalogoEntries', e);
+      }
+      await this.hideLoader();
       this.fechar();
-    })
-    .catch(error => {
-      this.hideLoader();
+      this.loadForm();
+    } catch (error: any) {
+      await this.hideLoader();
       console.log(error);
-      this.presentError(error.message);
-    });
-      
-    this.loadForm();
+      await this.presentError(error?.message ?? String(error));
+    }
   }
 
-  async hideLoader() {
-    setTimeout(async () => {
-      await this.loadingController.dismiss();
-    }, 500);
+  private async presentLoading(message: string = 'Salvando...') {
+    if (this.loading) {
+      await this.loading.dismiss();
+    }
+    this.loading = await this.loadingController.create({
+      message,
+      showBackdrop: true,
+    });
+    await this.loading.present();
+  }
+
+  private async hideLoader() {
+    await new Promise<void>((resolve) => {
+      setTimeout(async () => {
+        if (this.loading) {
+          await this.loading.dismiss();
+          this.loading = undefined;
+        }
+        resolve();
+      }, 500);
+    });
   }
 
   async presentError(msg: string) {

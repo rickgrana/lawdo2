@@ -11,7 +11,7 @@ export class InputAutoCompleteComponent {
 
   @Input() label: string = '';
   @Input() options: string[] = [];
-  @Input() placeholder = 'Pesquisar...';
+  @Input() placeholder = 'Pesquisar';
 
   @Output() selected = new EventEmitter<string>();
 

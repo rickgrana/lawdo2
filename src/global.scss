@@ -102,3 +102,12 @@ ion-modal.mapa-modal {
   --border-radius: 0;
 }
 
+/** Quesito: diálogo compacto (não fullscreen). */
+ion-modal.quesito-modal {
+  --width: min(100%, 676px);
+  --max-width: 676px;
+  --max-height: min(88vh, 720px);
+  --border-radius: 12px;
+  --box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+}
+

@@ -33,6 +33,12 @@ service cloud.firestore {
       allow create: if false;
     }
 
+    match /quesitos/{quesito} {
+      allow read: if true;
+      allow update: if true;
+      allow create, delete: if false;
+    }
+
     match /users/{user} {
       allow read: if true;
       allow write: if ((request.auth != null) && (user == request.auth.uid));

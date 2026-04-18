@@ -10,6 +10,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { filter } from 'rxjs';
 import { QuesitoPage } from '../quesito/quesito.page';
 import { AtendimentoBasePage } from '../atendimento-base.page';
+import { QuesitoService } from '../../services/quesito.service';
 import { add, trash } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
@@ -26,7 +27,10 @@ import { addIcons } from 'ionicons';
 })
 export class RequisicaoPage extends AtendimentoBasePage implements OnInit {
 
-  constructor(private modalCtrl: ModalController) {
+  constructor(
+    private modalCtrl: ModalController,
+    private quesitoService: QuesitoService,
+  ) {
     super();
     addIcons({ trash });
   }
@@ -36,8 +40,9 @@ export class RequisicaoPage extends AtendimentoBasePage implements OnInit {
 
     this.authService.user$.pipe(
       filter(user => !!user)
-    ).subscribe(user => {
+    ).subscribe(async user => {
       this.user = user;
+      await this.quesitoService.loadCatalogo();
       this.loadForm();
     });
   }
@@ -102,7 +107,8 @@ export class RequisicaoPage extends AtendimentoBasePage implements OnInit {
 
   async openModal() {
     const modal = await this.modalCtrl.create({
-      component: QuesitoPage
+      component: QuesitoPage,
+      cssClass: 'quesito-modal',
     });
     
     return await modal.present();

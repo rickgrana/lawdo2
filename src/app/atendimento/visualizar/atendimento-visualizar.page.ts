@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Atendimento } from '../../models/atendimento.model';
 import { ActionSheetController } from '@ionic/angular/standalone';
@@ -15,7 +15,7 @@ import { ToastController } from '@ionic/angular/standalone';
 import { LoadingController } from '@ionic/angular/standalone';
 import { AtendimentoService } from '../../services/atendimento.service';
 import { AuthenticationService } from 'src/app/authentication.service';
-import { arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline, flask } from 'ionicons/icons';
+import { arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline, flask, refreshOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonBadge, IonNote,
     IonRow, IonCol, IonLabel, IonInfiniteScroll, IonInfiniteScrollContent, IonIcon, IonButton, IonItem, IonBackButton } from '@ionic/angular/standalone';
@@ -57,9 +57,10 @@ export class AtendimentoVisualizarPage implements OnInit {
     public toastController: ToastController,
     public loadingController: LoadingController,
     private authService: AuthenticationService,
-    public actionSheetController: ActionSheetController
+    public actionSheetController: ActionSheetController,
+    private cdr: ChangeDetectorRef
     ) {
-      addIcons({ arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline, flask });
+      addIcons({ arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline, flask, refreshOutline });
     }
 
   get model() {
@@ -321,16 +322,87 @@ export class AtendimentoVisualizarPage implements OnInit {
       return;
     }
 
+    const alert = await this.alertController.create({
+      header: 'Confirmar',
+      message: 'Deseja concluir esta ocorrência?',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          cssClass: 'secondary'
+        },
+        {
+          text: 'Concluir',
+          handler: () => {
+            void this.executarConcluir();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private async executarConcluir() {
     await this.presentLoading();
 
-    this.atendimentoService.concluir(this.model!).then(async resp => {
+    try {
+      await this.atendimentoService.concluir(this.model!);
+      this.model!.fields.situacao = Atendimento.SIT_CONCLUIDO;
+      this.cdr.detectChanges();
       this.hideLoader();
       await this.presentAlertSalvo('Ocorrência concluída com sucesso');
-    })
-    .catch((error: any) => {
+    } catch (error: any) {
       this.hideLoader();
-      this.showAlert(error.message);
+      this.showAlert(error?.message ?? String(error));
+    }
+  }
+
+  async reabrir() {
+    if (!this.model!.isConcluido()) {
+      await this.showAlert('A ocorrência não está concluída');
+      return;
+    }
+
+    if (this.model!.isArquivado()) {
+      await this.showAlert('Ocorrência arquivada não pode ser reaberta');
+      return;
+    }
+
+    const alert = await this.alertController.create({
+      header: 'Confirmar',
+      message: 'Deseja reabrir esta ocorrência? Ela voltará ao status Aberto.',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          cssClass: 'secondary'
+        },
+        {
+          text: 'Reabrir',
+          handler: () => {
+            void this.executarReabrir();
+          }
+        }
+      ]
     });
+
+    await alert.present();
+  }
+
+  private async executarReabrir() {
+    await this.presentLoading();
+
+    try {
+      await this.atendimentoService.reabrir(this.model!);
+      this.model!.fields.situacao = Atendimento.SIT_ABERTO;
+      this.cdr.detectChanges();
+      this.hideLoader();
+      await this.presentAlertSalvo('Ocorrência reaberta');
+    } catch (error: any) {
+      this.hideLoader();
+      this.showAlert(error?.message ?? String(error));
+    }
   }
 
 

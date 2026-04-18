@@ -12,9 +12,18 @@
         <ion-button (click)="abrirIdentificacao(model)">
             <ion-icon name="create"></ion-icon>
         </ion-button>
-        <ion-button (click)="concluir()" title="Concluir">
+        <ion-button
+            *ngIf="!model!.isConcluido() && !model!.isArquivado()"
+            (click)="concluir()"
+            title="Concluir">
             <ion-icon name="checkmark-circle" color="success"></ion-icon>
-        </ion-button>  
+        </ion-button>
+        <ion-button
+            *ngIf="model!.isConcluido() && !model!.isArquivado()"
+            (click)="reabrir()"
+            title="Reabrir">
+            <ion-icon name="refresh-outline" color="warning"></ion-icon>
+        </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -88,7 +97,7 @@
 
                     <ion-item button (click)="abrirVestigios(model)" lines="none" detail color="white" class="secao_atendimento">
                         <ion-icon name="flask" slot="start" color="danger"></ion-icon> Vestígios
-                        <ion-badge color="primary" slot="end">{{ model.fields.vestigios?.length ?? 0 }}</ion-badge>
+                        <ion-badge color="primary" slot="end">{{ model.fields.vestigios.length }}</ion-badge>
                     </ion-item>
 
                     <ion-item button (click)="abrirImagens()" lines="none" detail color="white" class="secao_atendimento">

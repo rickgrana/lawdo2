@@ -6,7 +6,7 @@ import { Veiculo } from '../models/veiculo.model';
 import { Quesito } from '../models/quesito.model';
 import { map } from 'rxjs/operators';
 import { collectionData, Firestore } from '@angular/fire/firestore';
-import { collection, getDocs, limit, orderBy, query, startAfter, where, doc, addDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, limit, orderBy, query, startAfter, where, doc, addDoc, Timestamp, updateDoc, deleteField } from 'firebase/firestore';
 import { Conclusao } from '../interfaces/conclusao.interface';
 import { Observable } from 'rxjs';
 
@@ -281,6 +281,16 @@ export class AtendimentoService {
     return await this.updateSanitizedDoc(atendimentoRef, {
       situacao: Atendimento.SIT_CONCLUIDO,
       dtconcluido: Timestamp.now()
+    });
+  }
+
+  async reabrir(atendimento: Atendimento) {
+    const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
+
+    return await updateDoc(atendimentoRef, {
+      situacao: Atendimento.SIT_ABERTO,
+      dtconcluido: deleteField(),
+      dtupdate: Timestamp.now()
     });
   }
 

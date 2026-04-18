@@ -330,8 +330,9 @@ export class Atendimento {
 
     getSituacao() {
         const opcoes = this.situacoes;
+        const key = Number(this.fields.situacao);
 
-        return opcoes.get(this.fields.situacao);
+        return opcoes.get(Number.isNaN(key) ? this.fields.situacao : key);
     }
 
     /** Monta lista a partir do formato antigo (PC/PM) para atendimentos sem `presentes`. */
@@ -401,8 +402,12 @@ export class Atendimento {
 
         this.fields.tipoExame        = this.getValue(data.tipoExame);
 
-        if(data.situacao){
-            this.fields.situacao        = this.getValue(data.situacao);
+        if (data.situacao !== undefined && data.situacao !== null && data.situacao !== '') {
+            const raw = data.situacao as number | string;
+            const n = typeof raw === 'number' ? raw : Number(raw);
+            if (!Number.isNaN(n)) {
+                this.fields.situacao = n;
+            }
         }
 
         if(data.protocolo){
@@ -668,15 +673,15 @@ export class Atendimento {
     }
 
     isAberto(){
-        return this.fields.situacao == Atendimento.SIT_ABERTO;
+        return Number(this.fields.situacao) === Atendimento.SIT_ABERTO;
     }
 
     isConcluido(){
-        return this.fields.situacao === Atendimento.SIT_CONCLUIDO;
+        return Number(this.fields.situacao) === Atendimento.SIT_CONCLUIDO;
     }
 
     isArquivado(){
-        return this.fields.situacao === Atendimento.SIT_ARQUIVADO;
+        return Number(this.fields.situacao) === Atendimento.SIT_ARQUIVADO;
     }
 
 

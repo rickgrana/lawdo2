@@ -109,6 +109,10 @@ export class AtendimentoService {
         logradouro: atendimento.fields.endereco.logradouro,
         pontoref: atendimento.fields.endereco.pontoref
       },
+      coordenadas: {
+        lat: atendimento.fields.coordenadas.lat,
+        long: atendimento.fields.coordenadas.long
+      },
       dtcriacao: Timestamp.now(),
       situacao: Atendimento.SIT_ABERTO
     });
@@ -132,6 +136,10 @@ export class AtendimentoService {
         bairro: atendimento.fields.endereco.bairro,
         logradouro: atendimento.fields.endereco.logradouro,
         pontoref: atendimento.fields.endereco.pontoref
+      },
+      coordenadas: {
+        lat: atendimento.fields.coordenadas.lat,
+        long: atendimento.fields.coordenadas.long
       },
       dtupdate: Timestamp.now()
     });

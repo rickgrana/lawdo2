@@ -20,7 +20,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { PlanilhaService } from '../../services/planilha.service';
-import { search } from 'ionicons/icons';
+import { locate, search } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { User } from 'src/app/models/user.model';
 
@@ -110,10 +110,21 @@ export class IdentificacaoPage implements OnInit {
       rules: Validators.compose([
 
       ])
+    },
+
+    latitude: {
+      field: 'coordenadas.lat',
+      rules: Validators.compose([])
+    },
+
+    longitude: {
+      field: 'coordenadas.long',
+      rules: Validators.compose([])
     }
   };
 
   loadingProtocolo = false;
+  loadingGeolocalizacao = false;
 
   datePickerObj: any = {
     fromDate: new Date('2019-01-01'), // default null
@@ -154,7 +165,7 @@ export class IdentificacaoPage implements OnInit {
     private messageService: MessageService,
     private planilhaService: PlanilhaService)
   {
-    addIcons({ search });
+    addIcons({ search, locate });
   }
 
   get model() {
@@ -194,6 +205,7 @@ export class IdentificacaoPage implements OnInit {
     }
 
     const f = this.model!.fields; // atalho
+    const coords = f.coordenadas ?? { lat: 0, long: 0 };
 
     this.form = this.formBuilder.group({
       tipoExame: new FormControl<string>(f.tipoExame ?? '', Validators.required),
@@ -206,7 +218,9 @@ export class IdentificacaoPage implements OnInit {
       bairro: new FormControl<string>(f.endereco?.bairro ?? ''),
 
       endereco: new FormControl<string>(f.endereco?.logradouro ?? '', Validators.required),
-      pontoref: new FormControl<string>(f.endereco?.pontoref ?? '')
+      pontoref: new FormControl<string>(f.endereco?.pontoref ?? ''),
+      latitude: new FormControl<string>(this.coordToInput(coords.lat)),
+      longitude: new FormControl<string>(this.coordToInput(coords.long))
     });
 
     this.cidadesOptions = this.form.get('cidade')!.valueChanges
@@ -257,6 +271,13 @@ export class IdentificacaoPage implements OnInit {
     this.model!.fields.endereco.bairro = record.bairro;
     this.model!.fields.endereco.logradouro = record.endereco;
     this.model!.fields.endereco.pontoref = record.pontoref;
+
+    const latParsed = this.parseCoordInput(record.latitude);
+    const longParsed = this.parseCoordInput(record.longitude);
+    this.model!.fields.coordenadas = {
+      lat: latParsed !== null ? latParsed : 0,
+      long: longParsed !== null ? longParsed : 0
+    };
 
     if (this.model!.isNew) {
       await this.presentLoading();
@@ -432,6 +453,153 @@ export class IdentificacaoPage implements OnInit {
     const valorFormatado = valor.padStart(6, '0');
 
     control.setValue(valorFormatado, { emitEvent: false });
+  }
+
+  private coordToInput(v: number | undefined): string {
+    if (v === undefined || v === null || !Number.isFinite(v)) {
+      return '';
+    }
+    if (v === 0) {
+      return '';
+    }
+    return String(v);
+  }
+
+  private parseCoordInput(raw: unknown): number | null {
+    const s = raw?.toString().trim().replace(',', '.');
+    if (!s) {
+      return null;
+    }
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  /** Correspondência com a lista fixa de cidades do formulário (ion-select). */
+  private matchCidadeNaLista(nomeGeocoder: string): string | null {
+    const nome = nomeGeocoder.trim();
+    if (!nome) {
+      return null;
+    }
+    const lower = nome.toLowerCase();
+    const found = this.cidades.find((c) => c.toLowerCase() === lower);
+    return found ?? null;
+  }
+
+  /**
+   * OpenStreetMap Nominatim (uso moderado; requer rede).
+   * @see https://operations.osmfoundation.org/policies/nominatim/
+   */
+  private async buscarEnderecoPorCoordenadas(lat: number, lon: number): Promise<Partial<{
+    cidade: string; bairro: string; endereco: string;
+  }>> {
+    const url =
+      `https://nominatim.openstreetmap.org/reverse?lat=${encodeURIComponent(String(lat))}` +
+      `&lon=${encodeURIComponent(String(lon))}&format=json`;
+    const res = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'Accept-Language': 'pt-BR,pt;q=0.9'
+      }
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    const data: { address?: Record<string, string> } = await res.json();
+    const a = data.address ?? {};
+
+    const rua = [
+      a['road'] ?? a['pedestrian'] ?? a['path'],
+      a['house_number']
+    ]
+      .filter((x) => x && String(x).trim().length > 0)
+      .join(', ')
+      .trim();
+
+    const bairro = (
+      a['suburb'] ??
+      a['neighbourhood'] ??
+      a['quarter'] ??
+      a['city_district'] ??
+      ''
+    ).toString().trim();
+
+    const cidadeNome = (
+      a['city'] ??
+      a['town'] ??
+      a['municipality'] ??
+      a['village'] ??
+      a['county'] ??
+      ''
+    ).toString().trim();
+
+    const out: Partial<{ cidade: string; bairro: string; endereco: string }> = {};
+
+    const cidadeLista = this.matchCidadeNaLista(cidadeNome);
+    if (cidadeLista) {
+      out.cidade = cidadeLista;
+    }
+
+    if (bairro) {
+      out.bairro = bairro;
+    }
+
+    if (rua) {
+      out.endereco = rua;
+    }
+
+    return out;
+  }
+
+  async obterLocalizacao(): Promise<void> {
+    if (this.form.disabled) {
+      return;
+    }
+    if (!globalThis.navigator?.geolocation) {
+      await this.messageService.alert('Geolocalização não é suportada neste navegador.');
+      return;
+    }
+
+    this.loadingGeolocalizacao = true;
+
+    globalThis.navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          let extras: Partial<{ cidade: string; bairro: string; endereco: string }> = {};
+
+          try {
+            extras = await this.buscarEnderecoPorCoordenadas(lat, lng);
+          } catch {
+            await this.messageService.alert(
+              'Coordenadas obtidas; não foi possível preencher o endereço automaticamente.'
+            );
+          }
+
+          this.form.patchValue({
+            latitude: lat.toFixed(7),
+            longitude: lng.toFixed(7),
+            ...extras
+          });
+          this.form.markAsDirty();
+        } finally {
+          this.loadingGeolocalizacao = false;
+        }
+      },
+      async (err) => {
+        this.loadingGeolocalizacao = false;
+        let msg = 'Não foi possível obter a localização.';
+        if (err.code === 1) {
+          msg = 'Permissão de localização negada.';
+        } else if (err.code === 2) {
+          msg = 'Localização indisponível.';
+        } else if (err.code === 3) {
+          msg = 'Tempo esgotado ao obter a localização.';
+        }
+        await this.messageService.alert(msg);
+      },
+      { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 }
+    );
   }
 
   hasUnsavedFormChanges(): boolean {

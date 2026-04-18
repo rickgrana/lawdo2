@@ -5,6 +5,20 @@
     </ion-buttons>
 
     <ion-title>Dados Básicos</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button
+        fill="clear"
+        title="Usar geolocalização do dispositivo"
+        aria-label="Obter coordenadas e endereço pela localização"
+        (click)="obterLocalizacao()"
+        *ngIf="!model!.isConcluido() && !model!.isArquivado()"
+        [disabled]="loadingGeolocalizacao"
+      >
+        <ion-icon slot="icon-only" name="locate" aria-hidden="true" size="large"></ion-icon>
+      </ion-button>
+      <ion-spinner name="bubbles" color="primary" *ngIf="loadingGeolocalizacao"></ion-spinner>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -27,13 +41,13 @@
       </ion-row>
 
       <ion-row>
-        <ion-col size-xs="6" size-md="1">
+        <ion-col size-xs="6" size-md="2">
           <ion-item lines="none">
             <ion-input label="Ano" labelPlacement="floating" placeholder="XXXX" formControlName="protocoloAno"></ion-input>
           </ion-item>
         </ion-col>
 
-        <ion-col  size-xs="6" size-md="3">
+        <ion-col size-xs="6" size-md="4">
           <ion-item lines="none">
             <ion-input
               #protocoloInput
@@ -44,7 +58,7 @@
               (ionBlur)="completarComZeros('protocolo')"
               class="input-protocolo"
             ></ion-input>
-            
+
             <ion-button
               fill="clear"
               title="Clique para obter dados do protocolo"
@@ -58,12 +72,7 @@
             <ion-spinner name="bubbles" color="primary" *ngIf="loadingProtocolo"></ion-spinner>
           </ion-item>
         </ion-col>
-        <ion-col  size-xs="6" size-md="2">
-          
-        </ion-col>
-      </ion-row>
 
-      <ion-row>
         <ion-col size-xs="6" size-md="4">
           <ion-item lines="none">
             <ion-label position="floating" color="primary">Data da Perícia</ion-label>
@@ -76,15 +85,15 @@
           </ion-item>
         </ion-col>
 
-        <ion-col  size-xs="6" size-md="2">
+        <ion-col size-xs="6" size-md="2">
           <ion-item lines="none">
             <ion-label position="floating" color="primary">Hora Chegada</ion-label>
             <ion-datetime-button datetime="hora"></ion-datetime-button>
-              <ion-modal [keepContentsMounted]="true">
-                <ng-template>
-                  <ion-datetime id="hora" formControlName="hora" presentation="time"></ion-datetime>
-                </ng-template>
-              </ion-modal>
+            <ion-modal [keepContentsMounted]="true">
+              <ng-template>
+                <ion-datetime id="hora" formControlName="hora" presentation="time"></ion-datetime>
+              </ng-template>
+            </ion-modal>
           </ion-item>
         </ion-col>
 
@@ -133,6 +142,32 @@
           <ion-item>
             <ion-label position="floating" color="primary">Ponto de Referência</ion-label>
             <ion-input formControlName="pontoref" ></ion-input>
+          </ion-item>
+        </ion-col>
+
+        <ion-col size="6" size-md="6">
+          <ion-item lines="none">
+            <ion-input
+              label="Latitude"
+              labelPlacement="floating"
+              placeholder="-3.xxxxxxx"
+              type="text"
+              inputmode="decimal"
+              formControlName="latitude"
+            ></ion-input>
+          </ion-item>
+        </ion-col>
+
+        <ion-col size="6" size-md="6">
+          <ion-item lines="none">
+            <ion-input
+              label="Longitude"
+              labelPlacement="floating"
+              placeholder="-60.xxxxxxx"
+              type="text"
+              inputmode="decimal"
+              formControlName="longitude"
+            ></ion-input>
           </ion-item>
         </ion-col>
       </ion-row>

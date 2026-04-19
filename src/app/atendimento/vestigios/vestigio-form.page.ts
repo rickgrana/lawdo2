@@ -1,9 +1,26 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { IonBackButton, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonInput, IonItem, IonLabel, IonSelect, IonSelectOption, IonTitle, IonToolbar, LoadingController, ToastController } from '@ionic/angular/standalone';
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonSelect,
+  IonSelectOption,
+  IonTitle,
+  IonToolbar,
+  LoadingController,
+  ModalController,
+  ToastController,
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { close } from 'ionicons/icons';
 import { AtendimentoService } from '../../services/atendimento.service';
 import { VestigioCategoria } from './enums/vestigio-categoria.enum';
 import { CATEGORIAS_VESTIGIOS, TIPOS_POR_CATEGORIA, VestigioItem, getCategoriaByKey } from './vestigios.data';
@@ -13,7 +30,23 @@ import { CATEGORIAS_VESTIGIOS, TIPOS_POR_CATEGORIA, VestigioItem, getCategoriaBy
   templateUrl: './vestigio-form.page.html',
   styleUrls: ['./vestigio-form.page.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonContent, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonFooter, IonButton]
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    IonHeader,
+    IonToolbar,
+    IonButtons,
+    IonButton,
+    IonIcon,
+    IonTitle,
+    IonContent,
+    IonItem,
+    IonLabel,
+    IonInput,
+    IonSelect,
+    IonSelectOption,
+    IonFooter,
+  ],
 })
 export class VestigioFormPage implements OnInit {
   categorias = CATEGORIAS_VESTIGIOS;
@@ -23,16 +56,20 @@ export class VestigioFormPage implements OnInit {
   saving = false;
   private saveLoading: HTMLIonLoadingElement | null = null;
 
-  private readonly destroyRef = inject(DestroyRef);
+  /** Categoria ao abrir o modal (nova ou edição nesta lista). `componentProps` do Ionic. */
+  @Input() categoriaContext: VestigioCategoria | string = VestigioCategoria.Fisicos;
+  /** Índice em `fields.vestigios`; `null` = novo vestígio. */
+  @Input() vestigioEditIndex: number | null = null;
+
+  private readonly modalCtrl = inject(ModalController);
 
   constructor(
     private atendimentoService: AtendimentoService,
-    private route: ActivatedRoute,
-    private router: Router,
     private formBuilder: FormBuilder,
     private toastController: ToastController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
   ) {
+    addIcons({ close });
     this.form = this.formBuilder.group({
       categoria: new FormControl<VestigioCategoria>(VestigioCategoria.Fisicos, Validators.required),
       tipo: new FormControl<string>('', Validators.required),
@@ -45,55 +82,57 @@ export class VestigioFormPage implements OnInit {
   }
 
   ngOnInit() {
-    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
-      const categoriaKeyParam = params.get('categoriaKey');
-      const categoriaInicial: VestigioCategoria =
-        categoriaKeyParam !== null && getCategoriaByKey(categoriaKeyParam)
-          ? (categoriaKeyParam as VestigioCategoria)
-          : VestigioCategoria.Fisicos;
-      const indexParam = params.get('index');
-      const hasIndexParam = indexParam !== null;
-      const index = hasIndexParam ? Number(indexParam) : -1;
+    const rawCat = this.categoriaContext;
+    const categoriaInicial: VestigioCategoria =
+      rawCat != null && String(rawCat) !== '' && getCategoriaByKey(String(rawCat))
+        ? (rawCat as VestigioCategoria)
+        : VestigioCategoria.Fisicos;
 
-      this.vestigioIndex = null;
-      this.isEdicao = false;
-      this.form.reset({
-        categoria: categoriaInicial,
-        tipo: '',
+    const idx = this.vestigioEditIndex;
+
+    this.vestigioIndex = null;
+    this.isEdicao = false;
+    this.form.reset({
+      categoria: categoriaInicial,
+      tipo: '',
+      tipoOutro: '',
+      descricao: '',
+      quantidade: 1,
+      localizacao: '',
+      lacre: '',
+    });
+
+    if (
+      idx !== null &&
+      idx !== undefined &&
+      idx >= 0 &&
+      this.atendimentoService.model?.fields?.vestigios?.[idx]
+    ) {
+      const vestigio = this.atendimentoService.model.fields.vestigios[idx] as any;
+      this.vestigioIndex = idx;
+      this.isEdicao = true;
+      const catV = vestigio.categoria;
+      const categoriaPatch: VestigioCategoria =
+        typeof catV === 'string' && catV !== '' && getCategoriaByKey(catV)
+          ? (catV as VestigioCategoria)
+          : categoriaInicial;
+      this.form.patchValue({
+        categoria: categoriaPatch,
+        tipo: vestigio.tipo || '',
         tipoOutro: '',
-        descricao: '',
-        quantidade: 1,
-        localizacao: '',
-        lacre: '',
+        descricao: vestigio.descricao || '',
+        quantidade: vestigio.quantidade ?? 1,
+        localizacao: vestigio.localizacao || '',
+        lacre: vestigio.lacre || '',
       });
 
-      if (hasIndexParam && !Number.isNaN(index) && index >= 0 && this.atendimentoService.model?.fields?.vestigios?.[index]) {
-        const vestigio = this.atendimentoService.model.fields.vestigios[index] as any;
-        this.vestigioIndex = index;
-        this.isEdicao = true;
-        const catV = vestigio.categoria;
-        const categoriaPatch: VestigioCategoria =
-          typeof catV === 'string' && catV !== '' && getCategoriaByKey(catV)
-            ? (catV as VestigioCategoria)
-            : categoriaInicial;
+      if (this.usaTiposPredefinidos && vestigio.tipo && !this.tiposDaCategoriaSelecionada.includes(vestigio.tipo)) {
         this.form.patchValue({
-          categoria: categoriaPatch,
-          tipo: vestigio.tipo || '',
-          tipoOutro: '',
-          descricao: vestigio.descricao || '',
-          quantidade: vestigio.quantidade ?? 1,
-          localizacao: vestigio.localizacao || '',
-          lacre: vestigio.lacre || '',
+          tipo: 'Outros',
+          tipoOutro: vestigio.tipo,
         });
-
-        if (this.usaTiposPredefinidos && vestigio.tipo && !this.tiposDaCategoriaSelecionada.includes(vestigio.tipo)) {
-          this.form.patchValue({
-            tipo: 'Outros',
-            tipoOutro: vestigio.tipo
-          });
-        }
       }
-    });
+    }
   }
 
   get categoriaSelecionadaKey(): VestigioCategoria {
@@ -120,22 +159,25 @@ export class VestigioFormPage implements OnInit {
     this.form.patchValue({ tipo: '', tipoOutro: '' });
   }
 
+  fechar() {
+    void this.modalCtrl.dismiss();
+  }
+
   async salvar() {
     if (!this.atendimentoService.model || this.saving) return;
 
     this.form.markAllAsTouched();
     if (this.form.invalid) {
-      await this.showToast('Preencha os campos obrigatórios.');
+      this.showToast('Preencha os campos obrigatórios.');
       return;
     }
 
     const value = this.form.value;
-    const tipoFinal = value.tipo === 'Outros'
-      ? (value.tipoOutro || '').trim()
-      : (value.tipo || '').trim();
+    const tipoFinal =
+      value.tipo === 'Outros' ? (value.tipoOutro || '').trim() : (value.tipo || '').trim();
 
     if (!tipoFinal) {
-      await this.showToast('Informe o tipo do vestígio.');
+      this.showToast('Informe o tipo do vestígio.');
       return;
     }
 
@@ -168,16 +210,23 @@ export class VestigioFormPage implements OnInit {
         }
 
         await this.atendimentoService.updateVestigios(this.atendimentoService.model);
-        await this.showToast(this.isEdicao ? 'Vestígio alterado com sucesso.' : 'Vestígio adicionado com sucesso.');
-        await this.router.navigate(['atendimento/vestigios/categoria', novoVestigio.categoria]);
       } catch (error: any) {
         if (this.isEdicao && this.vestigioIndex !== null) {
           this.atendimentoService.model.fields.vestigios[this.vestigioIndex] = backup;
         } else {
           this.atendimentoService.model.fields.vestigios.pop();
         }
-        await this.showToast(error?.message || 'Erro ao salvar vestígio.');
+        this.saving = false;
+        await this.dismissSaveLoading();
+        this.showToast(error?.message || 'Erro ao salvar vestígio.');
+        return;
       }
+
+      this.saving = false;
+      await this.dismissSaveLoading();
+
+      this.showToast(this.isEdicao ? 'Vestígio alterado com sucesso.' : 'Vestígio adicionado com sucesso.');
+      void this.modalCtrl.dismiss({ saved: true });
     } finally {
       this.saving = false;
       await this.dismissSaveLoading();
@@ -209,11 +258,17 @@ export class VestigioFormPage implements OnInit {
     this.saveLoading = null;
   }
 
-  private async showToast(message: string) {
-    const toast = await this.toastController.create({
-      message,
-      duration: 2000,
-    });
-    await toast.present();
+  /** Não usar async/await: `create()` e `present()` podem não resolver na WebView e travam o fluxo. */
+  private showToast(message: string): void {
+    void this.toastController
+      .create({
+        message,
+        duration: 2500,
+        position: 'bottom',
+      })
+      .then((toast) => {
+        void toast.present();
+      })
+      .catch(() => {});
   }
 }

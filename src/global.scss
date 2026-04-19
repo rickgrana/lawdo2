@@ -111,3 +111,11 @@ ion-modal.quesito-modal {
   --box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
 }
 
+ion-modal.vestigio-form-modal {
+  --width: min(100%, 560px);
+  --max-width: 560px;
+  --max-height: min(92vh, 760px);
+  --border-radius: 12px;
+  --box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+}
+

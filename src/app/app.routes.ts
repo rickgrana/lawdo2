@@ -108,18 +108,8 @@ export const routes: Routes = [
   },
   {
     path: 'atendimento/vestigios/categoria/:categoriaKey',
-    loadComponent: () => import('./atendimento/vestigios/vestigios-categoria.page').then( m => m.VestigiosCategoriaPage),
-    canActivate: [AuthGuard, AtendimentoGuard]
-  },
-  {
-    path: 'atendimento/vestigios/novo/:categoriaKey',
-    loadComponent: () => import('./atendimento/vestigios/vestigio-form.page').then( m => m.VestigioFormPage),
-    canActivate: [AuthGuard, AtendimentoGuard]
-  },
-  {
-    path: 'atendimento/vestigios/editar/:categoriaKey/:index',
-    loadComponent: () => import('./atendimento/vestigios/vestigio-form.page').then( m => m.VestigioFormPage),
-    canActivate: [AuthGuard, AtendimentoGuard]
+    redirectTo: 'atendimento/vestigios',
+    pathMatch: 'full',
   },
   {
     path: 'atendimento/imagens',

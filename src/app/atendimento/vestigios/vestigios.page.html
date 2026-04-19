@@ -8,16 +8,44 @@
 </ion-header>
 
 <ion-content>
-  <ion-list>
-    <ion-item
-      button
-      detail
-      *ngFor="let categoria of categorias"
-      (click)="abrirCategoria(categoria.key)"
-    >
-      <ion-label>{{ categoria.nome }}</ion-label>
-      <ion-badge color="primary" slot="end">{{ getContadorCategoria(categoria.key) }}</ion-badge>
-      <ion-icon name="chevron-forward" slot="end" color="medium"></ion-icon>
-    </ion-item>
-  </ion-list>
+  <ion-accordion-group [multiple]="true">
+    <ion-accordion *ngFor="let g of grupos; trackBy: trackByGrupo" [value]="g.key">
+      <ion-item slot="header" lines="full">
+        <ion-label>{{ g.nome }}</ion-label>
+        <ion-badge color="primary" slot="end">{{ g.itens.length }}</ion-badge>
+      </ion-item>
+
+      <div slot="content" class="accordion-conteudo">
+        <ion-list *ngIf="g.itens.length > 0" lines="none">
+          <ion-item *ngFor="let item of g.itens; trackBy: trackByItem" class="vestigio-item">
+            <ion-label>
+              <h2><strong>Tipo:</strong> {{ item.vestigio.tipo || '-' }}</h2>
+              <p><strong>Descrição:</strong> {{ item.vestigio.descricao || '-' }}</p>
+              <p><strong>Quantidade:</strong> {{ item.vestigio.quantidade ?? '-' }}</p>
+              <p><strong>Localização:</strong> {{ item.vestigio.localizacao || '-' }}</p>
+              <p><strong>Lacre:</strong> {{ item.vestigio.lacre || '-' }}</p>
+            </ion-label>
+            <ion-buttons slot="end">
+              <ion-button fill="clear" color="primary" (click)="editarVestigio(g.key, item.index); $event.stopPropagation()">
+                <ion-icon name="create"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" color="danger" (click)="removerVestigio(item.index); $event.stopPropagation()">
+                <ion-icon name="trash"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-item>
+        </ion-list>
+
+        <div *ngIf="g.itens.length === 0" class="ion-text-center ion-padding">
+          <p>Nenhum vestígio nesta categoria.</p>
+        </div>
+      </div>
+    </ion-accordion>
+  </ion-accordion-group>
 </ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-button expand="block" color="primary" (click)="abrirFormularioCadastro()">Cadastrar vestígio</ion-button>
+  </ion-toolbar>
+</ion-footer>

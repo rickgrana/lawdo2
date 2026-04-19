@@ -183,7 +183,7 @@ export class AtendimentoVisualizarPage implements OnInit {
 
   async abrirVestigios(model: any) {
     this.atendimentoService.model = model;
-    this.router.navigate(['atendimento/vestigios']);
+    this.router.navigate(['/atendimento', 'vestigios']);
   }
 
   abrirImagens() {

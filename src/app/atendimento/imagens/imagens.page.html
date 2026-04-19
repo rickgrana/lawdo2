@@ -17,6 +17,11 @@
 </ion-header>
 
 <ion-content class="ion-padding" *ngIf="model">
+    <div *ngIf="uploadInProgress" class="upload-progress-banner">
+        <ion-progress-bar [value]="uploadProgressRatio"></ion-progress-bar>
+        <p class="upload-progress-text">Enviando imagens: {{ uploadCurrent }} de {{ uploadTotal }}</p>
+    </div>
+
     <div *ngIf="reorder && model!.imagens && model!.imagens.length > 0">
         <ion-reorder-group #reorderGroup (ionItemReorder)="doReorder($event)" disabled="false">
             <ion-reorder *ngFor="let item of model!.imagens; let i = index">

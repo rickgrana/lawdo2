@@ -3,7 +3,7 @@ import { ImageService } from '../../services/image.service';
 import { AtendimentoBasePage } from '../atendimento-base.page';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonSpinner, IonReorder,
     IonReorderGroup,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton } from '@ionic/angular/standalone';
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonProgressBar } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FirearmDetectionService } from 'src/app/services/firearm-detection.service';
 
@@ -14,7 +14,7 @@ import { FirearmDetectionService } from 'src/app/services/firearm-detection.serv
   standalone: true,
   imports: [CommonModule,
     IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonReorder,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSpinner, IonReorderGroup
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSpinner, IonReorderGroup, IonProgressBar
   ]
 })
 export class ImagensPage extends AtendimentoBasePage implements OnInit {
@@ -25,6 +25,15 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
   @ViewChild("reorderGroup", { read: IonReorderGroup, static: true}) reorderGroup!: IonReorderGroup;
 
   reorder = false;
+
+  /** Upload em lote: barra e contagem (apenas quando há mais de um arquivo). */
+  uploadInProgress = false;
+  uploadCurrent = 0;
+  uploadTotal = 0;
+
+  get uploadProgressRatio(): number {
+    return this.uploadTotal > 0 ? this.uploadCurrent / this.uploadTotal : 0;
+  }
 
   selecionarImagens(){
     document.getElementById("arquivo")!.click();
@@ -85,85 +94,73 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
     });
   }
 
-  onSelectFile(event: any) {
-    let promises = [];
-    let imagens = [];
+  async onSelectFile(event: Event) {
     const input = event.target as HTMLInputElement;
+    const files = input.files;
 
-    if (event.target.files && event.target.files[0]) {
+    if (!files?.length || !this.model) {
+      input.value = '';
+      return;
+    }
 
-      this.presentLoading();
+    const filesAmount = files.length;
+    const showBatchProgress = filesAmount > 1;
 
-      try{
+    if (showBatchProgress) {
+      this.uploadTotal = filesAmount;
+      this.uploadCurrent = 0;
+      this.uploadInProgress = true;
+    } else {
+      await this.presentLoading();
+    }
 
-        var filesAmount = event.target.files.length;
+    try {
+      const imagens: Array<{ src: string; nome: string } | null> = new Array(filesAmount).fill(null);
 
-        for (let i = 0; i < filesAmount; i++) {
-          imagens.push({
-            src: '',
-            blob: '',
-            nome: ''
-          });
+      await Promise.all(
+        Array.from(files, (file, i) =>
+          (async () => {
+            try {
+              const dataUrl = await this.readFileAsDataURL(file);
+              const { base64, blob } = await this.resizeImage(dataUrl as string, 500);
+              const nome = `${Date.now()}-${i}-${Math.random().toString(36).slice(2, 9)}`;
+
+              await this.imageService.upload(this.model!.id, nome, blob);
+              imagens[i] = { src: base64, nome };
+            } catch (error: any) {
+              console.error(error);
+              await this.presentError(error?.message ?? String(error));
+            } finally {
+              if (showBatchProgress) {
+                this.uploadCurrent++;
+              }
+            }
+          })()
+        )
+      );
+
+      for (const img of imagens) {
+        if (!img) {
+          continue;
         }
-
-        for (let i = 0; i < filesAmount; i++) {
-            // UPLOADS
-            promises.push(new Promise((resolve) => {
-                let fileReader = new FileReader();
-                
-                fileReader.onload = async (event:any) => {
-
-                  const src = event.target.result;
-
-                  // 🔥 substitui Jimp
-                  const { base64, blob } = await this.resizeImage(src, 500);
-
-                  imagens[i].src = base64;
-                  imagens[i].blob = await blob.text();
-                  imagens[i].nome = new Date().getTime().toString();
-
-                  this.imageService.upload(this.model!.id, imagens[i].nome, blob)
-                    .then(() => resolve('Upload concluido: ' + i))
-                    .catch(async (error) => {
-                      console.log(error);
-                      await this.presentError(error.message);
-                    });
-                }
-
-                fileReader.readAsDataURL(event.target.files[i]);
-            }));
-        }
-
-        // SALVAMENTO
-        Promise.all(promises).then(() => {
-
-          console.log('Salvando imagens');
-
-          for (let i = 0; i < filesAmount; i++) {
-              let imagem = imagens[i];
-
-              const record = {
-                imagem:   imagem.src,
-                legenda:  '',
-                nome:     imagem.nome,
-                colunas: 0
-              };
-
-              this.model!.imagens.push(record);
-          }
-
-          this.atendimentoService.updateImagens(this.model!).then(async (resp) => {
-             this.hideLoader();
-             input.value = '';
-          });
+        this.model.imagens.push({
+          imagem: img.src,
+          legenda: '',
+          nome: img.nome,
+          colunas: 0
         });
-
-      }catch(error){
-        this.hideLoader();
-        input.value = '';
-        console.log(error);
       }
 
+      await this.atendimentoService.updateImagens(this.model);
+    } catch (error: any) {
+      console.error(error);
+      await this.presentError(error?.message ?? String(error));
+    } finally {
+      input.value = '';
+      this.uploadInProgress = false;
+      if (!showBatchProgress) {
+        await this.hideLoader();
+      }
     }
   }
 

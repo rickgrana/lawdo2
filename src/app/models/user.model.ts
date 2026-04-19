@@ -45,6 +45,8 @@ export class User {
   fields: UserFields;
   corporacao?: Corporacao;
   orgao?: Orgao;
+  /** Sem documento em `users/{uid}` — usuário precisa concluir o cadastro na Conta. */
+  pendingRegistration?: boolean;
 
   constructor(){
       this.fields = new UserFields;
@@ -78,6 +80,18 @@ export class User {
       user.fields.displayName       = data.displayName;
       user.fields.favoriteColor       = data.favoriteColor;
 
+      return user;
+  }
+
+  /** Autenticado no Firebase, mas sem registro em Firestore — use até o primeiro salvamento em perfil. */
+  static fromPendingAuth(firebaseUser: { uid: string; email: string | null; displayName: string | null }): User {
+      const user = new User();
+      user.uid = firebaseUser.uid;
+      user.ref = '';
+      user.pendingRegistration = true;
+      user.fields.uid = firebaseUser.uid;
+      user.fields.email = firebaseUser.email ?? '';
+      user.fields.nomeCompleto = firebaseUser.displayName ?? '';
       return user;
   }
 

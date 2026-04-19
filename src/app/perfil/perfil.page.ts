@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonInput, IonTitle, IonToolbar, IonButtons, IonItem, IonButton,
-    IonRow, IonCol, IonSelectOption, IonMenuButton, IonFooter, IonSelect } from '@ionic/angular/standalone';
+    IonRow, IonCol, IonSelectOption, IonMenuButton, IonFooter, IonSelect,
+    IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle } from '@ionic/angular/standalone';
 import { UnidadeService } from '../services/unidade.service';
 import { MessageService } from '../services/message.service';
 import { AuthenticationService } from '../authentication.service';
@@ -20,7 +21,7 @@ import { filter } from 'rxjs';
   imports: [ReactiveFormsModule,
     IonFooter, IonButtons, IonContent, IonItem, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule,
     IonButton, IonRow, IonCol, IonSelectOption, IonMenuButton, IonFooter, IonInput,
-    IonSelect
+    IonSelect, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle
   ]
 })
 export class PerfilPage implements OnInit {
@@ -32,6 +33,8 @@ export class PerfilPage implements OnInit {
   corporacoes: any[] = [];
   unidades: any[] = [];
   loaded = false;
+  /** Exibe cartão de boas-vindas quando veio do fluxo sem cadastro no Firestore */
+  showWelcomeCadastro = false;
 
   constructor(public auth: AuthenticationService,
       private userService: UserService,
@@ -43,15 +46,24 @@ export class PerfilPage implements OnInit {
 
   async ngOnInit() {
 
+    this.state = history.state;
+
     this.auth.user$.pipe(
       filter(user => !!user)
     ).subscribe((user: User) => {
       this.user = user;
+      this.showWelcomeCadastro = !!user.pendingRegistration;
       this.loadForm();
     });
 
-    this.state = history.state;
-    console.log(this.state);
+    if (this.auth.consumeCompletarCadastroPrompt()) {
+      await this.messageService.presentAlert(
+        'Bem-vindo',
+        '',
+        'O primeiro passo é completar o cadastro da sua conta com os dados profissionais abaixo.',
+        [{ text: 'Entendi', role: 'cancel' }]
+      );
+    }
     this.corporacoes = await this.corporacaoService.list();
   }
 
@@ -88,7 +100,7 @@ export class PerfilPage implements OnInit {
 
   }
 
-  updateUser(data: any) {
+  async updateUser(data: any) {
 
     const userData = {
       nomeCompleto: data.nomeCompleto,
@@ -99,6 +111,30 @@ export class PerfilPage implements OnInit {
       unidade: data.unidade
     };
 
+    if (this.user!.pendingRegistration) {
+      try {
+        await this.messageService.presentLoading('Salvando cadastro...');
+        await this.userService.create(this.user!.uid, {
+          email: this.user!.fields.email,
+          ...userData
+        });
+        const salvo = await this.userService.findByUid(this.user!.uid);
+        if (!salvo) {
+          throw new Error('Não foi possível carregar o cadastro após salvar.');
+        }
+        this.user = salvo;
+        this.auth.user$.next(salvo);
+        this.showWelcomeCadastro = false;
+        await this.messageService.presentToast('Cadastro concluído com sucesso');
+        await this.router.navigate(['/home'], { replaceUrl: true });
+      } catch (error: any) {
+        await this.messageService.presentError(error?.message ?? String(error));
+      } finally {
+        await this.messageService.hideLoader();
+      }
+      return;
+    }
+
     this.user!.fields.nomeCompleto = userData.nomeCompleto;
     this.user!.fields.sexo = userData.sexo;
     this.user!.fields.matricula = userData.matricula;
@@ -108,12 +144,13 @@ export class PerfilPage implements OnInit {
 
     this.auth.user$.next(this.user!);
 
-    this.userService.update(this.user!.uid, userData).then(resp => {
-        this.messageService.presentToast('Perfil alterado com sucesso').then(() => {
-          this.router.navigate(['/home'], { replaceUrl: true });
-        });
-    }).catch((error: any) => this.messageService.presentError(error.message));
-
+    try {
+      await this.userService.update(this.user!.uid, userData);
+      await this.messageService.presentToast('Perfil alterado com sucesso');
+      await this.router.navigate(['/home'], { replaceUrl: true });
+    } catch (error: any) {
+      await this.messageService.presentError(error.message);
+    }
   }
 
   logout() {

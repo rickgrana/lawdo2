@@ -5,9 +5,8 @@ import { IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton,
     IonImg, IonGrid, IonRow, IonCol, IonButton, IonIcon, IonContent } from '@ionic/angular/standalone';
 import { AuthenticationService } from '../authentication.service';
 import { Router } from '@angular/router';
-import { getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { Auth } from '@angular/fire/auth';
-import { UserService } from '../services/user.service';
+import { filter, take, firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -23,7 +22,6 @@ export class HomePage implements OnInit {
   private auth = inject(Auth);
 
   constructor(private authService: AuthenticationService,
-    private userService: UserService,
     private router: Router
   ) {
     this.auth.onAuthStateChanged((user: any) => {
@@ -34,7 +32,15 @@ export class HomePage implements OnInit {
   async ngOnInit() {}
 
   async login() {
-    this.authService.login();
+    await this.authService.login();
+    // Espera o authState + findByUid (evita ler profileReady/user$ “velhos” antes do Firebase atualizar)
+    const u = await firstValueFrom(
+      this.authService.user$.pipe(filter((user) => user !== null), take(1))
+    );
+    // Popup costuma rodar fora da NgZone; navegar aqui (handler do clique) garante o outlet Ionic atualizar
+    if (u.pendingRegistration) {
+      await this.router.navigate(['/perfil'], { replaceUrl: true });
+    }
   }
 
   logout() {

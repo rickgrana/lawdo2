@@ -23,12 +23,19 @@ export class UserService {
       return User.loadFromDb(userRef, row);
     }
 
-    const userData = {
+    const userData: Record<string, unknown> = {
       uid,
       email: data.email,
       nomeCompleto: data.nomeCompleto,
       dtcriacao: Timestamp.now()
     };
+    const profileKeys = ['sexo', 'matricula', 'corporacao', 'unidade', 'superior'] as const;
+    for (const key of profileKeys) {
+      const v = data[key];
+      if (v != null && v !== '') {
+        userData[key] = v;
+      }
+    }
 
     // merge: true evita corrida com outro login/create ou com update de perfil no meio do
     // getDoc → setDoc: setDoc sem merge substituía o documento inteiro e apagava campos já salvos.

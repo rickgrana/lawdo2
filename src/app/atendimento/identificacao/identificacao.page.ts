@@ -19,10 +19,23 @@ import { DateTimeHelper } from 'src/app/extensions/dateTimeHelper';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { PlanilhaService } from '../../services/planilha.service';
+import { DadosProtocolo, PlanilhaService } from '../../services/planilha.service';
 import { locate, search } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { User } from 'src/app/models/user.model';
+
+/** Valores aplicados ao FormGroup ao carregar dados do protocolo */
+type ProtocoloIdentPatch = Partial<{
+  data: string;
+  hora: string;
+  tipoExame: string;
+  cidade: string;
+  bairro: string;
+  endereco: string;
+  pontoref: string;
+  latitude: string;
+  longitude: string;
+}>;
 
 @Component({
   selector: 'app-identificacao',
@@ -371,75 +384,291 @@ export class IdentificacaoPage implements OnInit {
   async carregarProtocolo() {
     this.loadingProtocolo = true;
 
-    this.planilhaService.buscarProtocolo(this.form.value.protocolo, this.form.value.protocoloAno.substring(2,4))
-      .subscribe(resp => {
-        if (!resp) {
+    this.planilhaService
+      .buscarProtocolo(
+        this.form.value.protocolo,
+        this.form.value.protocoloAno.substring(2, 4),
+      )
+      .subscribe({
+        next: (resp) => {
+          if (!resp) {
+            this.loadingProtocolo = false;
+            void this.messageService.presentErro(
+              'Protocolo não encontrado na planilha de protocolos',
+            );
+            return;
+          }
+
+          const patch = this.buildPatchFromProtocolo(resp);
+          this.form.patchValue(patch);
+          this.form.markAsDirty();
           this.loadingProtocolo = false;
-          this.messageService.alert('Protocolo não encontrado na planilha de protocolos');
+        },
+        error: (error: { message?: string }) => {
+          this.loadingProtocolo = false;
+          void this.messageService.presentErro(
+            'Erro ao buscar protocolo: ' + (error?.message ?? ''),
+          );
+        },
+      });
+  }
+
+  /** Lê valor do objeto SISREX comparando cabeçalhos sem case e com espaços normalizados */
+  private sisrexPick(
+    sx: Record<string, string | null> | undefined,
+    ...labels: string[]
+  ): string | null {
+    if (!sx) {
+      return null;
+    }
+    const keys = Object.keys(sx);
+    for (const label of labels) {
+      const want = this.normalizeHeaderKey(label);
+      const k = keys.find((key) => this.normalizeHeaderKey(key) === want);
+      if (k !== undefined) {
+        const v = sx[k];
+        if (v != null && String(v).trim() !== '') {
+          return String(v).trim();
         }
+      }
+    }
+    return null;
+  }
 
-        let data = DateTimeHelper.dmyToDate(resp!.data ?? '') ?? new Date();
-        let endereco = resp!.descricao;
-        let enderecoNorm = resp!.descricao!.toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '');
+  private normalizeHeaderKey(s: string): string {
+    return s
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ');
+  }
 
-        // localiza o bairro
-        let bairro = Bairros.find(bairro =>
-          enderecoNorm.includes(bairro
+  private parseDataPericia(raw: string | null | undefined): Date {
+    if (!raw?.trim()) {
+      return new Date();
+    }
+    const s = raw.trim();
+    if (s.includes('/')) {
+      return DateTimeHelper.dmyToDate(s) ?? new Date();
+    }
+    if (s.includes('-')) {
+      return DateTimeHelper.strToDate(s) ?? new Date();
+    }
+    return new Date();
+  }
+
+  /** ion-datetime (time) espera ISO completo no valor do controle */
+  private horaParaDatetimeIon(dataBase: Date, horaRaw: string | null | undefined): string {
+    if (!horaRaw?.trim()) {
+      return dataBase.toISOString();
+    }
+    const parts = horaRaw.trim().split(':');
+    const h = parseInt(parts[0] ?? '0', 10);
+    const m = parseInt(parts[1] ?? '0', 10);
+    const d = new Date(dataBase);
+    if (!Number.isFinite(h) || !Number.isFinite(m)) {
+      return dataBase.toISOString();
+    }
+    d.setHours(h, m, 0, 0);
+    return d.toISOString();
+  }
+
+  private matchBairroNaLista(nome: string | null | undefined): string | null {
+    if (!nome?.trim()) {
+      return null;
+    }
+    const want = nome
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+    return (
+      Bairros.find(
+        (b) =>
+          b
             .toLowerCase()
             .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-          )
-        ) ?? null
+            .replace(/[\u0300-\u036f]/g, '') === want,
+      ) ?? null
+    );
+  }
 
-        if (bairro) {
-          // remove o bairro e cidade do endereço
-          let bairroNorm = bairro!.toLowerCase()
-              .normalize('NFD')
-              .replace(/[\u0300-\u036f]/g, '');
+  private matchTipoExameNaLista(
+    valor: string | null | undefined,
+  ): string | null {
+    if (!valor?.trim() || !this.model) {
+      return null;
+    }
+    const v = valor.trim().toUpperCase();
+    const lista = this.model.tipos_exame;
+    const exato = lista.find((t) => t.toUpperCase() === v);
+    if (exato) {
+      return exato;
+    }
+    return lista.find((t) => v.includes(t.toUpperCase())) ?? null;
+  }
 
-          const index = enderecoNorm.indexOf(bairroNorm);
+  private parseCoordenadasPlanilha(
+    raw: string | null | undefined,
+  ): { lat: string; long: string } | null {
+    if (!raw?.trim()) {
+      return null;
+    }
+    const s = raw.trim();
+    const bySep = s.split(/[,;]/).map((x) => x.trim()).filter(Boolean);
+    if (bySep.length >= 2) {
+      const lat = parseFloat(bySep[0].replace(',', '.'));
+      const lng = parseFloat(bySep[1].replace(',', '.'));
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        return {
+          lat: lat.toFixed(7),
+          long: lng.toFixed(7),
+        };
+      }
+    }
+    const nums = s.match(/-?\d+[.,]\d+|-?\d+/g);
+    if (nums && nums.length >= 2) {
+      const lat = parseFloat(nums[0].replace(',', '.'));
+      const lng = parseFloat(nums[1].replace(',', '.'));
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        return {
+          lat: lat.toFixed(7),
+          long: lng.toFixed(7),
+        };
+      }
+    }
+    return null;
+  }
 
-          if (index >= 0) {
-            endereco = resp!.descricao!.slice(0, index) + resp!.descricao!.slice(index + bairro.length);
-          }
+  /**
+   * Endereço legado (coluna descrição): extrai bairro/cidade do texto.
+   */
+  private enderecoEBairroDoTextoDescricao(descricao: string | null): {
+    endereco: string;
+    bairro: string | null;
+  } {
+    let endereco = descricao ?? '';
+    let enderecoNorm = endereco
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
 
-          // remove a cidade
-          enderecoNorm = endereco!.toLowerCase()
+    let bairro =
+      Bairros.find((b) =>
+        enderecoNorm.includes(
+          b
+            .toLowerCase()
             .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '');
+            .replace(/[\u0300-\u036f]/g, ''),
+        ),
+      ) ?? null;
 
-          const indexCidade = enderecoNorm.indexOf('manaus');
-          if (indexCidade >= 0) {
-            endereco = endereco!.slice(0, indexCidade) + endereco!.slice(indexCidade + 6);
-          }
+    if (bairro) {
+      const bairroNorm = bairro
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
 
-          endereco = endereco!
-            .replace(/\s{2,}/g, ' ')
-            .replace(/\s+,/g, ',')
-            .replace(/,\s*,/g, ',')
-            .replace(/\s[-–—]\s/g, '')
-            .replace(/\s*-\s*/g, '')
-            .replace(/\s-\s/g, ' ')
-            .replace(/\s{2,}/g, ' ')
-            .replace(/[\r\n].*$/s, '')
-            .replace(/,+$/g, '')
-            .trim();
-        }
+      const index = enderecoNorm.indexOf(bairroNorm);
 
-        this.form.patchValue({
-          data: data.toISOString(),
-          hora: resp!.hora,
-          endereco,
-          bairro
-        });
+      if (index >= 0) {
+        endereco =
+          descricao!.slice(0, index) + descricao!.slice(index + bairro.length);
+      }
 
-        this.loadingProtocolo = false;
-      }, error => {
-        this.loadingProtocolo = false;
-        this.messageService.alert('Erro ao buscar protocolo: ' + error.message);
-      })
+      enderecoNorm = endereco
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+      const indexCidade = enderecoNorm.indexOf('manaus');
+      if (indexCidade >= 0) {
+        endereco =
+          endereco.slice(0, indexCidade) + endereco.slice(indexCidade + 6);
+      }
+
+      endereco = endereco
+        .replace(/\s{2,}/g, ' ')
+        .replace(/\s+,/g, ',')
+        .replace(/,\s*,/g, ',')
+        .replace(/\s[-–—]\s/g, '')
+        .replace(/\s*-\s*/g, '')
+        .replace(/\s-\s/g, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/[\r\n].*$/s, '')
+        .replace(/,+$/g, '')
+        .trim();
+    }
+
+    return { endereco, bairro };
+  }
+
+  private buildPatchFromProtocolo(resp: DadosProtocolo): ProtocoloIdentPatch {
+    const dataRaw = resp.data;
+    const dataRef = this.parseDataPericia(dataRaw);
+    const horaRaw = resp.hora;
+
+    const patch: ProtocoloIdentPatch = {
+      data: dataRef.toISOString(),
+      hora: this.horaParaDatetimeIon(dataRef, horaRaw),
+    };
+
+    if (resp.fonte === 'SISREX' && resp.sisrex) {
+      const sx = resp.sisrex;
+
+      const tipoPlan = this.matchTipoExameNaLista(
+        this.sisrexPick(sx, 'TIPO DE EXAME', 'Tipo de Exame'),
+      );
+      if (tipoPlan) {
+        patch.tipoExame = tipoPlan;
+      }
+
+      const cidadeNome = this.sisrexPick(sx, 'CIDADE', 'Cidade');
+      const cidadeLista = cidadeNome
+        ? this.matchCidadeNaLista(cidadeNome)
+        : null;
+      if (cidadeLista) {
+        patch.cidade = cidadeLista;
+      }
+
+      const localCol =
+        this.sisrexPick(sx, 'LOCAL', 'Local') ?? '';
+
+      patch.endereco = localCol;
+
+      let bairro = this.matchBairroNaLista(
+        this.sisrexPick(sx, 'BAIRRO', 'Bairro'),
+      );
+      if (!bairro && localCol) {
+        bairro = this.enderecoEBairroDoTextoDescricao(localCol).bairro;
+      }
+
+      if (bairro) {
+        patch.bairro = bairro;
+      }
+
+      const coords = this.parseCoordenadasPlanilha(
+        this.sisrexPick(sx, 'COORDENADAS', 'Coordenadas'),
+      );
+      if (coords) {
+        patch.latitude = coords.lat;
+        patch.longitude = coords.long;
+      }
+
+      return patch;
+    }
+
+    // Registro legado ou SISREX sem objeto (fallback)
+    const desc = resp.descricao;
+    const { endereco, bairro } = this.enderecoEBairroDoTextoDescricao(desc);
+
+    patch.endereco = endereco;
+    if (bairro) {
+      patch.bairro = bairro;
+    }
+
+    return patch;
   }
 
   completarComZeros(controlName: string) {
@@ -555,7 +784,9 @@ export class IdentificacaoPage implements OnInit {
       return;
     }
     if (!globalThis.navigator?.geolocation) {
-      await this.messageService.alert('Geolocalização não é suportada neste navegador.');
+      await this.messageService.presentErro(
+        'Geolocalização não é suportada neste navegador.',
+      );
       return;
     }
 
@@ -571,8 +802,8 @@ export class IdentificacaoPage implements OnInit {
           try {
             extras = await this.buscarEnderecoPorCoordenadas(lat, lng);
           } catch {
-            await this.messageService.alert(
-              'Coordenadas obtidas; não foi possível preencher o endereço automaticamente.'
+            await this.messageService.presentToast(
+              'Coordenadas obtidas; não foi possível preencher o endereço automaticamente.',
             );
           }
 
@@ -596,7 +827,7 @@ export class IdentificacaoPage implements OnInit {
         } else if (err.code === 3) {
           msg = 'Tempo esgotado ao obter a localização.';
         }
-        await this.messageService.alert(msg);
+        await this.messageService.presentErro(msg);
       },
       { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 }
     );

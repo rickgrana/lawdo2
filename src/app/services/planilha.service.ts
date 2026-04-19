@@ -1,11 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable } from 'rxjs';
 
-interface DadosProtocolo {
+/** Linha SISREX: chaves = textos da primeira linha da planilha (colunas extras incluídas). */
+export type SisrexOcorrencia = Record<string, string | null>;
+
+export interface DadosProtocolo {
+  fonte?: 'SISREX' | 'REGISTRO';
+  sisrex?: SisrexOcorrencia;
   data: string | null;
   hora: string | null;
   descricao: string | null;
+  destino?: string | null;
+  ip?: string | null;
+  vitima?: string | null;
+  recebimento?: string | null;
 }
 
 @Injectable({

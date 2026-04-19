@@ -4,16 +4,12 @@
           <ion-back-button></ion-back-button>
       </ion-buttons>
       
-    <ion-title>IMAGEM - {{titulo}}</ion-title>
+    <ion-title>{{titulo}}</ion-title>
 
     <ion-buttons slot="end">
 
-      <ion-button (click)="crop()" *ngIf="imageLoaded && !cropperEnabled">
-          <ion-icon name="cut-outline"></ion-icon>
-      </ion-button>
-
-      <ion-button (click)="rotate()" *ngIf="imageLoaded && !cropperEnabled">
-          <ion-icon name="sync-outline"></ion-icon>
+      <ion-button (click)="presentImageActions()" *ngIf="imageLoaded && !cropperEnabled" title="Opções da imagem">
+          <ion-icon name="ellipsis-vertical-outline"></ion-icon>
       </ion-button>
 
       <ion-button (click)="doCrop()" *ngIf="cropperEnabled">
@@ -24,12 +20,8 @@
           <ion-label >Desfazer</ion-label>
       </ion-button>
 
-      <ion-button (click)="firearmDetection()" *ngIf="imageLoaded && !cropperEnabled" title="Identificar perfurações">
-          <ion-icon name="sparkles-outline"></ion-icon>
-      </ion-button>
-
       <ion-button (click)="remover()" *ngIf="this.imagem !== null">
-          <ion-label><ion-icon name="trash"></ion-icon> Remover</ion-label>
+          <ion-label><ion-icon name="trash"></ion-icon></ion-label>
       </ion-button>
 
     </ion-buttons>

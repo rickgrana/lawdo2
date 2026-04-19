@@ -3,10 +3,10 @@ import { AtendimentoBasePage } from '../atendimento-base.page';
 import { ImageService } from 'src/app/services/image.service';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
     IonIcon,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption } from '@ionic/angular/standalone';
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, ActionSheetController } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { chevronForwardOutline, syncOutline, cutOutline, trash, sparklesOutline } from 'ionicons/icons';
+import { chevronForwardOutline, syncOutline, cutOutline, trash, sparklesOutline, ellipsisVerticalOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import 'cropperjs';
 import Cropper from 'cropperjs';
@@ -47,10 +47,45 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
 
   protected imageService = inject(ImageService);
   protected firearmDetectionService = inject(FirearmDetectionService);
+  private actionSheetController = inject(ActionSheetController);
 
   constructor() {
     super();
-    addIcons({ chevronForwardOutline, syncOutline, cutOutline, trash, sparklesOutline });
+    addIcons({ chevronForwardOutline, syncOutline, cutOutline, trash, sparklesOutline, ellipsisVerticalOutline });
+  }
+
+  async presentImageActions() {
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Imagem',
+      buttons: [
+        {
+          text: 'Cortar',
+          icon: 'cut-outline',
+          handler: () => {
+            this.crop();
+          }
+        },
+        {
+          text: 'Rotacionar',
+          icon: 'sync-outline',
+          handler: () => {
+            void this.rotate();
+          }
+        },
+        {
+          text: 'Identificar perfurações',
+          icon: 'sparkles-outline',
+          handler: () => {
+            void this.firearmDetection();
+          }
+        },
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        }
+      ]
+    });
+    await actionSheet.present();
   }
   
   get imagem() {

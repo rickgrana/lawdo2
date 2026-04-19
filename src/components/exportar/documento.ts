@@ -10,6 +10,8 @@ export class Documento{
     public secoes: Secao[] = [];
     public capitulos = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 
+    private contadorFigura = 0;
+
     constructor(atendimento: Atendimento, perito: Perito){
         this.atendimento = atendimento;
         this.perito = perito;
@@ -40,6 +42,10 @@ export class Documento{
                 '--' +
                 this.atendimento.fields.protocolo.ano + '-' + this.atendimento.fields.protocolo.numero;
     }
-    
+
+    proximoNumeroFigura(): number {
+        this.contadorFigura += 1;
+        return this.contadorFigura;
+    }
 
 }

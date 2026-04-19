@@ -1,6 +1,6 @@
 import { ImageHelper } from './imageHelper';
 
-import { Paragraph, TextRun, ImageRun, ISpacingProperties } from 'docx';
+import { Paragraph, TextRun, ImageRun, ISpacingProperties, PageBreak } from 'docx';
 
 export type ImageParagraphFiguraExtra = {
   /** Espaço antes da figura (ex.: margem superior), em twips. */
@@ -52,22 +52,30 @@ export class ImageParagraph{
     }
 
     /** Legenda “Figura N: …” numerada em sequência com as demais figuras do documento. */
-    static paragrafoLegendaFigura(legenda: string, numeroFigura: number): Paragraph {
+    static paragrafoLegendaFigura(
+      legenda: string,
+      numeroFigura: number,
+      extra?: { pageBreakAfter?: boolean },
+    ): Paragraph {
+      const children: (TextRun | PageBreak)[] = [
+        new TextRun({
+          text: 'Figura ',
+        }),
+
+        new TextRun({
+          text: String(numeroFigura),
+        }),
+
+        new TextRun({
+          text: legenda.length > 0 ? ': ' + legenda : '',
+        }),
+      ];
+      if (extra?.pageBreakAfter) {
+        children.push(new PageBreak());
+      }
       return new Paragraph({
         style: 'legenda_figura',
-        children: [
-          new TextRun({
-            text: 'Figura ',
-          }),
-
-          new TextRun({
-            text: String(numeroFigura),
-          }),
-
-          new TextRun({
-            text: legenda.length > 0 ? ': ' + legenda : '',
-          }),
-        ],
+        children,
       });
     }
 

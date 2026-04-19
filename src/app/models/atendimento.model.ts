@@ -373,6 +373,33 @@ export class Atendimento {
         return out;
     }
 
+    /**
+     * Campo Firestore `data` pode vir como Timestamp, string ISO, Date ou objeto serializado.
+     */
+    private static campoDataParaIso(raw: unknown): string {
+        if (raw == null || raw === '') {
+            return '';
+        }
+        if (typeof raw === 'string') {
+            const d = new Date(raw);
+            return Number.isNaN(d.getTime()) ? '' : d.toISOString();
+        }
+        if (raw instanceof Date) {
+            return raw.toISOString();
+        }
+        if (raw instanceof Timestamp) {
+            return raw.toDate().toISOString();
+        }
+        const r = raw as { toDate?: () => Date; seconds?: number };
+        if (typeof r.toDate === 'function') {
+            return r.toDate().toISOString();
+        }
+        if (typeof r.seconds === 'number') {
+            return new Date(r.seconds * 1000).toISOString();
+        }
+        return '';
+    }
+
     static loadFromDoc(doc: any) {
         let model = new Atendimento();
         model.isNew = false;
@@ -392,7 +419,7 @@ export class Atendimento {
 
     load(data: any) {
 
-        this.fields.data        = data.data.toDate().toISOString();
+        this.fields.data        = Atendimento.campoDataParaIso(data.data);
 
         if(data.hora.length <=5){
             this.fields.hora        = this.getValue(data.hora);

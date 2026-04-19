@@ -5,7 +5,8 @@ import { Atendimento } from 'src/app/models/atendimento.model';
 import { CommonModule } from '@angular/common';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonDatetime, IonInput,
     IonSelect, IonIcon, IonSpinner,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, IonModal, IonDatetimeButton } from '@ionic/angular/standalone';
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, IonModal, IonDatetimeButton,
+    ViewWillEnter } from '@ionic/angular/standalone';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthenticationService } from 'src/app/authentication.service';
 import { AtendimentoService } from 'src/app/services/atendimento.service';
@@ -50,7 +51,7 @@ type ProtocoloIdentPatch = Partial<{
     MatAutocompleteModule, MatFormFieldModule, MatInputModule,
   ]
 })
-export class IdentificacaoPage implements OnInit {
+export class IdentificacaoPage implements OnInit, ViewWillEnter {
   @ViewChild('protocoloInput', { read: IonInput }) private protocoloInput?: IonInput;
 
   form!: FormGroup;
@@ -197,6 +198,11 @@ export class IdentificacaoPage implements OnInit {
     });
   }
 
+  ionViewWillEnter(): void {
+    /** Ionic reutiliza o componente ao voltar à rota; sem isto o form fica com dados da visita anterior. */
+    this.loadForm();
+  }
+
   ionViewDidEnter(): void {
     if (!this.model || this.model.isConcluido() || this.model.isArquivado()) {
       return;
@@ -219,14 +225,19 @@ export class IdentificacaoPage implements OnInit {
 
     const f = this.model!.fields; // atalho
     const coords = f.coordenadas ?? { lat: 0, long: 0 };
+    const proto = f.protocolo ?? { numero: '', ano: '' };
+    const protocoloNumero =
+      proto.numero != null && proto.numero !== '' ? String(proto.numero) : '';
+    const protocoloAnoVal =
+      proto.ano != null && proto.ano !== '' ? String(proto.ano) : '';
 
     this.form = this.formBuilder.group({
       tipoExame: new FormControl<string>(f.tipoExame ?? '', Validators.required),
       data: new FormControl<string|null>(f.data, Validators.required),
       hora: new FormControl<string>(f.hora ?? '', Validators.required),
 
-      protocolo: new FormControl<string>(f.protocolo?.numero ?? '', Validators.required),
-      protocoloAno: new FormControl<string>(f.protocolo.ano, Validators.required),
+      protocolo: new FormControl<string>(protocoloNumero, Validators.required),
+      protocoloAno: new FormControl<string>(protocoloAnoVal, Validators.required),
       cidade: new FormControl<string>(f.endereco?.cidade ?? '', Validators.required),
       bairro: new FormControl<string>(f.endereco?.bairro ?? ''),
 

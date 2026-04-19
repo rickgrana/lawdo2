@@ -31,7 +31,8 @@ export abstract class Cabecalho{
                             text: 'LAUDO Nº ' + laudo.getNumeroLaudo()
                         })
                     ]
-                })
+                }),
+                new Paragraph({})
             ]
         });
       }

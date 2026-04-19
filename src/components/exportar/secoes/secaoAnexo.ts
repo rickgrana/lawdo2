@@ -29,6 +29,8 @@ import { MapaMarcaPersistida } from 'src/app/atendimento/vitima/mapa/mapa-marcac
 import { MapaTipoVestigio } from 'src/app/atendimento/vitima/mapa/mapa-ferramenta.enum';
 import { obterMarcacoesMapaVitima } from 'src/app/atendimento/vitima/mapa/mapa-vitima-marcacoes';
 import { rasterizarMapaVisaoComMarcacoes } from 'src/app/atendimento/vitima/mapa/mapa-export-raster';
+import { rasterizarMapaGeografico } from '../helper/mapa-geografico-raster';
+import { Atendimento } from 'src/app/models/atendimento.model';
 
 export class SecaoAnexo extends Secao {
   cells: any[] = [];
@@ -37,7 +39,28 @@ export class SecaoAnexo extends Secao {
 
   override isSecaoDisponivel() {
     const a = this.documento.atendimento;
-    return a.imagens.length > 0 || SecaoAnexo.temCroquiExportavel(a.fields.vitimas);
+    return (
+      a.imagens.length > 0 ||
+      SecaoAnexo.temCroquiExportavel(a.fields.vitimas) ||
+      SecaoAnexo.coordenadasParaApendice(a)
+    );
+  }
+
+  /** Coordenadas informadas na identificação (exclui 0,0 reservado a “sem coordenada”). */
+  private static coordenadasParaApendice(atendimento: Atendimento): boolean {
+    const c = atendimento.fields.coordenadas;
+    const lat = Number(c?.lat);
+    const lon = Number(c?.long);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      return false;
+    }
+    if (lat === 0 && lon === 0) {
+      return false;
+    }
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      return false;
+    }
+    return true;
   }
 
   private static temCroquiExportavel(vitimas: Vitima[]): boolean {
@@ -107,7 +130,69 @@ export class SecaoAnexo extends Secao {
       }
     }
 
+    if (SecaoAnexo.coordenadasParaApendice(this.documento.atendimento)) {
+      const blocosGeo = await this.getBlocosMapaGeografico();
+      blocos.push(
+        new Paragraph({
+          style: 'titulo_apendice',
+          alignment: AlignmentType.CENTER,
+          pageBreakBefore: true,
+          children: [
+            new TextRun({
+              text:
+                'APÊNDICE ' +
+                NumberHelper.getRomano(indiceApendice) +
+                ' - GEOLOCALIZAÇÃO DA OCORRÊNCIA',
+            }),
+          ],
+        }),
+        ...blocosGeo,
+      );
+    }
+
     return blocos;
+  }
+
+  /** Subtítulo, figura do mapa (marca no centro), legenda e menção à fonte dos tiles. */
+  private async getBlocosMapaGeografico(): Promise<any[]> {
+    const a = this.documento.atendimento;
+    const lat = Number(a.fields.coordenadas.lat);
+    const lon = Number(a.fields.coordenadas.long);
+
+    const buf = await rasterizarMapaGeografico(lat, lon, 960, 540, 16);
+    const blob = new Blob([buf], { type: 'image/jpeg' });
+    const url = URL.createObjectURL(blob);
+    try {
+      const dims: any = await ImageHelper.loadFromURL(url);
+      let width = Number(dims[0]);
+      let height = Number(dims[1]);
+      if (!width || !height || !Number.isFinite(width) || !Number.isFinite(height)) {
+        width = 960;
+        height = 540;
+      }
+      const dimPagina = SecaoAnexo.escalarDimensoesCroquiParaPagina(width, height);
+      const data = new Uint8Array(buf);
+
+      const legendaFigura =
+        ('Coordenadas do local: ' + lat.toFixed(6) + ', ' + lon.toFixed(6)).toLocaleUpperCase('pt-BR');
+
+      return [
+        ImageParagraph.paragrafoFigura(data, dimPagina.w, dimPagina.h),
+        ImageParagraph.paragrafoLegendaFigura(legendaFigura, this.documento.proximoNumeroFigura()),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 80, after: 0 },
+          children: [
+            new TextRun({
+              text: 'Fonte do mapa: © OpenStreetMap contributors, © CARTO',
+              size: 18,
+            }),
+          ],
+        }),
+      ];
+    } finally {
+      URL.revokeObjectURL(url);
+    }
   }
 
   /** Margem superior acima de cada croqui no documento (1 cm). */
@@ -229,16 +314,23 @@ export class SecaoAnexo extends Secao {
   }
 
   /**
-   * Legenda de cores após o subtítulo: duas colunas centralizadas (tabela sem bordas).
+   * Legenda de cores (tipos presentes em `ms`): duas colunas centralizadas (tabela sem bordas).
+   * Usada antes de cada croqui no apêndice — só inclui os tipos com marcação naquele croqui.
    * O Word não trata bem tabulações em parágrafo centrado; a grelha replica o efeito sem tab após o último item da linha.
    */
-  private static paragrafosLegendaCoresAposSubtitulo(ms: MapaMarcaPersistida[]): (Paragraph | Table)[] {
+  private static paragrafosLegendaCoresParaMarcacoes(
+    ms: MapaMarcaPersistida[],
+    opts?: { espacoAntesPrimeiraLinha?: number },
+  ): (Paragraph | Table)[] {
     const labels = SecaoAnexo.rotulosTipoLegenda();
     const cores = SecaoAnexo.coresHexTipoVestigio();
     const tipos = SecaoAnexo.tiposVestigioNaVisao(ms);
     if (tipos.length === 0) {
       return [];
     }
+
+    const espacoAntes =
+      opts?.espacoAntesPrimeiraLinha ?? SecaoAnexo.ESPACO_LINHA_LEGENDA_TWIPS;
 
     const larguraMetadeTwip = Math.round(SecaoAnexo.corpoLarguraUtilTwips() / 2);
     const texto = (s: string) => s.toLocaleUpperCase('pt-BR');
@@ -277,7 +369,7 @@ export class SecaoAnexo extends Secao {
                   new Paragraph({
                     alignment: AlignmentType.CENTER,
                     spacing: {
-                      before: primeiraLinha ? SecaoAnexo.ESPACO_LINHA_LEGENDA_TWIPS : undefined,
+                      before: primeiraLinha ? espacoAntes : undefined,
                       after: spacingAfter,
                     },
                     children: runsItem(t1),
@@ -310,7 +402,7 @@ export class SecaoAnexo extends Secao {
                   new Paragraph({
                     alignment: AlignmentType.CENTER,
                     spacing: {
-                      before: primeiraLinha ? SecaoAnexo.ESPACO_LINHA_LEGENDA_TWIPS : undefined,
+                      before: primeiraLinha ? espacoAntes : undefined,
                       after: spacingAfter,
                     },
                     children: runsItem(t1),
@@ -340,7 +432,6 @@ export class SecaoAnexo extends Secao {
     buffer: ArrayBuffer,
     legenda: string,
     visao: MapaVisao,
-    extra?: { espacoAntesFigura?: number },
   ): Promise<any[]> {
     const blob = new Blob([buffer], { type: 'image/jpeg' });
     const url = URL.createObjectURL(blob);
@@ -356,10 +447,11 @@ export class SecaoAnexo extends Secao {
       const nat = SecaoAnexo.aplicarDimensaoCroquiCorpo(visao, width, height, dimPagina);
 
       const data = new Uint8Array(buffer);
-      const figPara = ImageParagraph.paragrafoFigura(data, nat.w, nat.h, extra);
+      const figPara = ImageParagraph.paragrafoFigura(data, nat.w, nat.h);
       const legendaNumerada = ImageParagraph.paragrafoLegendaFigura(
         legenda,
         this.documento.proximoNumeroFigura(),
+        { pageBreakAfter: true },
       );
 
       return [figPara, legendaNumerada];
@@ -390,14 +482,21 @@ export class SecaoAnexo extends Secao {
       }),
     );
 
-    blocos.push(...SecaoAnexo.paragrafosLegendaCoresAposSubtitulo(marcacoes));
-
-    let primeiraFiguraDestaVitima = true;
+    let primeiraVisaoComMarcacoes = true;
     for (const visao of ORDEM_VISAO_MAPA) {
       const ms = marcacoes.filter((m) => m.visao === visao);
       if (ms.length === 0) {
         continue;
       }
+      blocos.push(
+        ...SecaoAnexo.paragrafosLegendaCoresParaMarcacoes(ms, {
+          espacoAntesPrimeiraLinha: primeiraVisaoComMarcacoes
+            ? SecaoAnexo.ESPACO_LINHA_LEGENDA_TWIPS
+            : SecaoAnexo.MARGEM_SUPERIOR_CROQUI_TWIPS,
+        }),
+      );
+      primeiraVisaoComMarcacoes = false;
+
       const buf = await rasterizarMapaVisaoComMarcacoes(mapaSvgAssetUrl(visao), ms);
       let legenda = rotuloVitima + ' - Croqui';
       const sufixoVisao = legendaCurtaParaVisao(visao);
@@ -405,12 +504,7 @@ export class SecaoAnexo extends Secao {
         legenda += ' (' + sufixoVisao + ')';
       }
       legenda = legenda.toLocaleUpperCase('pt-BR');
-      const bloco = await this.montarBlocoCroquiComLegendaLateral(buf, legenda, visao, {
-        espacoAntesFigura: primeiraFiguraDestaVitima
-          ? undefined
-          : SecaoAnexo.MARGEM_SUPERIOR_CROQUI_TWIPS,
-      });
-      primeiraFiguraDestaVitima = false;
+      const bloco = await this.montarBlocoCroquiComLegendaLateral(buf, legenda, visao);
       blocos.push(...bloco);
     }
 

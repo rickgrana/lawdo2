@@ -15,6 +15,10 @@ import { Router } from '@angular/router';
 
 const GOOGLE_DRIVE_FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
+/** OAuth access token é persistido aqui para acompanhar a sessão Firebase (IndexedDB/local). `sessionStorage` não é compartilhado entre abas e some ao fechar a aba, o que forçava um segundo popup embora o utilizador já estivesse autenticado. */
+const GOOGLE_AT_KEY = 'lawdo_google_at';
+const GOOGLE_AT_EXP_KEY = 'lawdo_google_at_exp';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -102,7 +106,7 @@ export class AuthenticationService {
   async login(): Promise<UserCredential> {
     await setPersistence(this.auth, browserSessionPersistence);
     const uc = await signInWithPopup(this.auth, this.googleDriveProvider);
-    this.captureGoogleAccessTokenFromCredential(GoogleAuthProvider.credentialFromResult(uc));
+    this.captureGoogleAccessTokenFromUserCredential(uc);
     return uc;
   }
 
@@ -111,7 +115,7 @@ export class AuthenticationService {
    * Renova via popup se expirado ou ausente (ex.: após recarregar a página).
    */
   async getGoogleDriveAccessToken(): Promise<string> {
-    this.restoreGoogleDriveTokenFromSession();
+    this.restoreGoogleDriveTokenFromStorage();
     const bufferMs = 60_000;
     if (this.googleAccessToken && Date.now() < this.googleAccessTokenExpiry - bufferMs) {
       return this.googleAccessToken;
@@ -120,32 +124,70 @@ export class AuthenticationService {
     if (!user) {
       throw new Error('É necessário estar logado para usar o Google Drive.');
     }
-    const uc = await reauthenticateWithPopup(user, this.googleDriveProvider);
-    this.captureGoogleAccessTokenFromCredential(GoogleAuthProvider.credentialFromResult(uc));
+    /** Provider próprio para não alterar `googleDriveProvider` global e para sugerir a conta já em uso (menos fricção). */
+    const driveProvider = new GoogleAuthProvider();
+    driveProvider.addScope(GOOGLE_DRIVE_FILE_SCOPE);
+    const email = user.email;
+    if (email) {
+      driveProvider.setCustomParameters({ login_hint: email });
+    }
+    const uc = await reauthenticateWithPopup(user, driveProvider);
+    this.captureGoogleAccessTokenFromUserCredential(uc);
     if (!this.googleAccessToken) {
       throw new Error('Permissão do Google Drive não concedida ou token indisponível.');
     }
     return this.googleAccessToken;
   }
 
-  private captureGoogleAccessTokenFromCredential(credential: OAuthCredential | null): void {
-    const token = credential?.accessToken;
-    if (!token) {
-      return;
+  /** Obtém o access token OAuth da resposta Google (várias formas conforme versão do SDK). */
+  private captureGoogleAccessTokenFromUserCredential(uc: UserCredential): void {
+    const token = this.extractGoogleAccessTokenFromUserCredential(uc);
+    if (token) {
+      this.persistGoogleAccessToken(token);
     }
+  }
+
+  private extractGoogleAccessTokenFromUserCredential(uc: UserCredential): string | undefined {
+    const fromProvider = GoogleAuthProvider.credentialFromResult(uc)?.accessToken;
+    if (fromProvider) {
+      return fromProvider;
+    }
+    const maybeCred = uc as unknown as { credential?: OAuthCredential | null };
+    if (maybeCred.credential?.accessToken) {
+      return maybeCred.credential.accessToken;
+    }
+    const tokenResponse = (uc as unknown as { _tokenResponse?: { oauthAccessToken?: string } })._tokenResponse;
+    return tokenResponse?.oauthAccessToken;
+  }
+
+  private persistGoogleAccessToken(token: string): void {
     this.googleAccessToken = token;
     // Tokens do Google costumam durar ~1h; margem conservadora em memória.
     this.googleAccessTokenExpiry = Date.now() + 50 * 60 * 1000;
     try {
-      sessionStorage.setItem('lawdo_google_at', token);
-      sessionStorage.setItem('lawdo_google_at_exp', String(this.googleAccessTokenExpiry));
+      localStorage.setItem(GOOGLE_AT_KEY, token);
+      localStorage.setItem(GOOGLE_AT_EXP_KEY, String(this.googleAccessTokenExpiry));
+      sessionStorage.removeItem(GOOGLE_AT_KEY);
+      sessionStorage.removeItem(GOOGLE_AT_EXP_KEY);
     } catch { /* ignore */ }
   }
 
-  private restoreGoogleDriveTokenFromSession(): void {
+  private restoreGoogleDriveTokenFromStorage(): void {
     try {
-      const t = sessionStorage.getItem('lawdo_google_at');
-      const exp = sessionStorage.getItem('lawdo_google_at_exp');
+      let t = localStorage.getItem(GOOGLE_AT_KEY);
+      let exp = localStorage.getItem(GOOGLE_AT_EXP_KEY);
+      if (!t || !exp) {
+        const st = sessionStorage.getItem(GOOGLE_AT_KEY);
+        const se = sessionStorage.getItem(GOOGLE_AT_EXP_KEY);
+        if (st && se) {
+          t = st;
+          exp = se;
+          localStorage.setItem(GOOGLE_AT_KEY, st);
+          localStorage.setItem(GOOGLE_AT_EXP_KEY, se);
+          sessionStorage.removeItem(GOOGLE_AT_KEY);
+          sessionStorage.removeItem(GOOGLE_AT_EXP_KEY);
+        }
+      }
       if (t && exp && Date.now() < Number(exp) - 60_000) {
         this.googleAccessToken = t;
         this.googleAccessTokenExpiry = Number(exp);
@@ -157,8 +199,10 @@ export class AuthenticationService {
     this.googleAccessToken = undefined;
     this.googleAccessTokenExpiry = 0;
     try {
-      sessionStorage.removeItem('lawdo_google_at');
-      sessionStorage.removeItem('lawdo_google_at_exp');
+      localStorage.removeItem(GOOGLE_AT_KEY);
+      localStorage.removeItem(GOOGLE_AT_EXP_KEY);
+      sessionStorage.removeItem(GOOGLE_AT_KEY);
+      sessionStorage.removeItem(GOOGLE_AT_EXP_KEY);
     } catch { /* ignore */ }
   }
 

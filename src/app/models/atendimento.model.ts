@@ -20,6 +20,18 @@ export interface Imagem{
     imagem: string;
     legenda: string;
     colunas?: number;
+    /**
+     * Origem da mídia (implícito):
+     * - **Ausente ou vazio** → Firebase Storage legado (`{atendimentoId}/{nome}`).
+     * - **Preenchido** → arquivo no Google Drive (`{pasta configurável}/{ano}-{nº protocolo}/…`, padrão `lawdo/…`), id da API.
+     */
+    driveFileId?: string;
+}
+
+/** Imagens já cadastradas sem `driveFileId` ficam no Firebase; novas inserções definem id do Drive. */
+export function imagemEstaNoGoogleDrive(imagem: Imagem): boolean {
+    const id = imagem.driveFileId;
+    return typeof id === 'string' && id.trim().length > 0;
 }
 
 /** Pessoa ou equipe presente no local do exame (preservação). */
@@ -153,6 +165,12 @@ export class Atendimento {
         return this.fields.laudo.ano.substr(2,2) + '-' + this.fields.laudo.numero;
     }
 
+    /** Nomes das vítimas para listagem (não identificadas como "N.I."), separados por vírgula. */
+    getNomesVitimasListagem(): string {
+        return this.fields.vitimas
+            .map((v) => (v.isIdentificada() ? v.nome : 'N.I.'))
+            .join(', ');
+    }
 
     get naturezas() {
         return new Array(
@@ -535,8 +553,14 @@ export class Atendimento {
 
         this.imagens = [];
 
-        if(data.imagens) {
-            this.imagens = data.imagens;
+        if (data.imagens && Array.isArray(data.imagens)) {
+            this.imagens = data.imagens.map((img: Imagem) => {
+                const row = { ...img } as Imagem;
+                if (!imagemEstaNoGoogleDrive(row)) {
+                    delete row.driveFileId;
+                }
+                return row;
+            });
         }
     }
 
@@ -644,7 +668,15 @@ export class Atendimento {
             /*if(!imagem.colunas){
                 imagem.colunas = 1;
             }*/
-            imagens.push({ nome: imagem.nome, legenda: imagem.legenda, colunas: imagem.colunas});
+            const row: { nome: string; legenda: string; colunas?: number; driveFileId?: string } = {
+                nome: imagem.nome,
+                legenda: imagem.legenda,
+                colunas: imagem.colunas
+            };
+            if (imagemEstaNoGoogleDrive(imagem)) {
+                row.driveFileId = imagem.driveFileId;
+            }
+            imagens.push(row);
         });
 
         return {

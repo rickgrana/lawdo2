@@ -63,15 +63,21 @@
 
             <ion-item-divider *ngIf="usuario">
                 <ion-label>
-                    Configurações
+                    Sistema
                   </ion-label>
             </ion-item-divider>
-
 
             <ion-item  [routerDirection]="'forward'" routerLink="/perfil"  contentId="perfil" *ngIf="usuario">
               <ion-icon slot="start" color="primary" name="person"></ion-icon>
               <ion-label>
                 Conta
+              </ion-label>
+            </ion-item>
+
+            <ion-item [routerDirection]="'forward'" routerLink="/configuracoes" contentId="configuracoes" *ngIf="usuario">
+              <ion-icon slot="start" color="medium" name="settings-outline"></ion-icon>
+              <ion-label>
+                Configurações
               </ion-label>
             </ion-item>
 

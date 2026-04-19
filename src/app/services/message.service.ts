@@ -34,22 +34,87 @@ export class MessageService {
       await this.alert.present();
     }
 
+    /**
+     * Erro genérico: exibe o texto completo em modal (textarea selecionável + Copiar).
+     */
     async presentErro(msg: string) {
-      this.alert = await this.toastController.create({
-        message: msg,
-        duration: 2000
-      });
-
-      return this.alert.present();
+      return this.presentErrorModal(msg, 'Erro');
     }
 
+    /**
+     * Erros ao salvar registro (prefixo padrão do app).
+     */
     async presentError(msg: string) {
-      this.alert = await this.toastController.create({
-        message: 'Erro ao tentar salvar registro: ' + msg,
-        duration: 2000
+      const full = 'Erro ao tentar salvar registro: ' + msg;
+      return this.presentErrorModal(full, 'Erro ao salvar');
+    }
+
+    private async presentErrorModal(fullText: string, header: string): Promise<void> {
+      const text = fullText ?? '';
+
+      const alert = await this.alertController.create({
+        cssClass: 'alert-error-modal',
+        header,
+        backdropDismiss: true,
+        message:
+          'O texto abaixo pode ser copiado com o botão Copiar ou selecionado manualmente.',
+        inputs: [
+          {
+            type: 'textarea',
+            name: 'detail',
+            value: text,
+            attributes: {
+              readonly: true,
+              rows: 14,
+              spellcheck: false,
+              autocapitalize: 'off',
+              autocomplete: 'off',
+              wrap: 'soft',
+            },
+          },
+        ],
+        buttons: [
+          {
+            text: 'Copiar',
+            handler: () => {
+              void this.copyToClipboard(text).then(() =>
+                this.presentToast('Erro copiado para a área de transferência'),
+              );
+              return false;
+            },
+          },
+          {
+            text: 'Fechar',
+            role: 'cancel',
+          },
+        ],
       });
 
-      return await this.alert.present();
+      await alert.present();
+    }
+
+    private async copyToClipboard(text: string): Promise<void> {
+      try {
+        if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+          return;
+        }
+      } catch {
+        /* fallback */
+      }
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch (e) {
+        console.error('Não foi possível copiar o texto.', e);
+      }
     }
 
     async presentLoading(msg = 'Processando...') {

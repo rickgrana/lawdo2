@@ -11,6 +11,7 @@ import { addIcons } from 'ionicons';
 import 'cropperjs';
 import Cropper from 'cropperjs';
 import { FirearmDetectionService } from 'src/app/services/firearm-detection.service';
+import { imagemEstaNoGoogleDrive, Imagem } from 'src/app/models/atendimento.model';
 
 @Component({
   selector: 'app-image',
@@ -161,7 +162,7 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
         // base64 jpeg
         const src = canvas.toDataURL('image/jpeg', 1);
 
-        const record = {
+        const record: Imagem = {
           imagem: src,
           legenda: this.legenda,
           nome: (this.imagem ? this.imagem.nome : new Date().getTime().toString()),
@@ -180,8 +181,20 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
           canvas.toBlob(b => resolve(b!), 'image/jpeg', 1)
         );
 
-        this.imageService.upload(this.model!.id, record.nome, blob)
-          .then(() => {
+        try {
+          if (this.imagem && imagemEstaNoGoogleDrive(this.imagem)) {
+            await this.imageService.remover(
+              { nome: this.imagem.nome, imagem: '', legenda: '', driveFileId: this.imagem.driveFileId },
+              this.model!.id
+            );
+          }
+        } catch (e) {
+          console.warn('Remoção da versão anterior no Drive:', e);
+        }
+
+        this.imageService.upload(this.model!, record.nome, blob)
+          .then((r) => {
+            record.driveFileId = r.driveFileId;
             this.atendimentoService.updateImagens(this.model!).then(() => {
               this.hideLoader();
               this.presentAlertSalvo('Imagem salva com sucesso');
@@ -263,7 +276,7 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
 
     let imagem = this.model!.imagens[index];
 
-    this.imageService.remover(this.model!.id, imagem.nome).then(() => {
+    this.imageService.remover(imagem, this.model!.id).then(() => {
 
       this.atendimentoService.updateImagens(this.model!)
       .then(async resp => {

@@ -21,6 +21,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { DadosProtocolo, PlanilhaService } from '../../services/planilha.service';
+import { ImageService } from 'src/app/services/image.service';
 import { locate, search } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { User } from 'src/app/models/user.model';
@@ -177,7 +178,8 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
     private authService: AuthenticationService,
     private navCtrl: NavController,
     private messageService: MessageService,
-    private planilhaService: PlanilhaService)
+    private planilhaService: PlanilhaService,
+    private imageService: ImageService)
   {
     addIcons({ search, locate });
   }
@@ -278,6 +280,14 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
 
   async salvar(record: any) {
 
+    let segmentoDriveAnterior: string | null = null;
+    if (!this.model!.isNew) {
+      segmentoDriveAnterior = this.imageService.buildAnoProtocoloSegment(
+        this.model!.fields.protocolo?.ano,
+        this.model!.fields.protocolo?.numero
+      );
+    }
+
     if (this.model!.isNew) {
       this.model!.fields.perito = this.user!.ref;
       this.model!.fields.dtcriacao =  new Date();
@@ -325,6 +335,18 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
       await this.presentLoading();
       try {
         await this.atendimentoService.updateIdentificacao(this.model!);
+        if (segmentoDriveAnterior !== null) {
+          const novoSeg = this.imageService.buildAnoProtocoloSegment(
+            this.model!.fields.protocolo?.ano,
+            this.model!.fields.protocolo?.numero
+          );
+          if (segmentoDriveAnterior !== novoSeg) {
+            await this.imageService.renameAnoProtocoloDriveFolderIfExists(
+              segmentoDriveAnterior,
+              novoSeg
+            );
+          }
+        }
         await this.hideLoader();
         this.form.markAsPristine();
         await this.presentAlertSalvo('Dados alterados com sucesso');
@@ -355,12 +377,7 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
   }
 
   async presentError(msg: string) {
-    const alert = await this.toastController.create({
-      message: 'Erro ao tentar salvar registro' + msg,
-      duration: 2000
-    });
-
-    await alert.present();
+    await this.messageService.presentError(msg);
   }
 
   async presentLoading() {

@@ -119,3 +119,31 @@ ion-modal.vestigio-form-modal {
   --box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
 }
 
+/** Modal de erro (MessageService): área de texto formatada e copiável */
+.alert-error-modal {
+  --max-height: min(92vh, 720px);
+}
+
+.alert-error-modal .alert-message {
+  font-size: 0.875rem;
+  color: var(--ion-color-medium);
+  text-align: left;
+}
+
+.alert-error-modal textarea {
+  box-sizing: border-box;
+  width: 100%;
+  max-height: min(52vh, 420px);
+  margin-top: 8px;
+  padding: 10px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-radius: 8px;
+  border: 1px solid var(--ion-color-step-200, rgba(0, 0, 0, 0.12));
+  background: var(--ion-color-step-50, rgba(0, 0, 0, 0.03));
+  resize: vertical;
+}
+

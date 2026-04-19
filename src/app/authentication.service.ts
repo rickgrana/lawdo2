@@ -5,11 +5,15 @@ import { Auth, signOut, signInWithPopup,
     setPersistence,
     authState,
     UserCredential,
+    reauthenticateWithPopup,
+    OAuthCredential,
 } from '@angular/fire/auth';
 import { BehaviorSubject, filter, firstValueFrom, from } from 'rxjs';
 import { User } from './models/user.model';
 import { UserService } from './services/user.service';
 import { Router } from '@angular/router';
+
+const GOOGLE_DRIVE_FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +25,17 @@ export class AuthenticationService {
   /** false até o primeiro `findByUid` após cada mudança de auth state (evita guard com user$ ainda null). */
   public profileReady$ = new BehaviorSubject(false);
 
+  /** Token OAuth do Google para a API Drive (cache de sessão). */
+  private googleAccessToken?: string;
+  private googleAccessTokenExpiry = 0;
+
+  /** Provider Google com escopo para criar/ler arquivos criados pelo app no Drive do usuário. */
+  private readonly googleDriveProvider = (() => {
+    const p = new GoogleAuthProvider();
+    p.addScope(GOOGLE_DRIVE_FILE_SCOPE);
+    return p;
+  })();
+
   /** Dispara mensagem única na Conta (perfil) quando o fluxo exige completar cadastro no Firestore. */
   private completarCadastroPrompt = false;
 
@@ -29,6 +44,7 @@ export class AuthenticationService {
       this.ngZone.run(() => this.profileReady$.next(false));
       try {
         if (!firebaseUser) {
+          this.clearGoogleDriveToken();
           this.ngZone.run(() => this.user$.next(null));
           console.log('Sem Usuário!');
           return;
@@ -85,10 +101,69 @@ export class AuthenticationService {
   /** Promise com credencial — evita retornar Observable dentro de método async. */
   async login(): Promise<UserCredential> {
     await setPersistence(this.auth, browserSessionPersistence);
-    return signInWithPopup(this.auth, new GoogleAuthProvider());
+    const uc = await signInWithPopup(this.auth, this.googleDriveProvider);
+    this.captureGoogleAccessTokenFromCredential(GoogleAuthProvider.credentialFromResult(uc));
+    return uc;
+  }
+
+  /**
+   * Token OAuth para chamadas à Google Drive API (upload/download/delete).
+   * Renova via popup se expirado ou ausente (ex.: após recarregar a página).
+   */
+  async getGoogleDriveAccessToken(): Promise<string> {
+    this.restoreGoogleDriveTokenFromSession();
+    const bufferMs = 60_000;
+    if (this.googleAccessToken && Date.now() < this.googleAccessTokenExpiry - bufferMs) {
+      return this.googleAccessToken;
+    }
+    const user = this.auth.currentUser;
+    if (!user) {
+      throw new Error('É necessário estar logado para usar o Google Drive.');
+    }
+    const uc = await reauthenticateWithPopup(user, this.googleDriveProvider);
+    this.captureGoogleAccessTokenFromCredential(GoogleAuthProvider.credentialFromResult(uc));
+    if (!this.googleAccessToken) {
+      throw new Error('Permissão do Google Drive não concedida ou token indisponível.');
+    }
+    return this.googleAccessToken;
+  }
+
+  private captureGoogleAccessTokenFromCredential(credential: OAuthCredential | null): void {
+    const token = credential?.accessToken;
+    if (!token) {
+      return;
+    }
+    this.googleAccessToken = token;
+    // Tokens do Google costumam durar ~1h; margem conservadora em memória.
+    this.googleAccessTokenExpiry = Date.now() + 50 * 60 * 1000;
+    try {
+      sessionStorage.setItem('lawdo_google_at', token);
+      sessionStorage.setItem('lawdo_google_at_exp', String(this.googleAccessTokenExpiry));
+    } catch { /* ignore */ }
+  }
+
+  private restoreGoogleDriveTokenFromSession(): void {
+    try {
+      const t = sessionStorage.getItem('lawdo_google_at');
+      const exp = sessionStorage.getItem('lawdo_google_at_exp');
+      if (t && exp && Date.now() < Number(exp) - 60_000) {
+        this.googleAccessToken = t;
+        this.googleAccessTokenExpiry = Number(exp);
+      }
+    } catch { /* ignore */ }
+  }
+
+  private clearGoogleDriveToken(): void {
+    this.googleAccessToken = undefined;
+    this.googleAccessTokenExpiry = 0;
+    try {
+      sessionStorage.removeItem('lawdo_google_at');
+      sessionStorage.removeItem('lawdo_google_at_exp');
+    } catch { /* ignore */ }
   }
 
   logout() {
+    this.clearGoogleDriveToken();
     this.ngZone.run(() => this.user$.next(null));
     return from(signOut(this.auth));
   }

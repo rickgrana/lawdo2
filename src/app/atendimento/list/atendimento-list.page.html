@@ -57,7 +57,7 @@
 
                   <br/>
 
-                  <span *ngIf="item.fields.endereco.cidade == 'MANAUS' && item.fields.endereco.logradouro" >
+                  <span *ngIf="item.fields.endereco.logradouro">
                   {{item.fields.endereco.logradouro}}
                   </span>
 
@@ -73,17 +73,10 @@
                 </ion-col>
 
                 <ion-col size="12" class="long-text" *ngIf="item.isCrimeVida && (item.fields.vitimas.length > 0)">
-                    <ion-label *ngFor="let vitima of item.fields.vitimas">
+                    <ion-label>
                       <i>
                       <ion-icon name="body" color="danger"></ion-icon>
-
-                      <span *ngIf="vitima.isIdentificada()" >
-                          {{vitima.nome}}
-                      </span>
-
-                      <span *ngIf="!vitima.isIdentificada()" >
-                          N.I.
-                      </span>
+                      {{ item.getNomesVitimasListagem() }}
                       </i>
                     </ion-label>
                 </ion-col>

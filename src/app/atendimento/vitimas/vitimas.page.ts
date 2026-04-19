@@ -5,6 +5,7 @@ import { AlertController } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { LoadingController } from '@ionic/angular/standalone';
 import { Vitima } from 'src/app/models/vitima.model';
+import { MessageService } from '../../services/message.service';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonIcon,
     IonRow, IonList, IonCol, IonLabel, IonButton, IonItem, IonBackButton } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
@@ -33,6 +34,7 @@ export class VitimasPage implements OnInit {
   constructor(private atendimentoService: AtendimentoService, public alertController: AlertController,
     public toastController: ToastController,
     public loadingController: LoadingController,
+    private messageService: MessageService,
     private router: Router) {
       addIcons({trash});
   }
@@ -112,12 +114,7 @@ export class VitimasPage implements OnInit {
   }
 
   async presentError(msg: string) {
-    const alert = await this.toastController.create({
-      message: msg,
-      duration: 2000
-    });
-
-    await alert.present();
+    await this.messageService.presentErro(msg);
   }
 
   async presentLoading(msg: string|null = null) {

@@ -12,7 +12,8 @@ import { mailOutline, mailSharp, paperPlaneOutline, paperPlaneSharp,
     businessOutline,
     addCircle,
     list,
-    home} from 'ionicons/icons';
+    home,
+    settingsOutline} from 'ionicons/icons';
 import { AuthenticationService } from './authentication.service';
 import { CommonModule } from '@angular/common';
 import { Auth } from '@angular/fire/auth';
@@ -39,7 +40,7 @@ export class AppComponent {
     addIcons({ mailOutline, mailSharp, paperPlaneOutline, paperPlaneSharp,
       heartOutline, heartSharp, archiveOutline, archiveSharp,
       trashOutline, trashSharp, warningOutline, warningSharp, bookmarkOutline, bookmarkSharp,
-      peopleSharp, peopleOutline, person, businessOutline, addCircle, list, home}
+      peopleSharp, peopleOutline, person, businessOutline, addCircle, list, home, settingsOutline}
     );
   }
 

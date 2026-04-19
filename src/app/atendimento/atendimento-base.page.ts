@@ -10,6 +10,7 @@ import { AuthenticationService } from 'src/app/authentication.service';
 import { User } from 'src/app/models/user.model';
 import { CommonModule } from '@angular/common';
 import { AlertController } from '@ionic/angular/standalone';
+import { MessageService } from 'src/app/services/message.service';
 
 
 @Directive()
@@ -22,6 +23,7 @@ export abstract class AtendimentoBasePage implements OnInit {
   protected atendimentoService = inject(AtendimentoService);
   protected formBuilder = inject(FormBuilder);
   protected alertController = inject(AlertController);
+  protected messageService = inject(MessageService);
   protected toastController = inject(ToastController);
   protected loadingController = inject(LoadingController);
   protected navCtrl = inject(NavController);
@@ -63,12 +65,7 @@ export abstract class AtendimentoBasePage implements OnInit {
   }
 
   async presentError(msg: string) {
-    const alert = await this.toastController.create({
-      message: 'Erro ao tentar salvar registro: ' + msg,
-      duration: 2000
-    });
-
-    await alert.present();
+    await this.messageService.presentError(msg);
   }
 
   async presentLoading(message: string = 'Processando...') {

@@ -1,6 +1,13 @@
 import { Corporacao } from '../models/corporacao.model';
 import { Orgao } from '../models/orgao.model';
 
+/** Nome da pasta raiz em Meu Drive para imagens (subpastas `ano-protocolo` são criadas pelo app). */
+export const DEFAULT_DRIVE_IMAGE_FOLDER = 'lawdo';
+
+export interface UserConfig {
+  driveImageFolder?: string;
+}
+
 export class UserFields {
     uid: string = '';
     email: string = '';
@@ -43,6 +50,8 @@ export class User {
   uid: string = '';
   ref: string = '';
   fields: UserFields;
+  /** Preferências gravadas em `users/{uid}.config`. */
+  config?: UserConfig;
   corporacao?: Corporacao;
   orgao?: Orgao;
   /** Sem documento em `users/{uid}` — usuário precisa concluir o cadastro na Conta. */
@@ -66,6 +75,10 @@ export class User {
 
       if(data.orgao){
           user.orgao = Orgao.loadFrom(data.orgao);
+      }
+
+      if (data.config && typeof data.config === 'object') {
+        user.config = User.parseConfig(data.config);
       }
 
       return user;
@@ -95,11 +108,25 @@ export class User {
       return user;
   }
 
+  static parseConfig(raw: any): UserConfig | undefined {
+    if (!raw || typeof raw !== 'object') {
+      return undefined;
+    }
+    const driveImageFolder =
+      typeof raw.driveImageFolder === 'string' ? raw.driveImageFolder.trim() : undefined;
+    if (!driveImageFolder) {
+      return {};
+    }
+    return { driveImageFolder };
+  }
+
   static loadFromDb(ref: any, data: any){
       let user = new User;
 
       user.uid = data.uid;
       user.ref = ref;
+
+      user.config = User.parseConfig(data.config);
 
       user.fields.email           = data.email;
       user.fields.photoURL       = data.photoURL;

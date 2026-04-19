@@ -115,7 +115,8 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
     }
 
     try {
-      const imagens: Array<{ src: string; nome: string } | null> = new Array(filesAmount).fill(null);
+      const imagens: Array<{ src: string; nome: string; driveFileId: string } | null> =
+        new Array(filesAmount).fill(null);
 
       await Promise.all(
         Array.from(files, (file, i) =>
@@ -125,8 +126,8 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
               const { base64, blob } = await this.resizeImage(dataUrl as string, 500);
               const nome = `${Date.now()}-${i}-${Math.random().toString(36).slice(2, 9)}`;
 
-              await this.imageService.upload(this.model!.id, nome, blob);
-              imagens[i] = { src: base64, nome };
+              const { driveFileId } = await this.imageService.upload(this.model!, nome, blob);
+              imagens[i] = { src: base64, nome, driveFileId };
             } catch (error: any) {
               console.error(error);
               await this.presentError(error?.message ?? String(error));
@@ -147,7 +148,8 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
           imagem: img.src,
           legenda: '',
           nome: img.nome,
-          colunas: 0
+          colunas: 0,
+          driveFileId: img.driveFileId
         });
       }
 
@@ -169,27 +171,21 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
     const img = await fetch(src);
     const blob = await img.blob();
 
-    const record = {
-      imagem:   src,
-      legenda:  '',
-      nome: new Date().getTime().toString()
-    }; 
+    const nome = new Date().getTime().toString();
 
-    await this.imageService.upload(this.model!.id, record.nome, blob).then(async() => {
-
-      await this.model!.imagens.push(record);
-
-      await this.atendimentoService.update(this.model!).then(async (resp) => {
-      })
-      .catch(async(error) => {
-        console.log(error);
-        await this.presentError(error.message);
+    try {
+      const { driveFileId } = await this.imageService.upload(this.model!, nome, blob);
+      this.model!.imagens.push({
+        imagem: src,
+        legenda: '',
+        nome,
+        driveFileId
       });
-
-    }).catch(async(error) => {
+      await this.atendimentoService.update(this.model!);
+    } catch (error: any) {
       console.log(error);
-      await this.presentError(error.message);
-    });
+      await this.presentError(error?.message ?? String(error));
+    }
   }
 
   doReorder(ev: any) {

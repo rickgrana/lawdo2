@@ -11,6 +11,16 @@
       ]
     },
     {
+      "collectionId": "atendimentos",
+      "queryScope": "COLLECTION",
+      "density": "SPARSE_ALL",
+      "fields": [
+        { "fieldPath": "perito", "order": "ASCENDING" },
+        { "fieldPath": "protocolo.ano", "order": "ASCENDING" },
+        { "fieldPath": "protocolo.numero", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionId": "orgaos",
       "queryScope": "COLLECTION",
       "density": "SPARSE_ALL",

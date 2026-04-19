@@ -23,6 +23,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { ExportarService } from 'src/app/services/exportar.service';
 import { filter } from 'rxjs';
 import { User } from 'src/app/models/user.model';
+import { MessageService } from '../../services/message.service';
 
 @Component({
   selector: 'app-visualizar',
@@ -58,6 +59,7 @@ export class AtendimentoVisualizarPage implements OnInit {
     public loadingController: LoadingController,
     private authService: AuthenticationService,
     public actionSheetController: ActionSheetController,
+    private messageService: MessageService,
     private cdr: ChangeDetectorRef
     ) {
       addIcons({ arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline, flask, refreshOutline });
@@ -233,12 +235,7 @@ export class AtendimentoVisualizarPage implements OnInit {
   }
 
   async presentError(msg: string) {
-    const alert = await this.toastController.create({
-      message: msg,
-      duration: 2000
-    });
-
-    await alert.present();
+    await this.messageService.presentErro(msg);
   }
 
   async presentLoading(msg: string|null = null) {

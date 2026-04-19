@@ -5,7 +5,7 @@ import { QuesitoService } from '../../services/quesito.service';
 import { Quesito } from 'src/app/models/quesito.model';
 import { Observable } from 'rxjs';
 import { LoadingController } from '@ionic/angular/standalone';
-import { ToastController } from '@ionic/angular/standalone';
+import { MessageService } from 'src/app/services/message.service';
 import { IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonBackButton,
     IonLabel, IonButton, IonItem, IonFooter,
      IonModal, ModalController, PopoverController, IonSearchbar,
@@ -41,7 +41,7 @@ export class QuesitoPage implements OnInit {
     private quesitoService: QuesitoService,
     private formBuilder: FormBuilder,
     private loadingController: LoadingController,
-    private toastController: ToastController,
+    private messageService: MessageService,
     private modalCtrl: ModalController,
     private popoverCtrl: PopoverController
   ) { 
@@ -179,12 +179,7 @@ export class QuesitoPage implements OnInit {
   }
 
   async presentError(msg: string) {
-    const alert = await this.toastController.create({
-      message: 'Erro ao tentar salvar registro: ' + msg,
-      duration: 2000
-    });
-
-    await alert.present();
+    await this.messageService.presentError(msg);
   }
 
 }

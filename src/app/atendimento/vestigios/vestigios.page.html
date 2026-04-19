@@ -19,11 +19,10 @@
         <ion-list *ngIf="g.itens.length > 0" lines="none">
           <ion-item *ngFor="let item of g.itens; trackBy: trackByItem" class="vestigio-item">
             <ion-label>
-              <h2><strong>Tipo:</strong> {{ item.vestigio.tipo || '-' }}</h2>
-              <p><strong>Descrição:</strong> {{ item.vestigio.descricao || '-' }}</p>
-              <p><strong>Quantidade:</strong> {{ item.vestigio.quantidade ?? '-' }}</p>
-              <p><strong>Localização:</strong> {{ item.vestigio.localizacao || '-' }}</p>
-              <p><strong>Lacre:</strong> {{ item.vestigio.lacre || '-' }}</p>
+              <h2>{{ item.vestigio.tipo || '—' }}</h2>
+              <p *ngIf="linhaQuantidadeDescricao(item.vestigio) as linha">{{ linha }}</p>
+              <p *ngIf="temCampoTexto(item.vestigio.localizacao)"><strong>Localização:</strong> {{ item.vestigio.localizacao }}</p>
+              <p *ngIf="temCampoTexto(item.vestigio.lacre)"><strong>Lacre:</strong> {{ item.vestigio.lacre }}</p>
             </ion-label>
             <ion-buttons slot="end">
               <ion-button fill="clear" color="primary" (click)="editarVestigio(g.key, item.index); $event.stopPropagation()">

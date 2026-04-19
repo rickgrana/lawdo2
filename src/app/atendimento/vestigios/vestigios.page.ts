@@ -93,6 +93,26 @@ export class VestigiosPage implements ViewWillEnter {
     return item.index;
   }
 
+  /** Uma linha "Nx descrição"; omitida quando não há descrição e quantidade implícita 1. */
+  linhaQuantidadeDescricao(v: any): string | null {
+    const rawQ = v?.quantidade;
+    let q = rawQ === null || rawQ === undefined || rawQ === '' ? 1 : Number(rawQ);
+    if (!Number.isFinite(q) || q < 1) q = 1;
+    const desc = String(v?.descricao ?? '').trim();
+    if (desc) {
+      return `${q}x ${desc}`;
+    }
+    const qExplicit = rawQ !== null && rawQ !== undefined && rawQ !== '';
+    if (qExplicit && q !== 1) {
+      return `${q}x`;
+    }
+    return null;
+  }
+
+  temCampoTexto(val: unknown): boolean {
+    return String(val ?? '').trim().length > 0;
+  }
+
   async abrirFormularioCadastro() {
     const padrao = this.categorias[0]?.key ?? VestigioCategoria.Fisicos;
     const { VestigioFormPage } = await import('./vestigio-form.page');

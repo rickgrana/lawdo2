@@ -29,7 +29,7 @@
               </ion-label>
             </ion-item>
 
-            <ion-item [routerDirection]="'forward'" routerLink="/atendimentos/form" (click)="novoAtendimento()"
+            <ion-item button="true" [routerDirection]="'forward'" (click)="novoAtendimento()"
               contentId="novoAtendimento" *ngIf="usuario">
               <ion-icon slot="start" color="success" name="add-circle"></ion-icon>
               <ion-label>

@@ -8,7 +8,7 @@ import { map } from 'rxjs/operators';
 import { collectionData, Firestore } from '@angular/fire/firestore';
 import { collection, getDocs, limit, orderBy, query, startAfter, where, doc, addDoc, Timestamp, updateDoc, deleteField, DocumentReference } from 'firebase/firestore';
 import { Conclusao } from '../interfaces/conclusao.interface';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { PreservacaoService } from './preservacao.service';
 
 @Injectable({
@@ -29,11 +29,33 @@ export class AtendimentoService {
 
   imagem_selecionada = -1;
 
+  /** Emite após “Novo Atendimento” para a página de identificação recriar o FormGroup (inclui navegação para a mesma URL). */
+  readonly identificacaoRefresh$ = new Subject<void>();
+
   constructor(
     private firestore: Firestore,
     private auth: AuthenticationService,
     private preservacaoService: PreservacaoService
   ) {
+  }
+
+  /**
+   * Limpa o atendimento em memória e seleções auxiliares antes de abrir um novo fluxo.
+   * Chame antes de navegar para `atendimento/identificacao`.
+   */
+  prepararNovoAtendimento(): void {
+    this.model = undefined;
+    this.vitima_selecionada = -1;
+    this.vitima = undefined;
+    this.veiculo_selecionado = -1;
+    this.veiculo = undefined;
+    this.quesito = undefined;
+    this.conclusoes = [];
+    this.imagem_selecionada = -1;
+  }
+
+  notificarIdentificacaoRecarregar(): void {
+    this.identificacaoRefresh$.next();
   }
 
   new() {

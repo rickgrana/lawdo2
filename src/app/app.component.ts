@@ -15,6 +15,7 @@ import { mailOutline, mailSharp, paperPlaneOutline, paperPlaneSharp,
     home,
     settingsOutline} from 'ionicons/icons';
 import { AuthenticationService } from './authentication.service';
+import { AtendimentoService } from './services/atendimento.service';
 import { CommonModule } from '@angular/common';
 import { Auth } from '@angular/fire/auth';
 
@@ -31,7 +32,11 @@ import { Auth } from '@angular/fire/auth';
 export class AppComponent {
   usuario: any;
 
-  constructor(private firebaseAuth: Auth, private authService: AuthenticationService, private router: Router
+  constructor(
+    private firebaseAuth: Auth,
+    private authService: AuthenticationService,
+    private atendimentoService: AtendimentoService,
+    private router: Router
   ) {
     this.firebaseAuth.onAuthStateChanged((user: any) => {
       this.usuario = user;
@@ -44,8 +49,10 @@ export class AppComponent {
     );
   }
 
-  novoAtendimento() {
-    this.router.navigate(['atendimento/identificacao']);
+  async novoAtendimento() {
+    this.atendimentoService.prepararNovoAtendimento();
+    await this.router.navigate(['atendimento/identificacao']);
+    this.atendimentoService.notificarIdentificacaoRecarregar();
   }
 
   novoAtendimento2() {

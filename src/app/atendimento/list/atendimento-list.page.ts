@@ -97,9 +97,10 @@ export class ListAtendimentosPage implements OnInit {
     this.router.navigate(['atendimento/visualizar']);
   }
 
-  novo() {
-    this.atendimentoService.model = new Atendimento();
-    this.router.navigate(['atendimento/identificacao']);
+  async novo() {
+    this.atendimentoService.prepararNovoAtendimento();
+    await this.router.navigate(['atendimento/identificacao']);
+    this.atendimentoService.notificarIdentificacaoRecarregar();
   }
 
   /*async openSearch() {

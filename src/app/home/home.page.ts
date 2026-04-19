@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton,
     IonImg, IonGrid, IonRow, IonCol, IonButton, IonIcon, IonContent } from '@ionic/angular/standalone';
 import { AuthenticationService } from '../authentication.service';
+import { AtendimentoService } from '../services/atendimento.service';
 import { Router } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
 import { filter, take, firstValueFrom } from 'rxjs';
@@ -21,7 +22,9 @@ export class HomePage implements OnInit {
   usuario: any;
   private auth = inject(Auth);
 
-  constructor(private authService: AuthenticationService,
+  constructor(
+    private authService: AuthenticationService,
+    private atendimentoService: AtendimentoService,
     private router: Router
   ) {
     this.auth.onAuthStateChanged((user: any) => {
@@ -51,8 +54,10 @@ export class HomePage implements OnInit {
     this.router.navigate(['/atendimentos']);
   }
 
-  novoAtendimento() {
-    this.router.navigate(['atendimento/identificacao']);
+  async novoAtendimento() {
+    this.atendimentoService.prepararNovoAtendimento();
+    await this.router.navigate(['atendimento/identificacao']);
+    this.atendimentoService.notificarIdentificacaoRecarregar();
   }
 
   perfil() {

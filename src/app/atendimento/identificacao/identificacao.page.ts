@@ -1,4 +1,5 @@
-import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Component, DestroyRef, HostListener, inject, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { MessageService } from 'src/app/services/message.service';
 import { Atendimento } from 'src/app/models/atendimento.model';
@@ -54,6 +55,8 @@ type ProtocoloIdentPatch = Partial<{
 })
 export class IdentificacaoPage implements OnInit, ViewWillEnter {
   @ViewChild('protocoloInput', { read: IonInput }) private protocoloInput?: IonInput;
+
+  private readonly destroyRef = inject(DestroyRef);
 
   form!: FormGroup;
   user: User | null = null;
@@ -189,6 +192,9 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
   }
 
   ngOnInit() {
+    this.atendimentoService.identificacaoRefresh$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadForm());
 
     this.loadForm();
 

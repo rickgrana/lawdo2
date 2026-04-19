@@ -21,22 +21,22 @@ export class SecaoAnexo extends Secao{
         let model = this.documento.atendimento;
         let artigo = this.documento.perito.getArtigo();
 
-        let anexos = await this.getImagens();
+        let linhasApendice = await this.getImagens();
 
         return [
             new Paragraph ({
-                style: 'titulo_anexo',
+                style: 'titulo_apendice',
                 pageBreakBefore: true,
                 children: [
                     new TextRun({
-                        text: 'ANEXO I'
+                        text: 'APÊNDICE I'
                         
                     }),
                 ],
             }),
         
             new Table({
-                rows: anexos,
+                rows: linhasApendice,
 
                 width: {
                     size: 100,

@@ -131,8 +131,8 @@ export const ESTILOS_PARAGRAFOS = [
         },
 
         {
-            id: "titulo_anexo",
-            name: "titulo_anexo",
+            id: "titulo_apendice",
+            name: "titulo_apendice",
             basedOn: "titulo",
             paragraph: {
                 alignment: AlignmentType.CENTER

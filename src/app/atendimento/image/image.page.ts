@@ -321,9 +321,10 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
       }
 
       const img = new Image();
-      img.src = URL.createObjectURL(blob);
+      const objectUrl = URL.createObjectURL(blob);
 
       img.onload = async () => {
+        URL.revokeObjectURL(objectUrl);
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d')!;
 
@@ -343,6 +344,14 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
         this.imageSource = src;
         await this.hideLoader();
       };
+
+      img.onerror = async () => {
+        URL.revokeObjectURL(objectUrl);
+        await this.hideLoader();
+        this.presentError('Erro ao exibir o resultado da detecção.');
+      };
+
+      img.src = objectUrl;
     } catch (error: any) {
       await this.hideLoader();
       this.presentError('Erro ao tentar identificar perfurações: ' + error.message);

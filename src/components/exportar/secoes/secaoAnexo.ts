@@ -522,11 +522,11 @@ export class SecaoAnexo extends Secao {
     const paragraphs: Paragraph[] = [];
     var i = 0;
 
-    for (let imagem of imagens) {
-      let promise = this.addParagraph(paragraphs, i, imagem);
-
-      promises.push(promise);
-
+    for (const imagem of imagens) {
+      /** Número reservado já na ordem da galeria; não usar `proximoNumeroFigura` dentro do async,
+       * senão Promise.all numera pela ordem em que cada fetch termina. */
+      const numeroFigura = this.documento.proximoNumeroFigura();
+      promises.push(this.addParagraph(paragraphs, i, imagem, numeroFigura));
       i++;
     }
 
@@ -541,8 +541,8 @@ export class SecaoAnexo extends Secao {
     });
   }
 
-  addParagraph(paragraphs: any[], ordem: number, imagem: any) {
-    return this.getImageParagraph(imagem).then(function (paragraph) {
+  addParagraph(paragraphs: any[], ordem: number, imagem: any, numeroFigura: number) {
+    return this.getImageParagraph(imagem, numeroFigura).then(function (paragraph) {
       paragraphs[ordem] = paragraph;
     });
   }
@@ -563,8 +563,7 @@ export class SecaoAnexo extends Secao {
     return this.total % 2;
   }
 
-  getImageParagraph(imagem: any) {
-    const doc = this.documento;
+  getImageParagraph(imagem: any, numeroFigura: number) {
     return ImageHelper.getBufferFromURL(imagem.imagem).then((buffer) => {
       return ImageHelper.loadFromURL(imagem.imagem)
         .then((img: any) => {
@@ -579,7 +578,7 @@ export class SecaoAnexo extends Secao {
             imagem.legenda,
             (200 * width) / height,
             200,
-            doc.proximoNumeroFigura(),
+            numeroFigura,
           );
         });
     });

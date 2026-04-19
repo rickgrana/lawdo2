@@ -5,19 +5,21 @@ import { Paragraph, TextRun, Footer,
 } 
     from 'docx';
 
+import { ImageHelper } from './helper/imageHelper';
+
 export abstract class Rodape{
 
     static async run(laudo: Documento) {
 
-        const imgRodape = await fetch('/assets/rodape_faixa.png');
-        const imgRodape2 = await fetch('/assets/rodape_texto.png');
+        const dataFaixa = await ImageHelper.getBufferFromURL('/assets/rodape_faixa.png');
+        const dataTexto = await ImageHelper.getBufferFromURL('/assets/rodape_texto.png');
 
         return new Footer({ // The standard default header
             children: [
                 new Paragraph({
                     children: [
                         new ImageRun({
-                            data: await imgRodape.arrayBuffer(),
+                            data: dataFaixa,
                             type: "png",
                             transformation: {
                                 width: 320 * 2,
@@ -25,7 +27,7 @@ export abstract class Rodape{
                             }
                         }),
                         new ImageRun({
-                            data: await imgRodape2.arrayBuffer(),
+                            data: dataTexto,
                             type: "png",
                             transformation: {
                                 width: 370,

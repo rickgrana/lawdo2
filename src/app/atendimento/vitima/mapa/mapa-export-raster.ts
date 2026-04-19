@@ -1,5 +1,6 @@
 import { MapaMarcaPersistida } from './mapa-marcacoes';
 import { criarMarcaSvg, garantirGrupoOverlayMarcas } from './mapa-marca-svg';
+import { ImageHelper } from 'src/components/exportar/helper/imageHelper';
 
 const XLINK_NS = 'http://www.w3.org/1999/xlink';
 
@@ -12,7 +13,7 @@ function resolverUrlAbsoluta(baseDoSvg: string, href: string): string {
     return h;
   }
   if (h.startsWith('/')) {
-    return `${window.location.origin}${h}`;
+    return ImageHelper.resolveUrlForFetch(h);
   }
   return baseDoSvg + h;
 }
@@ -58,7 +59,7 @@ export async function rasterizarMapaVisaoComMarcacoes(
   svgAssetUrl: string,
   marcacoesDaVisao: MapaMarcaPersistida[],
 ): Promise<ArrayBuffer> {
-  const svgAbsoluto = resolverUrlAbsoluta(`${window.location.origin}/`, svgAssetUrl);
+  const svgAbsoluto = resolverUrlAbsoluta(`${document.baseURI}`, svgAssetUrl);
   const resp = await fetch(svgAbsoluto);
   if (!resp.ok) {
     throw new Error(`Não foi possível carregar o croqui: ${svgAssetUrl}`);

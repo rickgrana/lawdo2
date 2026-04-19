@@ -3,6 +3,13 @@
   cursor: zoom-in;
 }
 
+/* Mapas de cabeça são mais baixos que os de corpo — alinhar ao centro na vertical (ex.: mesma linha em md+) */
+.img-container.img-cabeca {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .img-container ion-img {
   width: 100%;
   display: block;

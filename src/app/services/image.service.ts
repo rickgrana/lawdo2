@@ -19,6 +19,11 @@ export class ImageService {
   private rootFolderNameCached: string | null = null;
   /** Pasta filha de `lawdo`: segmento `ano-protocolo` (ex.: `2026-18888`). */
   private readonly anoProtocoloFolderIds = new Map<string, string>();
+  /**
+   * Evita criar pastas duplicadas quando vários uploads rodam em paralelo:
+   * todos aguardam a mesma promise de listar/criar pasta para o mesmo pai+nome.
+   */
+  private readonly folderCreationLocks = new Map<string, Promise<string>>();
 
   constructor() { }
 
@@ -121,6 +126,16 @@ export class ImageService {
   }
 
   /**
+   * Pasta em Meu Drive onde ficam as imagens deste atendimento (mesma lógica do upload).
+   * Ex.: `Meu Drive / lawdo / 2026-18888`.
+   */
+  getDriveImagesLocationLabel(atendimento: Atendimento): string {
+    const root = this.driveRootFolderName();
+    const segment = this.pastaAnoProtocolo(atendimento);
+    return `Meu Drive / ${root} / ${segment}`;
+  }
+
+  /**
    * Se existir subpasta com o nome antigo em Meu Drive (pasta raiz configurável), renomeia para o novo segmento.
    * Falhas de rede/permissão são ignoradas (não interrompem o fluxo).
    */
@@ -182,6 +197,7 @@ export class ImageService {
       this.rootFolderId = null;
       this.rootFolderNameCached = null;
       this.anoProtocoloFolderIds.clear();
+      this.folderCreationLocks.clear();
     }
   }
 
@@ -197,6 +213,7 @@ export class ImageService {
       this.rootFolderNameCached = folderName;
       this.rootFolderId = null;
       this.anoProtocoloFolderIds.clear();
+      this.folderCreationLocks.clear();
     }
   }
 
@@ -231,6 +248,21 @@ export class ImageService {
   }
 
   private async findOrCreateFolder(token: string, parentId: string, name: string): Promise<string> {
+    const lockKey = JSON.stringify([parentId, name]);
+    let pending = this.folderCreationLocks.get(lockKey);
+    if (pending) {
+      return pending;
+    }
+    pending = this.findOrCreateFolderOnce(token, parentId, name).finally(() => {
+      if (this.folderCreationLocks.get(lockKey) === pending) {
+        this.folderCreationLocks.delete(lockKey);
+      }
+    });
+    this.folderCreationLocks.set(lockKey, pending);
+    return pending;
+  }
+
+  private async findOrCreateFolderOnce(token: string, parentId: string, name: string): Promise<string> {
     const esc = this.escapeDriveQueryString(name);
     const parentClause = parentId === 'root'
       ? "'root' in parents"

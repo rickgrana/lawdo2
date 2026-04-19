@@ -55,6 +55,13 @@
         </ion-grid>
     </div>
 
+    <div *ngIf="driveLocationVisible" class="drive-location ion-margin-top">
+        <ion-note color="medium">
+            <p class="drive-location-title">Local no Google Drive</p>
+            <p class="drive-location-path">{{ driveImagesLocationLabel }}</p>
+        </ion-note>
+    </div>
+
     <ion-row class="ion-align-items-center" style="height: 100%">
         <ion-col>
             <div *ngIf="!model.imagens || model.imagens.length == 0" id="txt-imagens">

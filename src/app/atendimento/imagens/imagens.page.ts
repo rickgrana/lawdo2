@@ -1,9 +1,10 @@
 import { Component, inject, OnInit , ViewChild} from '@angular/core';
 import { ImageService } from '../../services/image.service';
 import { AtendimentoBasePage } from '../atendimento-base.page';
+import { imagemEstaNoGoogleDrive } from 'src/app/models/atendimento.model';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonSpinner, IonReorder,
     IonReorderGroup,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonProgressBar } from '@ionic/angular/standalone';
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonProgressBar, IonNote } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FirearmDetectionService } from 'src/app/services/firearm-detection.service';
 
@@ -14,7 +15,7 @@ import { FirearmDetectionService } from 'src/app/services/firearm-detection.serv
   standalone: true,
   imports: [CommonModule,
     IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonReorder,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSpinner, IonReorderGroup, IonProgressBar
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSpinner, IonReorderGroup, IonProgressBar, IonNote
   ]
 })
 export class ImagensPage extends AtendimentoBasePage implements OnInit {
@@ -33,6 +34,18 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
 
   get uploadProgressRatio(): number {
     return this.uploadTotal > 0 ? this.uploadCurrent / this.uploadTotal : 0;
+  }
+
+  /** Pelo menos uma imagem está no Google Drive (não apenas Firebase legado). */
+  get driveLocationVisible(): boolean {
+    return !!this.model?.imagens?.some(imagemEstaNoGoogleDrive);
+  }
+
+  get driveImagesLocationLabel(): string {
+    if (!this.model) {
+      return '';
+    }
+    return this.imageService.getDriveImagesLocationLabel(this.model);
   }
 
   selecionarImagens(){

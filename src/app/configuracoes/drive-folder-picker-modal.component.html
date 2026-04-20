@@ -1,0 +1,83 @@
+<ion-modal [isOpen]="open" (didDismiss)="onModalDismiss()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button fill="clear" (click)="close()">Fechar</ion-button>
+        </ion-buttons>
+        <ion-title>Escolher pasta no Google Drive</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="picker-ion-content">
+      <div class="picker-wrap ion-padding">
+        <p class="picker-hint">
+          A árvore começa em <strong>Meu Drive</strong> (raiz). Em cada pasta vê-se o caminho completo desde essa raiz.
+          Expanda para carregar subpastas; toque numa linha para selecionar e confirme em baixo.
+        </p>
+        <div *ngIf="loadError" class="picker-error">{{ loadError }}</div>
+        <div *ngIf="treeBusy" class="picker-loading">
+          <ion-spinner name="crescent"></ion-spinner>
+          <span>A carregar pastas…</span>
+        </div>
+
+        <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="drive-folder-mat-tree">
+          <mat-nested-tree-node *matTreeNodeDef="let node; when: hasNestedChild" class="picker-branch">
+            <div class="picker-branch-row">
+              <button
+                type="button"
+                class="picker-toggle"
+                matTreeNodeToggle
+                [attr.aria-label]="'Expandir ou recolher ' + node.name"
+              >
+                <span class="picker-chevron">{{ treeControl.isExpanded(node) ? '▼' : '▶' }}</span>
+              </button>
+              <button
+                type="button"
+                class="picker-row picker-row--main"
+                [class.picker-row--selected]="isSelected(node)"
+                (click)="select(node)"
+              >
+                <span class="picker-col">
+                  <span class="picker-name">{{ node.name }}</span>
+                  <span *ngIf="node.pathLabel !== node.name" class="picker-path">{{ node.pathLabel }}</span>
+                </span>
+                <ion-spinner *ngIf="node.loading" class="picker-node-spinner" name="dots"></ion-spinner>
+              </button>
+            </div>
+            <div
+              class="picker-nested-children"
+              [class.picker-nested-children--hidden]="!treeControl.isExpanded(node)"
+              role="group"
+            >
+              <ng-container matTreeNodeOutlet></ng-container>
+            </div>
+          </mat-nested-tree-node>
+
+          <mat-tree-node *matTreeNodeDef="let node" class="picker-leaf">
+            <button
+              type="button"
+              class="picker-row picker-row--leaf"
+              [class.picker-row--selected]="isSelected(node)"
+              (click)="select(node)"
+            >
+              <span class="picker-spacer"></span>
+              <span class="picker-col">
+                <span class="picker-name">{{ node.name }}</span>
+                <span *ngIf="node.pathLabel !== node.name" class="picker-path">{{ node.pathLabel }}</span>
+              </span>
+            </button>
+          </mat-tree-node>
+        </mat-tree>
+
+        <div class="picker-actions ion-padding-top">
+          <ion-button expand="block" fill="outline" color="medium" (click)="emitUseDefault()">
+            Usar padrão ({{ DEFAULT_LABEL }})
+          </ion-button>
+          <ion-button expand="block" color="primary" [disabled]="!selected" (click)="confirmSelection()">
+            Usar esta pasta
+          </ion-button>
+        </div>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal>

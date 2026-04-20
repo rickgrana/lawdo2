@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { AbstractControl, FormArray, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import { trashOutline } from 'ionicons/icons';
@@ -6,7 +6,7 @@ import { Bairros } from 'src/app/extensions/bairroHelper';
 import { Cidades } from 'src/app/extensions/cidadeHelper';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
     IonTextarea, IonListHeader, IonSelect,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, IonIcon, IonNote } from '@ionic/angular/standalone';
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, IonIcon, IonNote, ActionSheetController } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { AtendimentoBasePage } from '../atendimento-base.page';
 import { PresenteNoLocal } from 'src/app/models/atendimento.model';
@@ -42,6 +42,8 @@ function orgaoOutroSeNecessarioValidator(g: AbstractControl): ValidationErrors |
 })
 export class PreservacaoPage extends AtendimentoBasePage implements OnInit {
 
+  private actionSheetController = inject(ActionSheetController);
+
   constructor() {
     super();
     addIcons({ trashOutline });
@@ -70,15 +72,28 @@ export class PreservacaoPage extends AtendimentoBasePage implements OnInit {
     super.loadForm();
   }
 
-  createPresenteGroup(p?: Partial<PresenteNoLocal>): FormGroup {
+  createPresenteGroup(p?: Partial<PresenteNoLocal>, iniciarOrgaoComoOutro = false): FormGroup {
     const o = (p?.orgao ?? '').trim();
     const isPredef = (ORGAOS_PREDEFINIDOS as readonly string[]).includes(o);
+    let orgaoTipoValor: string;
+    let orgaoOutroValor: string;
+    if (iniciarOrgaoComoOutro && !o.length) {
+      orgaoTipoValor = this.ORGAO_OUTRO;
+      orgaoOutroValor = '';
+    } else if (o && isPredef) {
+      orgaoTipoValor = o;
+      orgaoOutroValor = '';
+    } else if (o) {
+      orgaoTipoValor = this.ORGAO_OUTRO;
+      orgaoOutroValor = o;
+    } else {
+      orgaoTipoValor = 'Polícia Civil';
+      orgaoOutroValor = '';
+    }
     return this.formBuilder.group(
       {
-        orgaoTipo: new FormControl<string>(
-          o && isPredef ? o : o ? this.ORGAO_OUTRO : 'Polícia Civil'
-        ),
-        orgaoOutro: new FormControl<string>(isPredef ? '' : o),
+        orgaoTipo: new FormControl<string>(orgaoTipoValor),
+        orgaoOutro: new FormControl<string>(orgaoOutroValor),
         nome: new FormControl<string>(p?.nome ?? '', nomePresenteNaoVazio),
         cargo: new FormControl<string>(p?.cargo ?? ''),
         origem: new FormControl<string>(p?.origem ?? ''),
@@ -104,7 +119,59 @@ export class PreservacaoPage extends AtendimentoBasePage implements OnInit {
     this.adicionarPresenteComPerfil('livre');
   }
 
-  adicionarPresenteComPerfil(perfil: 'livre' | 'pm' | 'delegado' | 'investigador' | 'iml') {
+  async abrirMenuAdicionarPresente() {
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Adicionar presente',
+      buttons: [
+        {
+          text: 'Adicionar PM',
+          icon: 'shield-outline',
+          handler: () => {
+            this.adicionarPresenteComPerfil('pm');
+          }
+        },
+        {
+          text: 'Adicionar Delegado',
+          icon: 'briefcase-outline',
+          handler: () => {
+            this.adicionarPresenteComPerfil('delegado');
+          }
+        },
+        {
+          text: 'Adicionar Investigador',
+          icon: 'search-outline',
+          handler: () => {
+            this.adicionarPresenteComPerfil('investigador');
+          }
+        },
+        {
+          text: 'Adicionar IML',
+          icon: 'flask-outline',
+          handler: () => {
+            this.adicionarPresenteComPerfil('iml');
+          }
+        },
+        {
+          text: 'Adicionar Outros',
+          icon: 'person-add-outline',
+          handler: () => {
+            this.adicionarPresenteComPerfil('outros');
+          }
+        },
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        }
+      ]
+    });
+    await actionSheet.present();
+  }
+
+  adicionarPresenteComPerfil(perfil: 'livre' | 'pm' | 'delegado' | 'investigador' | 'iml' | 'outros') {
+    if (perfil === 'outros') {
+      this.presentesArray.push(this.createPresenteGroup({}, true));
+      return;
+    }
     let preset: Partial<PresenteNoLocal> = {};
     switch (perfil) {
       case 'pm':

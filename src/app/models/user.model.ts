@@ -5,7 +5,10 @@ import { Orgao } from '../models/orgao.model';
 export const DEFAULT_DRIVE_IMAGE_FOLDER = 'lawdo';
 
 export interface UserConfig {
+  /** Nome (ou caminho amigável) da pasta; usado com a raiz em Meu Drive por nome. */
   driveImageFolder?: string;
+  /** Se definido, as subpastas por protocolo criam-se diretamente dentro desta pasta (qualquer profundidade). */
+  driveImageFolderId?: string;
 }
 
 export class UserFields {
@@ -114,10 +117,15 @@ export class User {
     }
     const driveImageFolder =
       typeof raw.driveImageFolder === 'string' ? raw.driveImageFolder.trim() : undefined;
-    if (!driveImageFolder) {
+    const driveImageFolderId =
+      typeof raw.driveImageFolderId === 'string' ? raw.driveImageFolderId.trim() : undefined;
+    if (!driveImageFolder && !driveImageFolderId) {
       return {};
     }
-    return { driveImageFolder };
+    return {
+      ...(driveImageFolder ? { driveImageFolder } : {}),
+      ...(driveImageFolderId ? { driveImageFolderId } : {}),
+    };
   }
 
   static loadFromDb(ref: any, data: any){

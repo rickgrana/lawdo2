@@ -13,10 +13,11 @@ export class ImageService {
 
   private readonly authService = inject(AuthenticationService);
 
-  /** Cache de pastas Drive por sessão (invalidado quando muda o prefixo do token ou o nome da pasta raiz). */
+  /** Cache de pastas Drive por sessão (invalidado quando muda o prefixo do token ou a pasta raiz configurada). */
   private folderCacheTokenPrefix = '';
-  private rootFolderId: string | null = null;
-  private rootFolderNameCached: string | null = null;
+  private rootConfigKeyCached: string | null = null;
+  /** Pasta pai onde entram as subpastas `{ano}-{protocolo}` (ID fixo ou pasta criada/resolvida por nome na raiz). */
+  private rootParentIdResolved: string | null = null;
   /** Pasta filha de `lawdo`: segmento `ano-protocolo` (ex.: `2026-18888`). */
   private readonly anoProtocoloFolderIds = new Map<string, string>();
   /**
@@ -33,8 +34,7 @@ export class ImageService {
     this.invalidateFolderCacheIfNeeded(token);
 
     const anoProtocolo = this.pastaAnoProtocolo(atendimento);
-    const rootName = this.driveRootFolderName();
-    const parentId = await this.ensureAnoProtocoloFolder(token, rootName, anoProtocolo);
+    const parentId = await this.ensureAnoProtocoloFolder(token, anoProtocolo);
     const safeName = fileName.includes('/') ? fileName.replace(/\//g, '-') : fileName;
     const driveName = safeName.toLowerCase().endsWith('.jpg') ? safeName : `${safeName}.jpg`;
 
@@ -130,9 +130,15 @@ export class ImageService {
    * Ex.: `Meu Drive / lawdo / 2026-18888`.
    */
   getDriveImagesLocationLabel(atendimento: Atendimento): string {
-    const root = this.driveRootFolderName();
     const segment = this.pastaAnoProtocolo(atendimento);
-    return `Meu Drive / ${root} / ${segment}`;
+    const u = this.authService.user$.value;
+    const raw = u?.config?.driveImageFolder?.trim();
+    const base =
+      raw && raw.length ? raw : `Meu Drive / ${DEFAULT_DRIVE_IMAGE_FOLDER}`;
+    if (base.startsWith('Meu Drive')) {
+      return `${base} / ${segment}`;
+    }
+    return `Meu Drive / ${base} / ${segment}`;
   }
 
   /**
@@ -148,9 +154,7 @@ export class ImageService {
     try {
       const token = await this.authService.getGoogleDriveAccessToken();
       this.invalidateFolderCacheIfNeeded(token);
-      const rootName = this.driveRootFolderName();
-      this.syncRootFolderCache(rootName);
-      const rootId = await this.ensureRootDriveFolder(token, rootName);
+      const rootId = await this.resolveRootParentId(token);
       const folderId = await this.findFolderIdByName(token, rootId, from);
       if (!folderId) {
         return;
@@ -194,53 +198,73 @@ export class ImageService {
     const prefix = accessToken.slice(0, 16);
     if (prefix !== this.folderCacheTokenPrefix) {
       this.folderCacheTokenPrefix = prefix;
-      this.rootFolderId = null;
-      this.rootFolderNameCached = null;
+      this.rootConfigKeyCached = null;
+      this.rootParentIdResolved = null;
       this.anoProtocoloFolderIds.clear();
       this.folderCreationLocks.clear();
     }
   }
 
-  /** Nome da pasta em Meu Drive onde ficam as subpastas por ano-protocolo (padrão `lawdo`). */
+  /** Chave estável para invalidar cache quando mudar nome ou ID da pasta configurada. */
+  private driveRootConfigKey(): string {
+    const u = this.authService.user$.value;
+    const fid = u?.config?.driveImageFolderId?.trim();
+    if (fid) {
+      return `id:${fid}`;
+    }
+    return `name:${this.driveRootFolderName()}`;
+  }
+
+  /** Nome da pasta diretamente sob Meu Drive quando não há `driveImageFolderId` (padrão `lawdo`). */
   private driveRootFolderName(): string {
     const u = this.authService.user$.value;
     const raw = u?.config?.driveImageFolder?.trim();
     return raw && raw.length ? raw : DEFAULT_DRIVE_IMAGE_FOLDER;
   }
 
-  private syncRootFolderCache(folderName: string): void {
-    if (this.rootFolderNameCached !== folderName) {
-      this.rootFolderNameCached = folderName;
-      this.rootFolderId = null;
+  private syncRootFolderCache(key: string): void {
+    if (this.rootConfigKeyCached !== key) {
+      this.rootConfigKeyCached = key;
+      this.rootParentIdResolved = null;
       this.anoProtocoloFolderIds.clear();
       this.folderCreationLocks.clear();
     }
   }
 
-  /** `lawdo` → `2026-12345` (ano + número do protocolo). */
+  /** Pasta pai das subpastas `{ano}-{protocolo}`: ID configurado ou pasta por nome na raiz. */
+  private async resolveRootParentId(token: string): Promise<string> {
+    const key = this.driveRootConfigKey();
+    this.syncRootFolderCache(key);
+    if (this.rootParentIdResolved) {
+      return this.rootParentIdResolved;
+    }
+    const u = this.authService.user$.value;
+    const configuredId = u?.config?.driveImageFolderId?.trim();
+    if (configuredId) {
+      this.rootParentIdResolved = configuredId;
+      return configuredId;
+    }
+    const name = this.driveRootFolderName();
+    const id = await this.findOrCreateFolder(token, 'root', name);
+    this.rootParentIdResolved = id;
+    return id;
+  }
+
+  /** Dentro da pasta configurada → subpasta `ano-protocolo`. */
   private async ensureAnoProtocoloFolder(
     token: string,
-    rootFolderName: string,
     anoProtocoloSegment: string
   ): Promise<string> {
-    this.syncRootFolderCache(rootFolderName);
+    const key = this.driveRootConfigKey();
+    this.syncRootFolderCache(key);
     const cached = this.anoProtocoloFolderIds.get(anoProtocoloSegment);
     if (cached) {
       return cached;
     }
-    const rootId = await this.ensureRootDriveFolder(token, rootFolderName);
-    const folderId = await this.findOrCreateFolder(token, rootId, anoProtocoloSegment);
+    const rootParentId = await this.resolveRootParentId(token);
+    const folderId = await this.findOrCreateFolder(token, rootParentId, anoProtocoloSegment);
     this.anoProtocoloFolderIds.set(anoProtocoloSegment, folderId);
     return folderId;
-  }
-
-  private async ensureRootDriveFolder(token: string, folderName: string): Promise<string> {
-    if (this.rootFolderId) {
-      return this.rootFolderId;
-    }
-    const id = await this.findOrCreateFolder(token, 'root', folderName);
-    this.rootFolderId = id;
-    return id;
   }
 
   private escapeDriveQueryString(value: string): string {

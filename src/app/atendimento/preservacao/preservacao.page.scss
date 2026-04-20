@@ -38,22 +38,11 @@
 }
 
 .acoes-presentes {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.35rem;
   width: 100%;
   box-sizing: border-box;
 }
 
 .acoes-presentes ion-button {
   width: 100%;
-  min-width: 0;
   margin: 0;
-}
-
-.acoes-presentes ion-button::part(native) {
-  font-size: clamp(0.55rem, 1.65vw, 0.8rem);
-  line-height: 1.15;
-  white-space: normal;
-  padding-inline: 0.2rem;
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { map, take } from 'rxjs/operators';
 import { User } from '../models/user.model';
 import { Observable } from 'rxjs';
-import { doc, getDoc, updateDoc, Timestamp, setDoc } from 'firebase/firestore';
+import { deleteField, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
 import { docData, Firestore } from '@angular/fire/firestore';
 
 
@@ -73,7 +73,23 @@ export class UserService {
   async update(id: string, data: any) {
     const docRef = doc(this.firestore, "users", id);
     return await updateDoc(docRef, data);
-      
+  }
+
+  /**
+   * Atualiza preferência de pasta de imagens no Drive sem substituir o mapa `config` inteiro
+   * (preserva outras chaves). Remove `driveImageFolderId` no Firestore quando `folderId` é null.
+   */
+  async updateDriveImageFolderPreference(
+    uid: string,
+    folderName: string,
+    folderId: string | null
+  ): Promise<void> {
+    const docRef = doc(this.firestore, 'users', uid);
+    const id = folderId?.trim();
+    await updateDoc(docRef, {
+      'config.driveImageFolder': folderName,
+      'config.driveImageFolderId': id ? id : deleteField(),
+    });
   }
 }
 

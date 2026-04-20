@@ -23,7 +23,7 @@ export interface Imagem{
     /**
      * Origem da mídia (implícito):
      * - **Ausente ou vazio** → Firebase Storage legado (`{atendimentoId}/{nome}`).
-     * - **Preenchido** → arquivo no Google Drive (`{pasta configurável}/{ano}-{nº protocolo}/…`, padrão `lawdo/…`), id da API.
+     * - **Preenchido** → arquivo no Google Drive (subpastas `{ano}-{nº protocolo}` dentro da pasta escolhida nas Configurações ou `lawdo` na raiz), id da API.
      */
     driveFileId?: string;
 }

@@ -18,17 +18,19 @@
   <form *ngIf="form && !user.pendingRegistration" [formGroup]="form" (ngSubmit)="salvar()">
     <ion-row>
       <ion-col size="12">
-        <ion-item>
-          <ion-input
-            label="Pasta no Google Drive para imagens"
-            labelPlacement="floating"
-            formControlName="driveImageFolder"
-            autocomplete="off"
-            autocorrect="off"
-          ></ion-input>
+        <ion-item lines="none" class="folder-field-block">
+          <ion-label position="stacked">Pasta no Google Drive para imagens</ion-label>
+          <div class="folder-select-row">
+            <p class="folder-select-text">{{ form.get('folderDisplay')?.value }}</p>
+            <ion-button type="button" size="small" fill="outline" (click)="abrirSeletorPastas()">
+              Escolher pasta…
+            </ion-button>
+          </div>
         </ion-item>
         <ion-note class="ion-margin-horizontal ion-padding-bottom" color="medium">
-          Nome da pasta em Meu Drive (padrão: {{ DEFAULT_DRIVE_IMAGE_FOLDER }}). O aplicativo cria subpastas por ano do protocolo dentro dela.
+          Escolha uma pasta existente no seu Drive ou use o padrão ({{ DEFAULT_DRIVE_IMAGE_FOLDER }}). O app cria
+          subpastas por ano do protocolo dentro da pasta selecionada. Na primeira vez pode ser pedida nova
+          autorização ao Google para listar pastas.
         </ion-note>
       </ion-col>
     </ion-row>
@@ -52,3 +54,10 @@
     </ion-button>
   </ion-toolbar>
 </ion-footer>
+
+<app-drive-folder-picker-modal
+  [open]="seletorPastasAberto"
+  (openChange)="seletorPastasAberto = $event"
+  (confirmed)="aoConfirmarPasta($event)"
+  (useDefault)="aoUsarPastaPadrao()"
+/>

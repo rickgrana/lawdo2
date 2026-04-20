@@ -1,0 +1,130 @@
+.picker-ion-content {
+  --padding-bottom: 24px;
+}
+
+.picker-hint {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  color: var(--ion-color-medium);
+}
+
+.picker-error {
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background: rgba(var(--ion-color-danger-rgb), 0.12);
+  color: var(--ion-color-danger);
+  font-size: 0.875rem;
+}
+
+.picker-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 0.875rem;
+  color: var(--ion-color-medium);
+}
+
+.drive-folder-mat-tree {
+  background: var(--ion-card-background, var(--ion-background-color));
+  border-radius: 8px;
+  border: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08));
+  padding: 8px 0;
+}
+
+.picker-branch-row {
+  display: flex;
+  align-items: stretch;
+  min-height: 44px;
+}
+
+.picker-toggle {
+  flex: 0 0 40px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ion-color-medium);
+  font-size: 12px;
+  align-self: center;
+}
+
+.picker-row {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: var(--ion-text-color);
+}
+
+.picker-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.picker-path {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--ion-color-medium);
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.picker-row:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.picker-row--leaf {
+  padding-left: 52px;
+}
+
+.picker-row--selected {
+  background: rgba(var(--ion-color-primary-rgb), 0.14);
+  color: var(--ion-color-primary);
+}
+
+.picker-spacer {
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.picker-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.picker-node-spinner {
+  width: 22px;
+  height: 22px;
+}
+
+.picker-nested-children {
+  padding-left: 16px;
+}
+
+.picker-nested-children--hidden {
+  display: none;
+}
+
+.picker-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

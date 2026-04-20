@@ -14,6 +14,8 @@ import { UserService } from './services/user.service';
 import { Router } from '@angular/router';
 
 const GOOGLE_DRIVE_FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+/** Lista metadados de pastas para o seletor em Configurações (somente metadados, não o conteúdo dos ficheiros). */
+const GOOGLE_DRIVE_METADATA_READONLY = 'https://www.googleapis.com/auth/drive.metadata.readonly';
 
 /** OAuth access token é persistido aqui para acompanhar a sessão Firebase (IndexedDB/local). `sessionStorage` não é compartilhado entre abas e some ao fechar a aba, o que forçava um segundo popup embora o utilizador já estivesse autenticado. */
 const GOOGLE_AT_KEY = 'lawdo_google_at';
@@ -37,6 +39,7 @@ export class AuthenticationService {
   private readonly googleDriveProvider = (() => {
     const p = new GoogleAuthProvider();
     p.addScope(GOOGLE_DRIVE_FILE_SCOPE);
+    p.addScope(GOOGLE_DRIVE_METADATA_READONLY);
     return p;
   })();
 
@@ -127,6 +130,7 @@ export class AuthenticationService {
     /** Provider próprio para não alterar `googleDriveProvider` global e para sugerir a conta já em uso (menos fricção). */
     const driveProvider = new GoogleAuthProvider();
     driveProvider.addScope(GOOGLE_DRIVE_FILE_SCOPE);
+    driveProvider.addScope(GOOGLE_DRIVE_METADATA_READONLY);
     const email = user.email;
     if (email) {
       driveProvider.setCustomParameters({ login_hint: email });
@@ -204,6 +208,15 @@ export class AuthenticationService {
       sessionStorage.removeItem(GOOGLE_AT_KEY);
       sessionStorage.removeItem(GOOGLE_AT_EXP_KEY);
     } catch { /* ignore */ }
+  }
+
+  /**
+   * Remove o access token OAuth do Google em memória e no storage.
+   * Use quando a API Drive devolver 401/403 (ex.: token antigo sem o scope de listagem).
+   * O próximo `getGoogleDriveAccessToken()` pede novo consentimento.
+   */
+  invalidateGoogleDriveAccessToken(): void {
+    this.clearGoogleDriveToken();
   }
 
   logout() {

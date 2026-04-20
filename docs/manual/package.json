@@ -1,0 +1,12 @@
+{
+  "name": "lawdo-manual-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "screenshots": "node scripts/screenshot-tour.mjs",
+    "screenshots:login": "node scripts/screenshot-tour.mjs --login"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.1"
+  }
+}

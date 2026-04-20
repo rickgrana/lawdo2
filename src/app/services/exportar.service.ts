@@ -28,25 +28,31 @@ export class ExportarService {
   {
   }
 
-  async getLaudo(atendimento: Atendimento, user: User) {
-
+  /**
+   * Gera o .docx do laudo (sem gravar em disco nem no Drive).
+   */
+  async createLaudoBlob(atendimento: Atendimento, user: User): Promise<{ blob: Blob; nomeArquivo: string }> {
     if (!atendimento.fields.laudo.numero || atendimento.fields.laudo.ano.trim() === '') {
       throw new Error('Atendimento não possui número de Laudo definido');
     }
 
     const perito = await this.peritoFactory.create(user);
+    const laudo = await DocumentoFactory.create(atendimento, perito);
+    const blob = await Packer.toBlob(laudo.docx);
+    return { blob, nomeArquivo: laudo.getNomeArquivo() + '.docx' };
+  }
 
-    let laudo = await DocumentoFactory.create(atendimento, perito);
+  /** Baixa o laudo no dispositivo (com som de conclusão, como antes). */
+  async downloadLaudo(atendimento: Atendimento, user: User): Promise<void> {
+    const { blob, nomeArquivo } = await this.createLaudoBlob(atendimento, user);
+    saveAs(blob, nomeArquivo);
+    this.playRing();
+  }
 
-    const packer = new Packer();
-
-    Packer.toBlob(laudo.docx).then(blob => {
-        saveAs(blob, laudo.getNomeArquivo() + '.docx');
-    });
-
-    let audio = new Audio();
+  private playRing(): void {
+    const audio = new Audio();
     audio.src = '/assets/ring.wav';
     audio.load();
-    audio.play();
+    void audio.play();
   }
 }

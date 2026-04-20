@@ -38,7 +38,24 @@ export class ImageService {
     const safeName = fileName.includes('/') ? fileName.replace(/\//g, '-') : fileName;
     const driveName = safeName.toLowerCase().endsWith('.jpg') ? safeName : `${safeName}.jpg`;
 
-    const driveFileId = await this.uploadMultipart(token, parentId, driveName, blobData);
+    const driveFileId = await this.uploadMultipart(token, parentId, driveName, blobData, 'image/jpeg');
+    return { driveFileId };
+  }
+
+  /**
+   * Salva o laudo (.docx) na mesma pasta do Drive das imagens do atendimento (`…/ano-protocolo/`).
+   */
+  async uploadLaudoDocx(atendimento: Atendimento, blob: Blob, fileBaseName: string): Promise<{ driveFileId: string }> {
+    const token = await this.authService.getGoogleDriveAccessToken();
+    this.invalidateFolderCacheIfNeeded(token);
+
+    const anoProtocolo = this.pastaAnoProtocolo(atendimento);
+    const parentId = await this.ensureAnoProtocoloFolder(token, anoProtocolo);
+    const safeName = fileBaseName.includes('/') ? fileBaseName.replace(/\//g, '-') : fileBaseName;
+    const driveName = safeName.toLowerCase().endsWith('.docx') ? safeName : `${safeName}.docx`;
+    const docxMime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+    const driveFileId = await this.uploadMultipart(token, parentId, driveName, blob, docxMime);
     return { driveFileId };
   }
 
@@ -328,7 +345,8 @@ export class ImageService {
     token: string,
     parentId: string,
     fileName: string,
-    blob: Blob
+    blob: Blob,
+    mediaContentType: string
   ): Promise<string> {
     const metadata = { name: fileName, parents: [parentId] };
     const boundary = 'lawdo-' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
@@ -339,7 +357,7 @@ export class ImageService {
       `Content-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}`;
 
     const bodyParts: BlobPart[] = [
-      delimiter + metaPart + delimiter + 'Content-Type: image/jpeg\r\n\r\n',
+      delimiter + metaPart + delimiter + `Content-Type: ${mediaContentType}\r\n\r\n`,
       blob,
       closeDelim
     ];

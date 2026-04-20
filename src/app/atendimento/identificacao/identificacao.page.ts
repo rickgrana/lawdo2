@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonDatetime, IonInput,
     IonSelect, IonIcon, IonSpinner,
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, IonModal, IonDatetimeButton,
+    Platform,
     ViewWillEnter } from '@ionic/angular/standalone';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthenticationService } from 'src/app/authentication.service';
@@ -57,6 +58,7 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
   @ViewChild('protocoloInput', { read: IonInput }) private protocoloInput?: IonInput;
 
   private readonly destroyRef = inject(DestroyRef);
+  private readonly platform = inject(Platform);
 
   form!: FormGroup;
   user: User | null = null;
@@ -813,6 +815,74 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
     return out;
   }
 
+  /**
+   * Texto do alerta quando a geolocalização está bloqueada — varia conforme Ionic Platform
+   * (Capacitor/Cordova, Safari iOS, Chrome Android, desktop).
+   */
+  private mensagemPermissaoLocalizacaoNegada(): string {
+    const manual =
+      '\n\nVocê também pode preencher Latitude e Longitude manualmente nos campos do formulário.';
+
+    const inAppOutroApp =
+      '\n\nSe o link foi aberto dentro de outro aplicativo (WhatsApp, Instagram etc.), use “Abrir no navegador” ou “Abrir no Chrome/Safari”.';
+
+    const hybrid =
+      this.platform.is('capacitor') || this.platform.is('cordova');
+    const mobileWeb = this.platform.is('mobile');
+
+    if (hybrid && this.platform.is('android')) {
+      return (
+        'O Android não permitiu o acesso à localização neste aplicativo.\n\n' +
+          'Configurações → Apps → este app → Permissões → Localização → Permitir (ou “Somente ao usar o app”). Volte e toque de novo no ícone de localização.' +
+          manual
+      );
+    }
+
+    if (hybrid && this.platform.is('ios')) {
+      return (
+        'O iOS não permitiu o acesso à localização neste aplicativo.\n\n' +
+          'Ajustes → desça até o nome deste app → Localização → “Ao usar o app” ou “Sempre”. Depois volte ao app e use o botão de localização de novo.' +
+          manual
+      );
+    }
+
+    if (this.platform.is('ios')) {
+      return (
+        'O Safari não permitiu o uso da localização neste site.\n\n' +
+          'Para permitir: toque em “AA” na barra de endereço → Configurações dos sites → Localização → Permitir; ou em Ajustes → Privacidade e Segurança → Localização → Safari Websites e ajuste o modo para este site.' +
+          (mobileWeb ? inAppOutroApp : '') +
+          manual
+      );
+    }
+
+    if (this.platform.is('android')) {
+      return (
+        'O navegador não permitiu o uso da localização neste site.\n\n' +
+          'No Chrome (ou navegador Android): toque no cadeado ou no “i” ao lado do endereço → Permissões ou Configurações do site → Localização → Permitir. Volte e use o botão de localização de novo.' +
+          (mobileWeb ? inAppOutroApp : '') +
+          manual
+      );
+    }
+
+    return (
+      'O navegador não permitiu o uso da localização neste site.\n\n' +
+        'Clique no cadeado ou no ícone de informações ao lado do endereço, abra Permissões / Configurações do site, defina Localização como Permitir e use o botão de localização novamente (Chrome, Edge ou Firefox).' +
+        manual
+    );
+  }
+
+  /**
+   * Geolocalização negada pelo usuário ou pelo navegador — mensagem acionável por plataforma.
+   */
+  private async alertPermissaoLocalizacaoNegada(): Promise<void> {
+    await this.messageService.presentAlert(
+      'Localização bloqueada',
+      '',
+      this.mensagemPermissaoLocalizacaoNegada(),
+      [{ text: 'OK', role: 'cancel' }],
+    );
+  }
+
   async obterLocalizacao(): Promise<void> {
     if (this.form.disabled) {
       return;
@@ -822,6 +892,31 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
         'Geolocalização não é suportada neste navegador.',
       );
       return;
+    }
+
+    if (typeof globalThis.isSecureContext !== 'undefined' && !globalThis.isSecureContext) {
+      await this.messageService.presentAlert(
+        'Página sem HTTPS',
+        '',
+        'A localização do navegador só funciona em conexão segura (HTTPS). Acesse o sistema pelo endereço https do site.',
+        [{ text: 'OK', role: 'cancel' }],
+      );
+      return;
+    }
+
+    try {
+      const permissions = navigator.permissions;
+      if (permissions?.query) {
+        const status = await permissions.query({
+          name: 'geolocation' as PermissionName,
+        });
+        if (status.state === 'denied') {
+          await this.alertPermissaoLocalizacaoNegada();
+          return;
+        }
+      }
+    } catch {
+      /* Alguns navegadores não implementam Permissions API para geolocalização. */
     }
 
     this.loadingGeolocalizacao = true;
@@ -853,10 +948,12 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
       },
       async (err) => {
         this.loadingGeolocalizacao = false;
-        let msg = 'Não foi possível obter a localização.';
         if (err.code === 1) {
-          msg = 'Permissão de localização negada.';
-        } else if (err.code === 2) {
+          await this.alertPermissaoLocalizacaoNegada();
+          return;
+        }
+        let msg = 'Não foi possível obter a localização.';
+        if (err.code === 2) {
           msg = 'Localização indisponível.';
         } else if (err.code === 3) {
           msg = 'Tempo esgotado ao obter a localização.';

@@ -1,6 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 /** Linha SISREX: chaves = textos da primeira linha da planilha (colunas extras incluídas). */
 export type SisrexOcorrencia = Record<string, string | null>;
@@ -31,6 +32,23 @@ export class PlanilhaService {
     return this.http
       .get<DadosProtocolo>(this.apiUrl, {
         params: { valor: ano + '-' + protocolo }
-      });
+      })
+      .pipe(
+        catchError((err: unknown) => {
+          const httpErr = err as HttpErrorResponse;
+          if (httpErr.status === 404) {
+            return of(null);
+          }
+          const body = httpErr.error as { error?: string } | undefined;
+          const apiMsg = body?.error ?? '';
+          if (
+            httpErr.status === 500 &&
+            apiMsg.includes('Protocolo não encontrado')
+          ) {
+            return of(null);
+          }
+          return throwError(() => err);
+        }),
+      );
   }
 }

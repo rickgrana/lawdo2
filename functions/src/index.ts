@@ -252,7 +252,7 @@ export const buscarDadosProtocolo = onRequest(
         }
       }
 
-      res.status(500).json({
+      res.status(404).json({
         error: "Protocolo não encontrado",
       });
     } catch (error) {

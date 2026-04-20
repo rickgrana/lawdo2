@@ -15,7 +15,7 @@ import { ToastController } from '@ionic/angular/standalone';
 import { LoadingController } from '@ionic/angular/standalone';
 import { AtendimentoService } from '../../services/atendimento.service';
 import { AuthenticationService } from 'src/app/authentication.service';
-import { arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline, flask, refreshOutline } from 'ionicons/icons';
+import { arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline, flask, refreshOutline, downloadOutline, logoGoogle } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { IonGrid, IonList, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonBadge, IonNote,
     IonRow, IonCol, IonLabel, IonInfiniteScroll, IonInfiniteScrollContent, IonIcon, IonButton, IonItem, IonBackButton } from '@ionic/angular/standalone';
@@ -62,7 +62,7 @@ export class AtendimentoVisualizarPage implements OnInit {
     private messageService: MessageService,
     private cdr: ChangeDetectorRef
     ) {
-      addIcons({ arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline, flask, refreshOutline });
+      addIcons({ arrowBack, clipboard, pin, create, print, calendar, checkmarkCircle, car, images, documentOutline, lockOpenOutline, flask, refreshOutline, downloadOutline, logoGoogle });
     }
 
   get model() {
@@ -225,10 +225,10 @@ export class AtendimentoVisualizarPage implements OnInit {
     });
   }
 
-  async presentAlertSalvo(msg: string) {
+  async presentAlertSalvo(msg: string, durationMs = 2000) {
     const alert = await this.toastController.create({
       message: msg,
-      duration: 2000
+      duration: durationMs
     });
 
     await alert.present();
@@ -287,20 +287,65 @@ export class AtendimentoVisualizarPage implements OnInit {
     }, 500);
   }
 
-  async exportar(){
-    this.presentLoading('Gerando Laudo...');
+  async abrirExportarLaudo(): Promise<void> {
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Exportar Laudo',
+      buttons: [
+        {
+          text: 'Baixar o Laudo',
+          icon: 'download-outline',
+          handler: () => {
+            void this.exportarBaixar();
+          }
+        },
+        {
+          text: 'Salvar no Google Drive',
+          icon: 'logo-google',
+          handler: () => {
+            void this.exportarParaGoogleDrive();
+          }
+        },
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        }
+      ]
+    });
+    await actionSheet.present();
+  }
 
-    try{
-      await this.exportarService.getLaudo(this.model!, this.user!);
-    } catch(error: any){
+  private async exportarBaixar(): Promise<void> {
+    await this.presentLoading('Gerando Laudo...');
+    try {
+      await this.exportarService.downloadLaudo(this.model!, this.user!);
+    } catch (error: any) {
       this.hideLoader();
       console.log(error);
-      this.presentError(error!.message);
+      this.presentError(error?.message ?? String(error));
       return;
     }
+    this.hideLoader();
+    this.presentAlertSalvo('Laudo gerado. Baixando...');
+  }
 
+  private async exportarParaGoogleDrive(): Promise<void> {
+    await this.presentLoading('Gerando Laudo...');
+    let nomeArquivo = '';
+    try {
+      const created = await this.exportarService.createLaudoBlob(this.model!, this.user!);
+      nomeArquivo = created.nomeArquivo;
+      await this.presentLoading('Salvando no Google Drive...');
+      await this.imageService.uploadLaudoDocx(this.model!, created.blob, nomeArquivo);
+    } catch (error: any) {
       this.hideLoader();
-      this.presentAlertSalvo('Laudo gerado. Baixando...');
+      console.log(error);
+      this.presentError(error?.message ?? String(error));
+      return;
+    }
+    this.hideLoader();
+    const pasta = this.imageService.getDriveImagesLocationLabel(this.model!);
+    const caminhoCompleto = `${pasta} / ${nomeArquivo}`;
+    this.presentAlertSalvo(`Salvo no Google Drive em:\n${caminhoCompleto}`, 5000);
   }
 
   async showAlert(msg: string){

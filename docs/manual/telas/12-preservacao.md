@@ -1,6 +1,6 @@
 # Preservação e isolamento
 
-## Captura do ecrã
+## Captura da tela
 
 ![Preservação e isolamento](../images/telas/capturas/12-preservacao.png)
 

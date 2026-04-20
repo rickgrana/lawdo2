@@ -1,6 +1,6 @@
 # Editor de uma fotografia
 
-## Captura do ecrã
+## Captura da tela
 
 ![Editor de imagem](../images/telas/capturas/21-imagem-editor.png)
 

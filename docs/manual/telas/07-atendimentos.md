@@ -1,10 +1,12 @@
 # Lista de atendimentos
 
-## Captura do ecrã
+## Captura da tela
 
 ![Lista de atendimentos](../images/telas/capturas/07-atendimentos.png)
 
 É o arquivo dos **casos**: cada linha é um protocolo seu.
+
+A lista carrega **por blocos** (scroll infinito): ao chegar ao fim do que já foi carregado, aparece “Carregando mais dados…” e acrescentam-se mais casos **mais antigos**. O tour de capturas só fotografa o primeiro bloco.
 
 Em cada entrada vê:
 

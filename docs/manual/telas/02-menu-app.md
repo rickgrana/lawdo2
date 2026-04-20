@@ -1,6 +1,6 @@
 # Menu da aplicação
 
-## Captura do ecrã
+## Captura da tela
 
 ![Menu lateral aberto após login](../images/telas/capturas/02-menu-aberto.png)
 

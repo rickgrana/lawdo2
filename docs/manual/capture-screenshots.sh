@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Capturas reais para o manual (Chrome headless no Windows via WSL).
-# 1) Suba o app: npm run start -- --host 127.0.0.1 --port 4200 (Node >= 20.19)
+# 1) Suba o app: ex. ionic serve ou npm run start -- --host 127.0.0.1 --port 8100 (Node >= 20.19)
 # 2) chmod +x docs/manual/capture-screenshots.sh && ./docs/manual/capture-screenshots.sh
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 IMG="$ROOT/docs/manual/images"
 CHR="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
-BASE="${LAWDO_SCREENSHOT_URL:-http://127.0.0.1:4200}"
+BASE="${LAWDO_SCREENSHOT_URL:-http://localhost:8100}"
 
 mkdir -p "$IMG"
 

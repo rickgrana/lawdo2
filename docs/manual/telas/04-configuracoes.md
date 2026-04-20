@@ -10,7 +10,7 @@ Termine com **Salvar** no fundo.
 
 Se o cadastro da sua conta ainda estiver incompleto, pode aparecer um aviso para ir primeiro à **Conta**.
 
-## Captura do ecrã
+## Captura da tela
 
 ![Configurações](../images/telas/capturas/04-configuracoes.png)
 

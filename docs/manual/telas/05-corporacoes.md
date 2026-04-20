@@ -1,6 +1,6 @@
 # Corporações
 
-## Captura do ecrã
+## Captura da tela
 
 ![Corporações](../images/telas/capturas/05-corporacoes.png)
 

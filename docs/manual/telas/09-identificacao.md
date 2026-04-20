@@ -1,6 +1,6 @@
 # Dados básicos do atendimento
 
-## Captura do ecrã
+## Captura da tela
 
 ![Dados básicos (identificação)](../images/telas/capturas/09-identificacao.png)
 

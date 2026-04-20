@@ -1,6 +1,6 @@
 # Fotografias do atendimento
 
-## Captura do ecrã
+## Captura da tela
 
 ![Galeria de imagens (após carregar ficheiros)](../images/telas/capturas/20-imagens.png)
 

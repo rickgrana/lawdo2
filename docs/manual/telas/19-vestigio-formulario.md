@@ -1,6 +1,6 @@
 # Cadastro de vestígio
 
-## Captura do ecrã
+## Captura da tela
 
 ![Formulário de vestígio](../images/telas/capturas/19-vestigio-formulario.png)
 

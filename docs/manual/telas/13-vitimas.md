@@ -1,6 +1,6 @@
 # Lista de vítimas
 
-## Captura do ecrã
+## Captura da tela
 
 ![Lista de vítimas](../images/telas/capturas/13-vitimas.png)
 

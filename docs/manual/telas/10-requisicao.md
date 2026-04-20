@@ -1,6 +1,6 @@
 # Requisição
 
-## Captura do ecrã
+## Captura da tela
 
 ![Requisição e quesitos](../images/telas/capturas/10-requisicao.png)
 

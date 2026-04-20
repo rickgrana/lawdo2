@@ -1,6 +1,6 @@
 # Ficha da vítima
 
-## Captura do ecrã
+## Captura da tela
 
 ![Ficha da vítima](../images/telas/capturas/14-vitima.png)
 

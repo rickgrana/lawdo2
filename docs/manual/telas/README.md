@@ -1,4 +1,4 @@
-# Passo a passo por ecrã
+# Passo a passo por tela
 
 Textos curtos para o **perito** — o que ver em cada parte do Lawdo e que botões usar. Ordem sugerida de leitura segue o fluxo real do trabalho.
 

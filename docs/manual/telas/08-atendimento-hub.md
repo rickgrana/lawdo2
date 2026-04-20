@@ -23,7 +23,7 @@ Os números ao lado (por exemplo vítimas ou vestígios) dizem quantos itens já
 
 **Exportar Laudo** — escolha **Baixar** para ter o Word no aparelho ou **Guardar no Google Drive** para o ficheiro ir para a pasta configurada.
 
-## Captura do ecrã
+## Captura da tela
 
 ![Painel do atendimento](../images/telas/capturas/08-atendimento-hub.png)
 

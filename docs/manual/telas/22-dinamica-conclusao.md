@@ -1,6 +1,6 @@
 # Dinâmica e conclusão
 
-## Captura do ecrã
+## Captura da tela
 
 ![Dinâmica e conclusão](../images/telas/capturas/22-dinamica-conclusao.png)
 

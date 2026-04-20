@@ -1,6 +1,6 @@
 # Local do fato
 
-## Captura do ecrã
+## Captura da tela
 
 ![Local do fato](../images/telas/capturas/11-local.png)
 

@@ -1,10 +1,10 @@
 # Mapa de ferimentos
 
-## Captura do ecrã
+## Captura da tela
 
 ![Mapa de ferimentos](../images/telas/capturas/15-mapa-ferimentos.png)
 
-Ecrã para **marcar no desenho** onde viu cada lesão (corpo inteiro ou vistas da cabeça).
+Tela para **marcar no desenho** onde viu cada lesão (corpo inteiro ou vistas da cabeça).
 
 ## Ferramentas
 

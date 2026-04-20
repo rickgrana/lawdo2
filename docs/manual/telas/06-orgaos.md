@@ -1,6 +1,6 @@
 # Órgãos
 
-## Captura do ecrã
+## Captura da tela
 
 ![Órgãos](../images/telas/capturas/06-orgaos.png)
 

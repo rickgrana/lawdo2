@@ -1,6 +1,6 @@
 # Dados do laudo no sistema
 
-## Captura do ecrã
+## Captura da tela
 
 ![Laudo](../images/telas/capturas/23-laudo.png)
 

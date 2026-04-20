@@ -1,6 +1,6 @@
 # Vestígios
 
-## Captura do ecrã
+## Captura da tela
 
 ![Vestígios](../images/telas/capturas/18-vestigios.png)
 

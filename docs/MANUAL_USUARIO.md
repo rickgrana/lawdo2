@@ -2,9 +2,9 @@
 
 O **Lawdo** ajuda-o a registar um atendimento pericial no local e a gerar o **documento do laudo** em Word, com base no que for preenchendo. Este guia segue a ordem natural do trabalho: **entrar**, **preparar a conta**, **criar o atendimento**, **preencher cada parte**, **numerar o laudo** e **exportar**.
 
-Resumos por ecrã (com imagens quando existirem): [Índice das telas](manual/telas/README.md).
+Resumos por tela (com imagens quando existirem): [Índice das telas](manual/telas/README.md).
 
-**Screenshots:** as figuras por ecrã ficam em `docs/manual/images/telas/capturas/` e são geradas com Playwright — ver [`docs/manual/README.md`](manual/README.md) (`npm run screenshots` após login gravado).
+**Screenshots:** as figuras por tela ficam em `docs/manual/images/telas/capturas/` e são geradas com Playwright — ver [`docs/manual/README.md`](manual/README.md) (`npm run screenshots` após login gravado).
 
 ---
 
@@ -12,7 +12,7 @@ Resumos por ecrã (com imagens quando existirem): [Índice das telas](manual/tel
 
 Abra o Lawdo no navegador (no endereço que a sua instituição lhe indicar).
 
-Na primeira página verá o botão **ENTRAR**. Ao tocar, abre-se a janela da **conta Google**: utilize a conta que lhe foi designada ou aprovada pela gestão. Se aparecer pedido de autorização para aceder ao **Google Drive**, aceite quando quiser usar essa área para fotografias ou para guardar cópias do laudo — sem isso, algumas funções podem ficar limitadas.
+Na primeira página verá o botão **ENTRAR**. Ao tocar, abre-se a janela da **conta Google**: use a **sua conta pessoal** (a do perito), a que quiser associar o Lawdo. Os **dados dos atendimentos** e as **fotografias** recolhidos na aplicação ficam guardados **nessa mesma conta** (incluindo, quando ativo, o armazenamento no **Google Drive** e a ligação à base de dados do serviço). Se surgir pedido de autorização para o **Google Drive**, aceite se for usar pastas do Drive para imagens ou cópias do laudo — sem isso, algumas funções podem ficar limitadas.
 
 Depois de entrar, o menu e os botões principais ficam disponíveis.
 
@@ -22,11 +22,11 @@ Depois de entrar, o menu e os botões principais ficam disponíveis.
 
 ## 2. Primeira vez: completar a sua conta
 
-Se for o primeiro acesso, pode aparecer um aviso para **completar o cadastro**. Abra **Conta** no menu (ícone da sua foto no canto também pode levar lá).
+No **primeiro acesso**, o perito deve **completar o seu perfil**. Abra **Conta** no menu (ícone da sua foto no canto também pode levar lá). Se for o primeiro uso, pode aparecer um aviso ou cartão de **boas-vindas** pedindo esse passo.
 
-Preencha **nome completo**, **matrícula**, **sexo**, **corporação** e, se aparecer, **unidade pericial** e **superior**. Estes dados identificam o perito no documento final. Toque em **Salvar**.
+Preencha **nome completo**, **matrícula**, **sexo**, **corporação** e, se aparecer, **unidade pericial** e **superior**. Estes dados **identificam o perito** e **constam no laudo** gerado pelo Lawdo (como qualificação do signatário), por isso devem estar corretos e atualizados. Toque em **Salvar**.
 
-Sempre que quiser terminar a sessão, use **Sair** no topo do ecrã da Conta.
+Sempre que quiser terminar a sessão, use **Sair** no topo da tela da Conta.
 
 Mais detalhes: [Conta (perfil)](manual/telas/03-conta.md).
 
@@ -34,7 +34,7 @@ Mais detalhes: [Conta (perfil)](manual/telas/03-conta.md).
 
 ## 3. Configurar onde guardar as fotografias
 
-Em **Configurações** (menu lateral), pode indicar **em que pasta do Google Drive** quer que as imagens do atendimento fiquem armazenadas. Toque em **Escolher pasta…** e selecione a pasta desejada; se não alterar, o sistema usa a pasta padrão indicada no texto de ajuda. O Lawdo pode organizar subpastas **por ano do protocolo**.
+Em **Configurações** (menu lateral), pode indicar **em que pasta do Google Drive** (na **mesma conta Google** com que entrou) quer que as imagens do atendimento fiquem armazenadas. Toque em **Escolher pasta…** e selecione a pasta desejada; se não alterar, o sistema usa a pasta padrão indicada no texto de ajuda. O Lawdo pode organizar subpastas **por ano do protocolo**.
 
 Guarde com **Salvar**. Se for a primeira vez a listar pastas, o Google pode pedir **nova autorização** — confirme para poder escolher a pasta.
 
@@ -63,7 +63,7 @@ Em **Atendimentos** (menu ou botão na página inicial), vê todos os casos que 
 
 ## 6. Novo atendimento — dados básicos do exame
 
-Ao iniciar um novo atendimento, começa pelo ecrã **Dados básicos**:
+Ao iniciar um novo atendimento, começa pela tela **Dados básicos**:
 
 - **Tipo de laudo** — escolha o tipo de perícia (lista fixa no sistema).
 - **Ano** e **número do protocolo** — escreva como no expediente. Se existir integração com o sistema de protocolo, pode haver um ícone para **buscar dados** após preencher ano e número.
@@ -81,7 +81,7 @@ Quando estiver correto, use **Avançar** para gravar e seguir.
 
 Depois de escolher um caso na lista, entra no **painel** desse atendimento. No topo vê resumo do tipo de exame, local e data; à direita pode **editar** os dados básicos, **concluir** o atendimento quando tudo estiver fechado, ou **reabrir** se precisar corrigir um caso já concluído (quando permitido).
 
-O corpo do ecrã é uma lista de **secções** — é por aqui que preenche tudo o que vai para o laudo:
+O corpo da tela é uma lista de **secções** — é por aqui que preenche tudo o que vai para o laudo:
 
 Requisição · Local · Preservação · Vítimas · Veículos · Vestígios · Imagens · Dinâmica e conclusão · Laudo.
 
@@ -198,7 +198,7 @@ O Word reúne as secções que preencheu (texto, tabelas, imagens e mapas, confo
 
 ## 20. Concluir ou reabrir um atendimento
 
-Quando o trabalho estiver completo, no painel use **Concluir** para marcar o atendimento como encerrado. Se mais tarde precisar de correções e a sua unidade permitir **reabrir**, use **Reabrir** — os formulários voltam a ficar editáveis. Enquanto o caso estiver **concluído** ou **arquivado**, alguns ecrãs podem impedir alterações para não alterar laudo já protocolado.
+Quando o trabalho estiver completo, no painel use **Concluir** para marcar o atendimento como encerrado. Se mais tarde precisar de correções e a sua unidade permitir **reabrir**, use **Reabrir** — os formulários voltam a ficar editáveis. Enquanto o caso estiver **concluído** ou **arquivado**, algumas telas podem impedir alterações para não alterar laudo já protocolado.
 
 ---
 
@@ -210,7 +210,7 @@ Abra o menu (três riscos ou ícone habitual) para ir a **Início**, **Atendimen
 
 ---
 
-## Onde está cada coisa no ecrã inicial
+## Onde está cada coisa na tela inicial
 
 Antes de entrar, só vê o botão **ENTRAR**. Depois de entrar, na página inicial aparecem **Atendimentos** e **Novo Atendimento**, e no topo o **menu** e o atalho para a **Conta**.
 
@@ -220,4 +220,4 @@ Antes de entrar, só vê o botão **ENTRAR**. Depois de entrar, na página inici
 
 ## Informação para suporte informático
 
-Quem mantém o sistema pode voltar a gerar imagens de exemplo ou atualizar instalações com os scripts na pasta `docs/manual`. Os peritos em geral só precisam do endereço web e de uma conta Google autorizada.
+Quem mantém o sistema pode voltar a gerar imagens de exemplo ou atualizar instalações com os scripts na pasta `docs/manual`. Os peritos em geral só precisam do endereço web e de uma **conta Google** (a que utilizam para entrar e onde ficam os seus dados de trabalho).

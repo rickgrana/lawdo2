@@ -1,6 +1,6 @@
 # Ficha do veículo
 
-## Captura do ecrã
+## Captura da tela
 
 ![Ficha do veículo](../images/telas/capturas/17-veiculo.png)
 

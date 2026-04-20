@@ -4,9 +4,9 @@
 
 ## Antes de entrar
 
-Vê o nome da aplicação e um botão vermelho **ENTRAR**. É por aí que inicia sessão com a **conta Google** que a instituição lhe indicou. Pode aparecer um pedido do Google para permitir o uso do **Drive** — aceite se for usar fotografias ou guardar laudos no Drive.
+Vê o nome da aplicação e um botão vermelho **ENTRAR**. É por aí que inicia sessão com uma **conta Google** — em geral a **conta pessoal do perito**, aquela em que ficam guardados os **atendimentos** e as **imagens** associados ao seu trabalho nesta aplicação. Pode aparecer um pedido do Google para permitir o uso do **Drive** — aceite se for usar fotografias ou guardar laudos no Drive dessa conta.
 
-![Captura do ecrã inicial](../images/telas/capturas/01-inicio.png)
+![Captura da tela inicial](../images/telas/capturas/01-inicio.png)
 
 *(Gerada com o guia Playwright — ver [`docs/manual/README.md`](../README.md). Num telemóvel o aspeto adapta-se, mantendo os mesmos botões.)*
 

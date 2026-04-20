@@ -1,6 +1,6 @@
 # Lista de veículos
 
-## Captura do ecrã
+## Captura da tela
 
 ![Lista de veículos](../images/telas/capturas/16-veiculos.png)
 

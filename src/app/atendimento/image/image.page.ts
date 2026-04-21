@@ -6,7 +6,7 @@ import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFo
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, ActionSheetController, IonSpinner } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { chevronForwardOutline, syncOutline, cutOutline, trash, sparklesOutline, ellipsisVerticalOutline, colorFillOutline } from 'ionicons/icons';
+import { chevronForwardOutline, syncOutline, cutOutline, trash, sparklesOutline, ellipsisVerticalOutline, colorFillOutline, brushOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import 'cropperjs';
 import Cropper from 'cropperjs';
@@ -48,6 +48,8 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
 
 
   @ViewChild("image", { static: true }) public imageElement!: ElementRef<HTMLImageElement>;
+  @ViewChild('drawImage') drawImageElement?: ElementRef<HTMLImageElement>;
+  @ViewChild('drawCanvas') drawCanvasElement?: ElementRef<HTMLCanvasElement>;
 
   @Input("src") public imageSource: string = 'assets/no-image.jpg';
 
@@ -56,10 +58,17 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
   protected bloodstainDetectionService = inject(BloodstainDetectionService);
   private cdr = inject(ChangeDetectorRef);
   private actionSheetController = inject(ActionSheetController);
+  drawEnabled = false;
+  drawColor = '#ff2d55';
+  private drawingActive = false;
+  hasDrawn = false;
+  private drawContext: CanvasRenderingContext2D | null = null;
+  private drawScaleX = 1;
+  private drawImageReady = false;
 
   constructor() {
     super();
-    addIcons({ chevronForwardOutline, syncOutline, cutOutline, trash, sparklesOutline, ellipsisVerticalOutline, colorFillOutline });
+    addIcons({ chevronForwardOutline, syncOutline, cutOutline, trash, sparklesOutline, ellipsisVerticalOutline, colorFillOutline, brushOutline });
   }
 
   async presentImageActions() {
@@ -78,6 +87,13 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
           icon: 'sync-outline',
           handler: () => {
             void this.rotate();
+          }
+        },
+        {
+          text: 'Desenhar',
+          icon: 'brush-outline',
+          handler: () => {
+            this.startDrawing();
           }
         },
         {
@@ -175,6 +191,182 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
 
   destroyCrop(){
       this.cropperEnabled = false;
+  }
+
+  async startDrawing(): Promise<void> {
+    if (!this.imageSource || this.detectionBusy) {
+      return;
+    }
+
+    this.cropperEnabled = false;
+    this.drawEnabled = true;
+    this.hasDrawn = false;
+    this.drawImageReady = false;
+    this.cdr.detectChanges();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    this.configureDrawingCanvas();
+  }
+
+  cancelDrawing(): void {
+    this.drawEnabled = false;
+    this.drawingActive = false;
+    this.hasDrawn = false;
+    this.drawContext = null;
+    this.drawImageReady = false;
+    this.cdr.detectChanges();
+  }
+
+  applyDrawing(): void {
+    if (!this.drawCanvasElement || !this.drawImageElement) {
+      return;
+    }
+
+    const imageEl = this.drawImageElement.nativeElement;
+    const drawingCanvas = this.drawCanvasElement.nativeElement;
+    const outputCanvas = document.createElement('canvas');
+    outputCanvas.width = imageEl.naturalWidth;
+    outputCanvas.height = imageEl.naturalHeight;
+    const outputCtx = outputCanvas.getContext('2d');
+    if (!outputCtx) {
+      return;
+    }
+
+    outputCtx.drawImage(imageEl, 0, 0, outputCanvas.width, outputCanvas.height);
+    outputCtx.drawImage(drawingCanvas, 0, 0, outputCanvas.width, outputCanvas.height);
+    this.imageSource = outputCanvas.toDataURL('image/jpeg', 1);
+    this.cancelDrawing();
+    this.cdr.detectChanges();
+  }
+
+  onDrawImageLoad(): void {
+    this.drawImageReady = true;
+    this.configureDrawingCanvas();
+  }
+
+  private configureDrawingCanvas(): void {
+    if (!this.drawEnabled || !this.drawImageReady || !this.drawCanvasElement || !this.drawImageElement) {
+      return;
+    }
+
+    const imageEl = this.drawImageElement.nativeElement;
+    const canvasEl = this.drawCanvasElement.nativeElement;
+    const width = imageEl.clientWidth;
+    const height = imageEl.clientHeight;
+    if (!width || !height) {
+      return;
+    }
+
+    canvasEl.width = width;
+    canvasEl.height = height;
+    this.drawScaleX = imageEl.naturalWidth / width;
+    const ctx = canvasEl.getContext('2d');
+    if (!ctx) {
+      return;
+    }
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const baseLine = Math.max(2, Math.round((imageEl.naturalWidth / 500) * 3));
+    ctx.lineWidth = baseLine / this.drawScaleX;
+    ctx.strokeStyle = this.drawColor;
+    this.drawContext = ctx;
+  }
+
+  beginDraw(event: PointerEvent): void {
+    if (!this.drawEnabled || !this.drawContext) {
+      return;
+    }
+    const point = this.getCanvasPoint(event);
+    if (!point) {
+      return;
+    }
+    this.drawingActive = true;
+    if (!this.hasDrawn) {
+      this.hasDrawn = true;
+      this.cdr.detectChanges();
+    }
+    this.drawContext.strokeStyle = this.drawColor;
+    this.drawContext.beginPath();
+    this.drawContext.moveTo(point.x, point.y);
+  }
+
+  onDrawColorChange(event: Event): void {
+    const value = (event.target as HTMLInputElement)?.value;
+    if (!value) {
+      return;
+    }
+    this.drawColor = value;
+    if (this.drawContext) {
+      this.drawContext.strokeStyle = value;
+    }
+  }
+
+  draw(event: PointerEvent): void {
+    if (!this.drawingActive || !this.drawContext) {
+      return;
+    }
+    const point = this.getCanvasPoint(event);
+    if (!point) {
+      return;
+    }
+    this.drawContext.lineTo(point.x, point.y);
+    this.drawContext.stroke();
+  }
+
+  endDraw(): void {
+    this.drawingActive = false;
+  }
+
+  startTouchDraw(event: TouchEvent): void {
+    if (!event.touches.length) {
+      return;
+    }
+    event.preventDefault();
+    const touch = event.touches[0];
+    this.beginDraw({
+      clientX: touch.clientX,
+      clientY: touch.clientY
+    } as PointerEvent);
+  }
+
+  moveTouchDraw(event: TouchEvent): void {
+    if (!event.touches.length) {
+      return;
+    }
+    event.preventDefault();
+    const touch = event.touches[0];
+    this.draw({
+      clientX: touch.clientX,
+      clientY: touch.clientY
+    } as PointerEvent);
+  }
+
+  endTouchDraw(event: TouchEvent): void {
+    event.preventDefault();
+    this.endDraw();
+  }
+
+  private getCanvasPoint(event: PointerEvent | TouchEvent): { x: number; y: number } | null {
+    if (!this.drawCanvasElement) {
+      return null;
+    }
+    const rect = this.drawCanvasElement.nativeElement.getBoundingClientRect();
+    let clientX: number;
+    let clientY: number;
+    if ('touches' in event) {
+      const touch = event.touches[0];
+      if (!touch) {
+        return null;
+      }
+      clientX = touch.clientX;
+      clientY = touch.clientY;
+    } else {
+      clientX = event.clientX;
+      clientY = event.clientY;
+    }
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
   }
 
   crop(){

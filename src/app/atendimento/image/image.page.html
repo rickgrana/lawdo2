@@ -8,7 +8,7 @@
 
     <ion-buttons slot="end">
 
-      <ion-button (click)="presentImageActions()" *ngIf="imageLoaded && !cropperEnabled" title="Opções da imagem">
+      <ion-button (click)="presentImageActions()" *ngIf="imageLoaded && !cropperEnabled && !drawEnabled" title="Opções da imagem">
           <ion-icon name="ellipsis-vertical-outline"></ion-icon>
       </ion-button>
 
@@ -18,6 +18,14 @@
 
       <ion-button (click)="destroyCrop()" *ngIf="cropperEnabled">
           <ion-label >Desfazer</ion-label>
+      </ion-button>
+
+      <ion-button (click)="cancelDrawing()" *ngIf="drawEnabled">
+          <ion-label>Cancelar desenho</ion-label>
+      </ion-button>
+
+      <ion-button (click)="applyDrawing()" [disabled]="!hasDrawn" *ngIf="drawEnabled">
+          <ion-label>Aplicar desenho</ion-label>
       </ion-button>
 
       <ion-button (click)="remover()" *ngIf="this.imagem !== null">
@@ -30,7 +38,7 @@
 </ion-header>
 
 <ion-content>
-    <ion-item  *ngIf="!cropperEnabled">
+    <ion-item  *ngIf="!cropperEnabled && !drawEnabled">
       <div class="img-container">
           <img #image [src]="imageSource"  id="imageSource" crossorigin="anonymous"
             alt="Adicionar Imagem" width="100%" height="100%"
@@ -42,7 +50,7 @@
       </div>
     </ion-item>
 
-    <ion-grid  *ngIf="!cropperEnabled">
+    <ion-grid  *ngIf="!cropperEnabled && !drawEnabled">
         <ion-row>
           <ion-col size="12">
             <ion-item>
@@ -51,6 +59,53 @@
           </ion-col>
         </ion-row>
     </ion-grid>
+
+    <div class="draw-container" *ngIf="drawEnabled">
+      <div class="draw-stage">
+        <img
+          #drawImage
+          [src]="imageSource"
+          alt="Imagem para desenhar"
+          class="draw-image"
+          (load)="onDrawImageLoad()"
+        >
+        <canvas
+          #drawCanvas
+          class="draw-canvas"
+          (pointerdown)="beginDraw($event)"
+          (pointermove)="draw($event)"
+          (pointerup)="endDraw()"
+          (pointerleave)="endDraw()"
+          (pointercancel)="endDraw()"
+          (touchstart)="startTouchDraw($event)"
+          (touchmove)="moveTouchDraw($event)"
+          (touchend)="endTouchDraw($event)"
+        ></canvas>
+      </div>
+      <ion-grid class="draw-actions ion-no-padding">
+        <ion-row class="ion-align-items-center draw-color-row">
+          <ion-col size="4">
+            <ion-label>Cor do traço</ion-label>
+          </ion-col>
+          <ion-col size="8" class="draw-color-picker-wrap">
+            <input
+              type="color"
+              class="draw-color-picker"
+              [value]="drawColor"
+              (input)="onDrawColorChange($event)"
+            >
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="6">
+            <ion-button expand="block" color="medium" (click)="cancelDrawing()">Cancelar desenho</ion-button>
+          </ion-col>
+          <ion-col size="6">
+            <ion-button expand="block" color="primary" [disabled]="!hasDrawn" (click)="applyDrawing()">Aplicar desenho</ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
 
     <div class="cropper-container" *ngIf="cropperEnabled">
       <cropper-canvas background style="height: 100%">
@@ -76,6 +131,6 @@
 
 <ion-footer>
   <ion-toolbar>
-      <ion-button expand="block" color="success" (click)="salvar()">Salvar</ion-button>
+      <ion-button expand="block" color="success" (click)="salvar()" [disabled]="drawEnabled">Salvar</ion-button>
   </ion-toolbar>
 </ion-footer>

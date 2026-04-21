@@ -353,6 +353,10 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
               segmentoDriveAnterior,
               novoSeg
             );
+            // Remove snapshot antigo (pode ter ficado com nome anterior após renomear pasta).
+            await this.imageService.deleteAtendimentoJsonSnapshotIfExists(segmentoDriveAnterior, novoSeg);
+            // Caso a pasta antiga ainda exista separada, remove também nela.
+            await this.imageService.deleteAtendimentoJsonSnapshotIfExists(segmentoDriveAnterior, segmentoDriveAnterior);
           }
         }
         await this.hideLoader();

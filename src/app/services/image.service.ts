@@ -60,6 +60,27 @@ export class ImageService {
   }
 
   /**
+   * Grava ou substitui `{ano-protocolo}.json` na mesma pasta das imagens (`…/ano-protocolo/`).
+   */
+  async uploadAtendimentoInformacaoTxt(atendimento: Atendimento, textBody: string): Promise<void> {
+    const token = await this.authService.getGoogleDriveAccessToken();
+    this.invalidateFolderCacheIfNeeded(token);
+
+    const segment = this.pastaAnoProtocolo(atendimento);
+    const parentId = await this.ensureAnoProtocoloFolder(token, segment);
+    const fileName = `${segment}.json`;
+    const safeName = fileName.includes('/') ? fileName.replace(/\//g, '-') : fileName;
+
+    const blob = new Blob([textBody], { type: 'application/json;charset=utf-8' });
+    const existingId = await this.findNonFolderFileIdByName(token, parentId, safeName);
+    if (existingId) {
+      await this.multipartPatchFile(token, existingId, safeName, blob, 'application/json');
+    } else {
+      await this.uploadMultipart(token, parentId, safeName, blob, 'application/json');
+    }
+  }
+
+  /**
    * Para cada imagem: com `driveFileId` válido → Google Drive; caso contrário → Firebase Storage (cadastros antigos).
    */
   async loadAll(atendimento: Atendimento): Promise<void> {
@@ -146,6 +167,20 @@ export class ImageService {
    * Pasta em Meu Drive onde ficam as imagens deste atendimento (mesma lógica do upload).
    * Ex.: `Meu Drive / lawdo / 2026-18888`.
    */
+  /**
+   * Caminho legível até o ficheiro JPG na pasta do atendimento no Drive (`…/lawdo/{ano-protocolo}/{nome}.jpg`).
+   * Quando a imagem não está no Drive, devolve `null`.
+   */
+  buildCaminhoImagemNoDrive(atendimento: Atendimento, imagem: Imagem): string | null {
+    if (!imagemEstaNoGoogleDrive(imagem)) {
+      return null;
+    }
+    const pasta = this.getDriveImagesLocationLabel(atendimento);
+    const nome = imagem.nome.includes('/') ? imagem.nome.replace(/\//g, '-') : imagem.nome;
+    const fileName = nome.toLowerCase().endsWith('.jpg') ? nome : `${nome}.jpg`;
+    return `${pasta} / ${fileName}`.replace(/\s*\/\s*/g, '/');
+  }
+
   getDriveImagesLocationLabel(atendimento: Atendimento): string {
     const segment = this.pastaAnoProtocolo(atendimento);
     const u = this.authService.user$.value;
@@ -196,6 +231,42 @@ export class ImageService {
       this.anoProtocoloFolderIds.set(to, folderId);
     } catch (e) {
       console.warn('Drive (renomear pasta ano-protocolo):', e);
+    }
+  }
+
+  /**
+   * Remove `{jsonSegment}.json` se existir numa subpasta específica (`folderSegment`) dentro da raiz configurada.
+   * Usado quando o protocolo/ano muda, para eliminar o snapshot antigo.
+   */
+  async deleteAtendimentoJsonSnapshotIfExists(jsonSegment: string, folderSegment: string): Promise<void> {
+    const nameSeg = String(jsonSegment ?? '').trim();
+    const folderSeg = String(folderSegment ?? '').trim();
+    if (!nameSeg.length || !folderSeg.length) {
+      return;
+    }
+    try {
+      const token = await this.authService.getGoogleDriveAccessToken();
+      this.invalidateFolderCacheIfNeeded(token);
+      const rootId = await this.resolveRootParentId(token);
+      const folderId = await this.findFolderIdByName(token, rootId, folderSeg);
+      if (!folderId) {
+        return;
+      }
+      const fileName = `${nameSeg}.json`;
+      const fileId = await this.findNonFolderFileIdByName(token, folderId, fileName);
+      if (!fileId) {
+        return;
+      }
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok && res.status !== 404) {
+        const err = await res.text().catch(() => '');
+        console.warn(`Drive (excluir JSON antigo): ${res.status} ${err}`);
+      }
+    } catch (e) {
+      console.warn('Drive (excluir JSON antigo):', e);
     }
   }
 
@@ -381,5 +452,58 @@ export class ImageService {
     }
     const data = await res.json() as { id: string };
     return data.id;
+  }
+
+  private async findNonFolderFileIdByName(token: string, parentId: string, name: string): Promise<string | null> {
+    const esc = this.escapeDriveQueryString(name);
+    const q =
+      `name='${esc}' and '${parentId}' in parents and mimeType!='${FOLDER_MIME}' and trashed=false`;
+    const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`;
+    const listRes = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!listRes.ok) {
+      return null;
+    }
+    const listJson = await listRes.json() as { files?: { id: string }[] };
+    return listJson.files?.[0]?.id ?? null;
+  }
+
+  private async multipartPatchFile(
+    token: string,
+    fileId: string,
+    fileName: string,
+    blob: Blob,
+    mediaContentType: string
+  ): Promise<void> {
+    const metadata = { name: fileName };
+    const boundary = 'lawdo-' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    const delimiter = `\r\n--${boundary}\r\n`;
+    const closeDelim = `\r\n--${boundary}--`;
+
+    const metaPart =
+      `Content-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}`;
+
+    const bodyParts: BlobPart[] = [
+      delimiter + metaPart + delimiter + `Content-Type: ${mediaContentType}\r\n\r\n`,
+      blob,
+      closeDelim
+    ];
+
+    const multipartBody = new Blob(bodyParts, {
+      type: `multipart/related; boundary=${boundary}`
+    });
+
+    const res = await fetch(
+      `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id`,
+      {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+        body: multipartBody
+      }
+    );
+
+    if (!res.ok) {
+      const err = await res.text().catch(() => '');
+      throw new Error(`Drive (atualizar TXT): ${res.status} ${err}`);
+    }
   }
 }

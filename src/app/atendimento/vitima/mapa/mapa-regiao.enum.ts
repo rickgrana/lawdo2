@@ -154,3 +154,25 @@ export function parseMapaRegiao(value: string | null | undefined): MapaRegiao | 
   }
   return (Object.values(MapaRegiao) as string[]).includes(value) ? (value as MapaRegiao) : null;
 }
+
+/** Rótulo legível para TXT/exportação (mapa corporal humano); se não for código conhecido, devolve o texto original. */
+export function nomeRegiaoMapaParaExportacao(value: string | null | undefined): string {
+  const raw = String(value ?? '').trim();
+  if (!raw.length) {
+    return '';
+  }
+  const parsed = parseMapaRegiao(raw);
+  if (!parsed) {
+    return raw;
+  }
+  const s = String(parsed);
+  if (/^\d+D$/.test(s)) {
+    const n = s.slice(0, -1);
+    return `Vista dorsal — região ${n}`;
+  }
+  if (/^\d+E$/.test(s)) {
+    const n = s.slice(0, -1);
+    return `Vista complementar — região ${n}`;
+  }
+  return `Vista frontal — região ${s}`;
+}

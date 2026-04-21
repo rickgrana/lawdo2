@@ -7,6 +7,12 @@ import { Quesito } from '../models/quesito.model';
 import { map } from 'rxjs/operators';
 import { collectionData, Firestore } from '@angular/fire/firestore';
 import { collection, getDocs, limit, orderBy, query, startAfter, where, doc, addDoc, Timestamp, updateDoc, deleteField, DocumentReference } from 'firebase/firestore';
+import { ImageService } from './image.service';
+import { MapaVisao, parseMapaVisao } from '../atendimento/vitima/mapa/mapa-visao.enum';
+import { REGIOES_CABECA_ANTERIOR } from '../const/regioes-cabeca-anterior';
+import { REGIOES_CABECA_LATERAL } from '../const/regioes-cabeca-lateral';
+import { REGIOES_CORPO_FRENTE } from '../const/regioes-corpo-frente';
+import { REGIOES_CORPO_VERSO } from '../const/regioes-corpo-verso';
 import { Conclusao } from '../interfaces/conclusao.interface';
 import { Observable, Subject } from 'rxjs';
 import { PreservacaoService } from './preservacao.service';
@@ -35,7 +41,8 @@ export class AtendimentoService {
   constructor(
     private firestore: Firestore,
     private auth: AuthenticationService,
-    private preservacaoService: PreservacaoService
+    private preservacaoService: PreservacaoService,
+    private imageService: ImageService
   ) {
   }
 
@@ -120,7 +127,7 @@ export class AtendimentoService {
 
     const data = new Date(atendimento.fields.data);
 
-    return await addDoc(atendimentosRef, {
+    const ref = await addDoc(atendimentosRef, {
       perito: atendimento.fields.perito,
       tipoExame: atendimento.fields.tipoExame,
       data: Timestamp.fromDate(data),
@@ -142,6 +149,9 @@ export class AtendimentoService {
       dtcriacao: Timestamp.now(),
       situacao: Atendimento.SIT_ABERTO
     });
+    atendimento.id = ref.id;
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return ref;
   }
 
   async updateIdentificacao(atendimento: Atendimento) {
@@ -151,7 +161,7 @@ export class AtendimentoService {
 
     const data = new Date(atendimento.fields.data);
 
-    return await this.updateSanitizedDoc(atendimentoRef, {
+    const out = await this.updateSanitizedDoc(atendimentoRef, {
       tipoExame: atendimento.fields.tipoExame,
       data: Timestamp.fromDate(data),
       hora: atendimento.fields.hora,
@@ -171,6 +181,8 @@ export class AtendimentoService {
       },
       dtupdate: Timestamp.now()
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
   }
 
   getAtendimentoDoc(id: string) {
@@ -230,10 +242,12 @@ export class AtendimentoService {
       recebimento: atendimento.fields.requisicao.recebimento
     };
 
-    return await this.updateSanitizedDoc(atendimentoRef, {
+    const out = await this.updateSanitizedDoc(atendimentoRef, {
       requisicao: dados,
       dtupdate: Timestamp.now()
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
   }
 
   async updateQuesitos(atendimento: Atendimento) {
@@ -241,19 +255,23 @@ export class AtendimentoService {
 
     let quesitos = atendimento.quesitos.map(q => q.rawData());
     
-    return await this.updateSanitizedDoc(atendimentoRef, {
+    const out = await this.updateSanitizedDoc(atendimentoRef, {
       quesitos,
       dtupdate: Timestamp.now()
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
   }
 
   async updateLocal(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await this.updateSanitizedDoc(atendimentoRef, {
+    const out = await this.updateSanitizedDoc(atendimentoRef, {
       local: atendimento.fields.local,
       dtupdate: Timestamp.now()
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
   }
 
   async updatePreservacao(atendimento: Atendimento) {
@@ -266,6 +284,7 @@ export class AtendimentoService {
       presentes: atendimento.fields.presentes
     });
     await this.preservacaoService.mergeCatalogoComPresentes(atendimento.fields.presentes ?? []);
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
   }
 
   async updateVitimas(atendimento: Atendimento) {
@@ -273,48 +292,58 @@ export class AtendimentoService {
 
     const vitimas = atendimento.fields.vitimas.map(v => v.rawData());
     
-    return await this.updateSanitizedDoc(atendimentoRef, {
+    const out = await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       vitimas
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
   }
 
   async updateConclusao(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await this.updateSanitizedDoc(atendimentoRef, {
+    const out = await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       dinamica: atendimento.fields.dinamica,
       conclusao: atendimento.fields.conclusao
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
   }
 
   async updateLaudo(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await this.updateSanitizedDoc(atendimentoRef, {
+    const out = await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       laudo: atendimento.fields.laudo
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
   }
 
   async updateVeiculos(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await this.updateSanitizedDoc(atendimentoRef, {
+    const out = await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       veiculos: atendimento.fields.veiculos.map(v => v.rawData())
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
   }
 
   async updateVestigios(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     const vestigios = atendimento.fields.vestigios.map((vestigio: any) => this.sanitizeForFirestore(vestigio));
 
-    return await this.updateSanitizedDoc(atendimentoRef, {
+    const out = await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       vestigios
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
   }
 
   private async updateSanitizedDoc(atendimentoRef: any, payload: any) {
@@ -340,32 +369,271 @@ export class AtendimentoService {
     return data === undefined ? null : data;
   }
 
+  private coerceParaDate(val: unknown): Date | null {
+    if (val === null || val === undefined) {
+      return null;
+    }
+    if (typeof val === 'object' && val !== null && Object.keys(val).length === 0) {
+      return null;
+    }
+    if (val instanceof Date && !isNaN(val.getTime())) {
+      return val;
+    }
+    if (typeof val === 'object' && val !== null && 'toDate' in val && typeof (val as Timestamp).toDate === 'function') {
+      try {
+        const d = (val as Timestamp).toDate();
+        return isNaN(d.getTime()) ? null : d;
+      } catch {
+        return null;
+      }
+    }
+    if (typeof val === 'string' && val.trim()) {
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    return null;
+  }
+
+  /** Apenas dia (campos tipo “data do exame”). */
+  private formatSomenteData(val: unknown): string | undefined {
+    const d = this.coerceParaDate(val);
+    if (!d) {
+      return undefined;
+    }
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  /** Dia e hora (criação / atualização). */
+  private formatDataHora(val: unknown): string | undefined {
+    const d = this.coerceParaDate(val);
+    if (!d) {
+      return undefined;
+    }
+    const data = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return `${data} ${hora}`;
+  }
+
+  private mapVitimaParaTxt(vitima: Vitima): Record<string, unknown> {
+    const raw = vitima.rawData() as Record<string, unknown>;
+    const omit = new Set(['condicoes', 'tatuagens', 'tatuagensLista', 'paf_frente', 'paf_costas']);
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(raw)) {
+      if (omit.has(k)) {
+        continue;
+      }
+      out[k] = raw[k];
+    }
+    if (Array.isArray(out['vestigios'])) {
+      out['vestigios'] = (out['vestigios'] as unknown[]).map((item) => this.mapVestigioParaTxt(item));
+    }
+    return out;
+  }
+
+  private mapVestigioParaTxt(v: unknown): Record<string, unknown> {
+    if (v === null || typeof v !== 'object') {
+      return {};
+    }
+    const src = v as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const key of Object.keys(src)) {
+      if (key === 'coordenadas') {
+        continue;
+      }
+      out[key] = src[key];
+    }
+    const regRaw = out['regiao'] ?? out['região'];
+    if (regRaw !== undefined && regRaw !== null && String(regRaw).trim() !== '') {
+      const visaoRaw = out['visao'];
+      out['regiao_nome'] = this.nomeRegiaoComoNaExportacao(visaoRaw, String(regRaw));
+    }
+    return out;
+  }
+
+  /** Mesmo mapeamento textual de região usado na exportação do laudo. */
+  private nomeRegiaoComoNaExportacao(visaoRaw: unknown, regiaoRaw: string): string {
+    const codigoRegiao = String(regiaoRaw ?? '').trim();
+    if (!codigoRegiao.length) {
+      return '';
+    }
+    const visao = parseMapaVisao(String(visaoRaw ?? '').trim());
+
+    if (visao === MapaVisao.CABECA_ANTERIOR) {
+      return REGIOES_CABECA_ANTERIOR.get(codigoRegiao) ?? codigoRegiao;
+    }
+
+    if (visao === MapaVisao.CABECA_LE) {
+      return (
+        REGIOES_CABECA_LATERAL.get(codigoRegiao) ??
+        REGIOES_CABECA_LATERAL.get(`${codigoRegiao}E`) ??
+        codigoRegiao
+      );
+    }
+
+    if (visao === MapaVisao.CABECA_LD) {
+      return (
+        REGIOES_CABECA_LATERAL.get(codigoRegiao) ??
+        REGIOES_CABECA_LATERAL.get(`${codigoRegiao}D`) ??
+        codigoRegiao
+      );
+    }
+
+    if (visao === MapaVisao.CORPO_VERSO) {
+      return REGIOES_CORPO_VERSO.get(codigoRegiao) ?? codigoRegiao;
+    }
+
+    // Sem visão explícita, usa a mesma convenção dominante do laudo (corpo frente).
+    return REGIOES_CORPO_FRENTE.get(codigoRegiao) ?? codigoRegiao;
+  }
+
+  private mapImagensParaTxt(atendimento: Atendimento): Array<{
+    legenda: string;
+    caminho_google_drive?: string;
+    link_download?: string;
+  }> {
+    return atendimento.imagens.map((imagem) => {
+      const caminho = this.imageService.buildCaminhoImagemNoDrive(atendimento, imagem);
+      const id = typeof imagem.driveFileId === 'string' ? imagem.driveFileId.trim() : '';
+      const row: { legenda: string; caminho_google_drive?: string; link_download?: string } = {
+        legenda: imagem.legenda ?? ''
+      };
+      if (caminho) {
+        row.caminho_google_drive = caminho;
+      }
+      if (id.length) {
+        row.link_download = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(id)}`;
+      }
+      return row;
+    });
+  }
+
+  private mapRequisicaoParaTxt(req: Atendimento['fields']['requisicao']): Record<string, unknown> {
+    const recebimentoFmt = this.formatSomenteData(req?.recebimento as unknown);
+    return {
+      recebida: req?.recebida,
+      numero: req?.numero,
+      origem: req?.origem,
+      destino: req?.destino,
+      delegado: req?.delegado,
+      recebimento: recebimentoFmt ?? req?.recebimento,
+      ip: req?.ip
+    };
+  }
+
+  private pruneCamposVazios<T>(value: T): T | undefined {
+    if (value === null || value === undefined) {
+      return undefined;
+    }
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return (trimmed.length ? trimmed : undefined) as T | undefined;
+    }
+    if (Array.isArray(value)) {
+      const arr = value
+        .map((item) => this.pruneCamposVazios(item))
+        .filter((item) => item !== undefined);
+      return (arr.length ? arr : undefined) as T | undefined;
+    }
+    if (typeof value === 'object') {
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+        const cleaned = this.pruneCamposVazios(v);
+        if (cleaned !== undefined) {
+          out[k] = cleaned;
+        }
+      }
+      return (Object.keys(out).length ? out : undefined) as T | undefined;
+    }
+    return value;
+  }
+
+  private buildAtendimentoTxtParaDrive(atendimento: Atendimento): string {
+    const payload: Record<string, unknown> = {
+      data: this.formatSomenteData(atendimento.fields.data),
+      hora: atendimento.fields.hora,
+      tipoExame: atendimento.fields.tipoExame,
+      protocolo: atendimento.fields.protocolo,
+      natureza: atendimento.fields.natureza,
+      endereco: atendimento.fields.endereco,
+      coordenadas: atendimento.fields.coordenadas,
+      laudo: {
+        numero: atendimento.fields.laudo?.numero,
+        ano: atendimento.fields.laudo?.ano,
+        data: this.formatSomenteData(atendimento.fields.laudo?.data as unknown)
+      },
+      possuiRequisicao: atendimento.fields.possuiRequisicao,
+      requisicao: this.mapRequisicaoParaTxt(atendimento.fields.requisicao),
+      local: atendimento.fields.local,
+      presentes: atendimento.fields.presentes,
+      conclusao: atendimento.fields.conclusao,
+      dinamica: atendimento.fields.dinamica,
+      vitimas: atendimento.fields.vitimas.map((v) => this.mapVitimaParaTxt(v)),
+      quesitos: atendimento.quesitos.map((q) => q.rawData()),
+      vestigios: atendimento.fields.vestigios.map((vest) => this.mapVestigioParaTxt(vest)),
+      veiculos: atendimento.fields.veiculos.map((v) => v.rawData()),
+      imagens: this.mapImagensParaTxt(atendimento)
+    };
+
+    const dc = this.formatDataHora(atendimento.fields.dtcriacao);
+    const du = this.formatDataHora(atendimento.fields.dtupdate);
+    if (dc !== undefined) {
+      payload['data_criacao'] = dc;
+    }
+    if (du !== undefined) {
+      payload['Atualizado_em'] = du;
+    }
+
+    const cleaned = this.pruneCamposVazios(payload) ?? {};
+    return JSON.stringify(cleaned, null, 2);
+  }
+
+  /**
+   * Cópia JSON legível em `{ano-protocolo}.txt` na pasta do Drive do atendimento; falhas não impedem o Firestore.
+   */
+  private async mirrorAtendimentoTxtAoDrive(atendimento: Atendimento): Promise<void> {
+    if (!atendimento?.id) {
+      return;
+    }
+    try {
+      const text = this.buildAtendimentoTxtParaDrive(atendimento);
+      await this.imageService.uploadAtendimentoInformacaoTxt(atendimento, text);
+    } catch (e) {
+      console.warn('Drive (cópia TXT dos dados do atendimento):', e);
+    }
+  }
+
   async updateImagens(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await this.updateSanitizedDoc(atendimentoRef, {
+    const out = await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
       imagens: atendimento.imagens
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
   }
 
   async concluir(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
     
-    return await this.updateSanitizedDoc(atendimentoRef, {
+    const out = await this.updateSanitizedDoc(atendimentoRef, {
       situacao: Atendimento.SIT_CONCLUIDO,
       dtconcluido: Timestamp.now()
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
   }
 
   async reabrir(atendimento: Atendimento) {
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
 
-    return await updateDoc(atendimentoRef, {
+    const out = await updateDoc(atendimentoRef, {
       situacao: Atendimento.SIT_ABERTO,
       dtconcluido: deleteField(),
       dtupdate: Timestamp.now()
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
   }
 
   async update(atendimento: Atendimento) {

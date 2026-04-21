@@ -298,7 +298,7 @@ export class SecaoAnexo extends Secao {
     return {
       [MapaTipoVestigio.PAF]: 'PAF (perfuração por arma de fogo)',
       [MapaTipoVestigio.FACA]: 'Instrumento perfuro-cortante',
-      [MapaTipoVestigio.TACO]: 'Instrumento contundente',
+      [MapaTipoVestigio.TACO]: 'CONTUNDENTE',
       [MapaTipoVestigio.HEMATOMA]: 'Hematoma',
     };
   }

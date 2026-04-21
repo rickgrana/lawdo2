@@ -261,7 +261,7 @@ export class SecaoPerinecroVitima extends Secao{
                 ' (' + totalExtenso + ') ' +
                 'les' + (plural ? 'ões' : 'ão') +
                 ' produzida' + (plural ? 's' : '') +
-                ' por instrumento contundente, nas seguintes quantidades e regiões:';
+                ' por instrumento CONTUNDENTE, nas seguintes quantidades e regiões:';
         }
 
         return 'A presença de ' +

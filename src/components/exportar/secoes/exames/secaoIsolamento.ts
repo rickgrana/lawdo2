@@ -1,6 +1,6 @@
 import { SecaoSubExames } from './secaoSubExames'; 
 import { Paragraph, TextRun} from 'docx';
-import { PresenteNoLocal } from 'src/app/models/atendimento.model';
+import { Atendimento, PresenteNoLocal } from 'src/app/models/atendimento.model';
 
 function paragrafoPresenteDocx(p: PresenteNoLocal): Paragraph {
     const nome = (p.nome || '').trim();
@@ -34,6 +34,44 @@ function paragrafoPresenteDocx(p: PresenteNoLocal): Paragraph {
     });
 }
 
+function contarItensListaPresentes(model: Atendimento): number {
+    const presentesList = model.fields.presentes || [];
+    const temPresentesNovos = presentesList.some((p: PresenteNoLocal) =>
+        !!(p.nome?.trim() || p.cargo?.trim() || p.origem?.trim() || p.veiculo?.trim())
+    );
+    if (temPresentesNovos) {
+        return presentesList.filter(
+            (p: PresenteNoLocal) => !!(p.nome?.trim() || p.cargo?.trim() || p.origem?.trim() || p.veiculo?.trim()),
+        ).length;
+    }
+    let n = 0;
+    if (model.fields.equipes.pm.representante.length > 0) {
+        n++;
+    }
+    if (model.fields.equipes.pc.delegado.length > 0 || model.fields.equipes.pc.investigacao.length > 0) {
+        n++;
+    }
+    return n;
+}
+
+/** Introdução da lista de presentes: gênero do perito e número de itens. */
+function textoIntroPresentesNoLocal(artigo: 'o' | 'a', quantidadeItens: number): string {
+    const além =
+        artigo === 'o'
+            ? 'Além do perito oficial, encontravam-se presentes no local dos fatos, no momento da intervenção pericial, '
+            : 'Além da perita oficial, encontravam-se presentes no local dos fatos, no momento da intervenção pericial, ';
+    if (quantidadeItens === 1) {
+        return (
+            além +
+            'a seguinte pessoa/equipe, responsável pela preservação e/ou já presente na área:'
+        );
+    }
+    return (
+        além +
+        'as seguintes pessoas/equipes, responsáveis pela preservação e/ou já presentes na área:'
+    );
+}
+
 export class SecaoIsolamento extends SecaoSubExames{
 
     override getTitulo(){
@@ -50,13 +88,14 @@ export class SecaoIsolamento extends SecaoSubExames{
     override async runInternal(): Promise<any[]> {
 
         let model = this.documento.atendimento;
+        const artigo = this.documento.perito.getArtigo() as 'o' | 'a';
+        const qPresentes = contarItensListaPresentes(model);
 
         let retorno = [
             new Paragraph ({
                 style: 'padrao',
                 children: [
-                    new TextRun({ text: 'Além d' + this.documento.perito.getArtigo() + ' perit' + this.documento.perito.getArtigo() + 
-                        ', estiveram presentes ao local do crime: '})
+                    new TextRun({ text: textoIntroPresentesNoLocal(artigo, qPresentes) })
                 ]
             })
         ];

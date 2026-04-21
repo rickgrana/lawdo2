@@ -35,8 +35,9 @@ export abstract class Rodape{
                             }
                         }),
 
+                        /* art. 12 §1: "X de Y" (Time New Roman 10) */
                         new TextRun({
-                            children: ['\tPágina ', PageNumber.CURRENT, ' de ', PageNumber.TOTAL_PAGES],
+                            children: ['\t', PageNumber.CURRENT, ' de ', PageNumber.TOTAL_PAGES],
                         }),
                     ],
 

@@ -1,4 +1,5 @@
 import { Document } from 'docx';
+import { convertMillimetersToTwip } from 'docx';
 //import { UpdateFields } from 'docx/src/file/settings/update-fields';
 
 import { Atendimento } from 'src/app/models/atendimento.model'; 
@@ -16,16 +17,12 @@ import { SecaoHistorico } from '../secoes/secaoHistorico';
 import { SecaoLocal } from '../secoes/exames/secaoLocal';
 import { SecaoExames } from '../secoes/secaoExames';
 import { SecaoOutros } from '../secoes/secaoOutros';
-import { SecaoDinamica } from '../secoes/secaoDinamica';
 import { SecaoConclusao } from '../secoes/secaoConclusao';
 import { SecaoAssinatura } from '../secoes/secaoAssinatura';
 import { SecaoTitulo } from '../secoes/secaoTitulo';
 import { SecaoRequisicao } from '../secoes/secaoRequisicao';
 import { SecaoQuesitos } from '../secoes/secaoQuesitos';
 import { SecaoAnexo } from '../secoes/secaoAnexo';
-import { AuthenticationService } from 'src/app/authentication.service';
-import { CorporacaoService } from 'src/app/services/corporacao.service';
-import { UnidadeService } from 'src/app/services/unidade.service';
 import { Perito } from '../perito';
 
 export class DocumentoFactory{
@@ -55,13 +52,14 @@ export class DocumentoFactory{
                 {
                     properties: {
                         page: { 
+                            /* Portaria 003/2017-DPTC/AM, art. 5: sup. 1 cm, inf. 2 cm, esq. 3 cm, dir. 1,5 cm */
                             margin: {
-                                header: 1133.144 * 1 / 2,
-                                footer: 1133.144,
-                                left: 1133.144 * 3 / 2,
-                                top: 1133.144 * 1 / 2,
-                                right: 1133.144,
-                                bottom: 1133.144,
+                                top: convertMillimetersToTwip(10),
+                                bottom: convertMillimetersToTwip(20),
+                                left: convertMillimetersToTwip(30),
+                                right: convertMillimetersToTwip(15),
+                                header: convertMillimetersToTwip(10),
+                                footer: convertMillimetersToTwip(20),
                             },
                         },
                     },
@@ -99,11 +97,10 @@ export class DocumentoFactory{
 
         secoes = secoes.concat(await (new SecaoOutros(laudo).run())); 
 
-        secoes = secoes.concat(await (new SecaoDinamica(laudo).run())); 
+        /* art. 14: … conclusão, quesitos e respostas (ordem obrigatória) */
+        secoes = secoes.concat(await (new SecaoConclusao(laudo).run())); 
 
         secoes = secoes.concat(await (new SecaoQuesitos(laudo).run()));
-
-        secoes = secoes.concat(await (new SecaoConclusao(laudo).run())); 
 
         secoes = secoes.concat(await (new SecaoAssinatura(laudo).run())); 
 

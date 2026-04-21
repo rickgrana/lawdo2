@@ -13,28 +13,28 @@ export class SecaoAssinatura extends Secao{
         const textoImagens =
             numImagens === 1 ? '1 imagem' : `${numImagens} imagens`;
 
+        const espacoAntesEncerramentoPt = 16;
+        const twipAntesEncerramento = espacoAntesEncerramentoPt * 20; /* 1 pt = 20 twips (Word) */
+
         return [
             new Paragraph ({
               style: 'padrao',
               keepNext: true,
+              spacing: { before: twipAntesEncerramento },
               children: [
+                /* Portaria 003/2017-DPTC/AM, art. 49 (fecho); total de laudas via campo do Word */
                 new TextRun({
                   text:
-                    'Não havendo mais nada a informar encerra-se o presente Laudo que, ' +
-                    'elaborado em ',
+                    'Nada mais havendo a lavrar, encerra-se o presente Laudo que, elaborado em ',
                 }),
                 new TextRun({
                   children: [PageNumber.TOTAL_PAGES],
                 }),
                 new TextRun({
                   text:
-                    ' laudas devidamente numeradas, contendo ' +
-                    textoImagens +
-                    ', segue assinado pel' +
-                    artigo +
-                    ' signatári' +
-                    artigo +
-                    '.',
+                    ' lauda(s), devidamente numeradas' +
+                    (numImagens > 0 ? ', contendo ' + textoImagens : '') +
+                    ', assinada digitalmente pelo signatário.',
                 }),
               ],
             }),
@@ -44,8 +44,8 @@ export class SecaoAssinatura extends Secao{
               keepNext: true,
               children: [
                 new TextRun({
-                    text: '\n' + this.documento.perito.unidade.cidade + '(' +
-                        this.documento.perito.corporacao.uf + '), ' +
+                    text: '\n' + this.documento.perito.unidade.cidade + '/' +
+                        this.documento.perito.corporacao.uf + ', ' +
                     model.fields.laudo.data.substr(8, 2) + ' de ' +
                     DateTimeHelper.getMesExtenso(model.fields.laudo.data.substr(5, 2)) + ' de ' +
                     model.fields.laudo.data.substr(0, 4) + '\n\n'
@@ -72,7 +72,7 @@ export class SecaoAssinatura extends Secao{
             new Paragraph ({
               style: 'assinatura',
               children: [
-                  new TextRun({ text: 'Matrícula ' + this.documento.perito.data.matricula }),
+                  new TextRun({ text: 'Matrícula: ' + this.documento.perito.data.matricula }),
               ]
             })
         ];

@@ -118,7 +118,11 @@ export class SecaoAnexo extends Secao {
           pageBreakBefore: true,
           children: [
             new TextRun({
-              text: 'APÊNDICE ' + NumberHelper.getRomano(indiceApendice),
+              text: (
+                'APÊNDICE ' +
+                NumberHelper.getRomano(indiceApendice) +
+                ' - REGISTRO FOTOGRÁFICO'
+              ).toLocaleUpperCase('pt-BR'),
             }),
           ],
         }),
@@ -142,6 +146,14 @@ export class SecaoAnexo extends Secao {
         if (obterMarcacoesMapaVitima(vitima).length === 0) {
           continue;
         }
+        const rotuloVitima = 'VÍTIMA ' + NumberHelper.getRomano(i + 1);
+        const tituloApendice = (
+          'APÊNDICE ' +
+          NumberHelper.getRomano(indiceApendice) +
+          ' - ' +
+          rotuloVitima +
+          ': CROQUI DOS VESTÍGIOS'
+        ).toLocaleUpperCase('pt-BR');
         const blocosVitima = await this.getBlocosCroquiUmaVitima(i, vitima);
         blocos.push(
           new Paragraph({
@@ -150,7 +162,7 @@ export class SecaoAnexo extends Secao {
             pageBreakBefore: true,
             children: [
               new TextRun({
-                text: 'APÊNDICE ' + NumberHelper.getRomano(indiceApendice),
+                text: tituloApendice,
               }),
             ],
           }),
@@ -499,18 +511,6 @@ export class SecaoAnexo extends Secao {
     const blocos: any[] = [];
 
     const rotuloVitima = 'VÍTIMA ' + NumberHelper.getRomano(indiceVitima + 1);
-
-    blocos.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        children: [
-          new TextRun({
-            text: (rotuloVitima + ' - Croqui dos vestígios').toLocaleUpperCase('pt-BR'),
-            bold: true,
-          }),
-        ],
-      }),
-    );
 
     let primeiraVisaoComMarcacoes = true;
     for (const visao of ORDEM_VISAO_MAPA) {

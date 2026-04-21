@@ -1,6 +1,9 @@
 import { AlignmentType, TabStopType} from 'docx';
 import { convertMillimetersToTwip } from "docx";
 
+/** Recuo da primeira linha do parágrafo (Portaria 003/2017-DPTC/AM, art. 7): 2,5 cm */
+const RECUO_PRIMEIRA_LINHA_MM = 25;
+
 export const ESTILOS_PARAGRAFOS = [
         {
             id: "numero_laudo",
@@ -10,8 +13,9 @@ export const ESTILOS_PARAGRAFOS = [
             quickFormat: true,
             run: {
                 font: "Times New Roman",
-                size: 24,
-                bold: true,
+                /* art. 11 §3: corpo 11 para "LAUDO Nº …-AAAA" */
+                size: 22,
+                bold: false,
                 color: "000000"
             },
             paragraph: {
@@ -30,11 +34,48 @@ export const ESTILOS_PARAGRAFOS = [
                 size: 24
             },
             paragraph: {
-                indent: { firstLine: 720},
+                indent: { firstLine: convertMillimetersToTwip(RECUO_PRIMEIRA_LINHA_MM)},
                 alignment: AlignmentType.JUSTIFIED,
                 spacing: { line: 360, before: 0, after: 0 },
             },
         } ,
+
+        {
+            id: "quesito_identificacao",
+            name: "quesito_identificacao",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+                font: "Times New Roman",
+                size: 24,
+                bold: true,
+            },
+            paragraph: {
+                indent: { left: convertMillimetersToTwip(RECUO_PRIMEIRA_LINHA_MM), firstLine: 0 },
+                alignment: AlignmentType.JUSTIFIED,
+                spacing: { line: 360, before: 0, after: 180 },
+            },
+        },
+
+        {
+            id: "quesito_resposta",
+            name: "quesito_resposta",
+            basedOn: "Normal",
+            quickFormat: true,
+            run: {
+                font: "Times New Roman",
+                size: 24,
+            },
+            paragraph: {
+                indent: {
+                    left: convertMillimetersToTwip(RECUO_PRIMEIRA_LINHA_MM),
+                    firstLine: 0,
+                },
+                alignment: AlignmentType.JUSTIFIED,
+                spacing: { line: 360, before: 0, after: 0 },
+            },
+        },
 
         {
             id: "data_e_hora",
@@ -97,6 +138,7 @@ export const ESTILOS_PARAGRAFOS = [
             },
             paragraph: {
                 contextualSpacing: true,
+                alignment: AlignmentType.CENTER,
                 indent: { 
                     left: 0
                 },
@@ -174,7 +216,9 @@ export const ESTILOS_PARAGRAFOS = [
             name: "padrao-centralizado",
             basedOn: "padrao",
             paragraph: {
-                alignment: AlignmentType.CENTER
+                alignment: AlignmentType.CENTER,
+                /* não herdar recuo do parágrafo padrão (títulos centrados) */
+                indent: { firstLine: 0, left: 0 },
             },
         },
 

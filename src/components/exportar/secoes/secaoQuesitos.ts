@@ -1,6 +1,4 @@
-import { Secao } from '../secao'; 
-
-import { Paragraph, TextRun, PageNumber} from 'docx';
+import { Paragraph, TextRun } from 'docx';
 import { SecaoNumerada } from '../secaoNumerada';
 
 export class SecaoQuesitos extends SecaoNumerada{
@@ -15,44 +13,28 @@ export class SecaoQuesitos extends SecaoNumerada{
 
     override async runInternal(): Promise<any[]> {
 
-        let model = this.documento.atendimento;
-        let artigo = this.documento.perito.getArtigo();
-
-        let secoes = [
-    
-            new Paragraph ({
-              style: 'padrao',
-              children: [
-                  new TextRun({
-                      text: 'Em resposta aos quesitos constantes da Requisição de Perícia supracitada, ' + 
-                        artigo + ' Perit' + artigo + ' Criminal responde:'
-                  }),
-              ],
-            })
-        ];
+        let secoes: any[] = [];
     
         let index = 0;
-        let items = new Map();
     
-        // items = await data.getQuesitosArray();
-    
-        await this.documento.atendimento.quesitos.forEach(async (item) => {
+        this.documento.atendimento.quesitos.forEach((item) => {
           index = index + 1;
     
           secoes = secoes.concat([
               new Paragraph ({
-                  style: 'padrao',
+                  style: 'quesito_identificacao',
                   keepNext: true,
                   children: [
-                      new TextRun({ text: '"' + index + ') ' + item.pergunta + '"', bold: true})
+                      /* art. 14 §3 I: quesito na íntegra, em negrito, entre aspas */
+                      new TextRun({ text: '"' + item.pergunta + '"', bold: true}),
                   ]
               }),
     
               new Paragraph ({
-                style: 'padrao',
+                style: 'quesito_resposta',
+                spacing: { after: index < this.documento.atendimento.quesitos.length ? 360 : 0 },
                 children: [
-                    new TextRun('Resposta: '),
-                    new TextRun(item.resposta)
+                    new TextRun(item.resposta ?? ''),
                 ]
               })
           ]);

@@ -27,8 +27,9 @@ export class SecaoPreambulo extends Secao{
                         'e com os dispositivos regulamentares vigentes, pelo(a) Diretor(a) '
                     ),
 
+                    /* art. 15 §1: nomes em maiúsculas, sem negrito */
                     new TextRun({
-                        text: this.documento.perito.data.superior.toUpperCase(), bold: true
+                        text: this.documento.perito.data.superior.toUpperCase(),
                     }),
 
                     new TextRun(
@@ -36,7 +37,7 @@ export class SecaoPreambulo extends Secao{
                     ),
 
                     new TextRun({
-                    text: this.documento.perito.data.nomeCompleto.toUpperCase(),  bold: true
+                    text: this.documento.perito.data.nomeCompleto.toUpperCase(),
                     }),
 
                     new TextRun(

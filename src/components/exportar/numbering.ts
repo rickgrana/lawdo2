@@ -14,9 +14,11 @@ export const NUMBERING =
                 format: LevelFormat.UPPER_ROMAN,
                 text: "%1 - ",
                 suffix: LevelSuffix.NOTHING,
-                alignment: AlignmentType.START,
+                /* Portaria 003/2017-DPTC/AM, art. 20: indicativo da seção centralizado */
+                alignment: AlignmentType.CENTER,
                 style: {
                     paragraph: {
+                        alignment: AlignmentType.CENTER,
                         indent: { 
                             left: convertMillimetersToTwip(0),
                             hanging: convertMillimetersToTwip(0) 

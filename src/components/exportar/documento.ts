@@ -8,7 +8,8 @@ export class Documento{
     public atendimento: Atendimento;
     public perito: Perito;
     public secoes: Secao[] = [];
-    public capitulos = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+    /** Capítulos romanos para seções primárias (Portaria 003/2017-DPTC/AM, art. 19 e 23). */
+    public capitulos = ['I', 'II', 'III', 'IV', 'V'];
 
     private contadorFigura = 0;
 
@@ -26,8 +27,15 @@ export class Documento{
         return this.perito.corporacao.nome;
     }
 
+    /**
+     * Portaria 003/2017-DPTC/AM, art. 11 §§3–4: LAUDO Nº cinco dígitos, hífen, ano quatro dígitos.
+     */
     getNumeroLaudo(){
-        return this.atendimento.fields.laudo.numero + '/' + this.atendimento.fields.laudo.ano;
+        const num = String(this.atendimento.fields.laudo.numero ?? '').replace(/\D/g, '');
+        const ano = String(this.atendimento.fields.laudo.ano ?? '').trim();
+        const ano4 = ano.length >= 4 ? ano.slice(-4) : ano.padStart(4, '0');
+        const cinco = num.padStart(5, '0');
+        return `${cinco}-${ano4}`;
     }
 
     getConteudo(){

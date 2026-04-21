@@ -5,7 +5,7 @@ import { AtendimentoBasePage } from '../atendimento-base.page';
 import { imagemEstaNoGoogleDrive } from 'src/app/models/atendimento.model';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonSpinner, IonReorder,
     IonReorderGroup,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonProgressBar, IonNote,
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonNote,
     Platform, ActionSheetController } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FirearmDetectionService } from 'src/app/services/firearm-detection.service';
@@ -17,7 +17,7 @@ import { FirearmDetectionService } from 'src/app/services/firearm-detection.serv
   standalone: true,
   imports: [CommonModule,
     IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonReorder,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSpinner, IonReorderGroup, IonProgressBar, IonNote
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSpinner, IonReorderGroup, IonNote
   ]
 })
 export class ImagensPage extends AtendimentoBasePage implements OnInit {
@@ -31,14 +31,11 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
 
   reorder = false;
 
-  /** Upload em lote: barra e contagem (apenas quando há mais de um arquivo). */
-  uploadInProgress = false;
-  uploadCurrent = 0;
-  uploadTotal = 0;
+  /** Fotos tiradas pela câmera aguardam até o utilizador indicar que não quer capturar mais. */
+  private pendingCameraFiles: File[] = [];
 
-  get uploadProgressRatio(): number {
-    return this.uploadTotal > 0 ? this.uploadCurrent / this.uploadTotal : 0;
-  }
+  /** True durante resize/upload/update no Drive (uma ou várias imagens). Desativa o botão Adicionar. */
+  imagesProcessing = false;
 
   /** Pelo menos uma imagem está no Google Drive (não apenas Firebase legado). */
   get driveLocationVisible(): boolean {
@@ -61,6 +58,9 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
   }
 
   async selecionarImagens(): Promise<void> {
+    if (this.imagesProcessing) {
+      return;
+    }
     if (this.shouldOfferSourceChoice()) {
       const sheet = await this.actionSheetController.create({
         header: 'Adicionar imagens',
@@ -142,105 +142,127 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
   }
 
   async onSelectGallery(event: Event): Promise<void> {
-    await this.processSelectedFiles(event, false);
-  }
-
-  async onSelectCamera(event: Event): Promise<void> {
-    await this.processSelectedFiles(event, true);
-  }
-
-  private async processSelectedFiles(event: Event, fromCamera: boolean): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = input.files;
-
     if (!files?.length || !this.model) {
       input.value = '';
       return;
     }
+    const list = Array.from(files);
+    input.value = '';
+    await this.uploadFilesBatch(list);
+  }
 
-    const filesAmount = files.length;
-    const showBatchProgress = filesAmount > 1;
+  async onSelectCamera(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!files?.length || !this.model) {
+      input.value = '';
+      return;
+    }
+    this.pendingCameraFiles.push(...Array.from(files));
+    input.value = '';
+    await this.promptCaptureAnotherPhoto();
+  }
 
-    if (showBatchProgress) {
-      this.uploadTotal = filesAmount;
-      this.uploadCurrent = 0;
-      this.uploadInProgress = true;
-    } else {
-      await this.presentLoading();
+  /** Redimensiona, envia ao Drive e regista na lista (galeria ou fila da câmera já concluída). */
+  private async uploadFilesBatch(files: File[]): Promise<void> {
+    if (!files.length || !this.model) {
+      return;
     }
 
-    let addedCount = 0;
+    const filesAmount = files.length;
 
+    this.imagesProcessing = true;
     try {
-      const imagens: Array<{ src: string; nome: string; driveFileId: string } | null> =
-        new Array(filesAmount).fill(null);
+      await this.presentLoading(`Carregando 0/${filesAmount}`);
 
-      await Promise.all(
-        Array.from(files, (file, i) =>
-          (async () => {
-            try {
-              const dataUrl = await this.readFileAsDataURL(file);
-              const { base64, blob } = await this.resizeImage(dataUrl as string, 500);
-              const nome = `${Date.now()}-${i}-${Math.random().toString(36).slice(2, 9)}`;
+      try {
+        const imagens: Array<{ src: string; nome: string; driveFileId: string } | null> =
+          new Array(filesAmount).fill(null);
 
-              const { driveFileId } = await this.imageService.upload(this.model!, nome, blob);
-              imagens[i] = { src: base64, nome, driveFileId };
-            } catch (error: any) {
-              console.error(error);
-              await this.presentError(error?.message ?? String(error));
-            } finally {
-              if (showBatchProgress) {
-                this.uploadCurrent++;
+        let completed = 0;
+        await Promise.all(
+          Array.from(files, (file, i) =>
+            (async () => {
+              try {
+                const dataUrl = await this.readFileAsDataURL(file);
+                const { base64, blob } = await this.resizeImage(dataUrl as string, 500);
+                const nome = `${Date.now()}-${i}-${Math.random().toString(36).slice(2, 9)}`;
+
+                const { driveFileId } = await this.imageService.upload(this.model!, nome, blob);
+                imagens[i] = { src: base64, nome, driveFileId };
+              } catch (error: any) {
+                console.error(error);
+                await this.presentError(error?.message ?? String(error));
+              } finally {
+                completed++;
+                this.setLoadingProgress(completed, filesAmount);
               }
-            }
-          })()
-        )
-      );
+            })()
+          )
+        );
 
-      for (const img of imagens) {
-        if (!img) {
-          continue;
+        for (const img of imagens) {
+          if (!img) {
+            continue;
+          }
+          this.model.imagens.push({
+            imagem: img.src,
+            legenda: '',
+            nome: img.nome,
+            colunas: 0,
+            driveFileId: img.driveFileId
+          });
         }
-        addedCount++;
-        this.model.imagens.push({
-          imagem: img.src,
-          legenda: '',
-          nome: img.nome,
-          colunas: 0,
-          driveFileId: img.driveFileId
-        });
-      }
 
-      await this.atendimentoService.updateImagens(this.model);
-    } catch (error: any) {
-      console.error(error);
-      await this.presentError(error?.message ?? String(error));
-    } finally {
-      input.value = '';
-      this.uploadInProgress = false;
-      if (!showBatchProgress) {
+        await this.atendimentoService.updateImagens(this.model);
+      } catch (error: any) {
+        console.error(error);
+        await this.presentError(error?.message ?? String(error));
+      } finally {
         await this.hideLoader();
       }
-      if (fromCamera && addedCount > 0 && filesAmount === 1) {
-        await this.promptCaptureAnotherPhoto();
-      }
+    } finally {
+      this.imagesProcessing = false;
     }
   }
 
-  /** No iOS/WebView uma captura devolve só um ficheiro; perguntamos para repetir e somar várias fotos. */
+  private setLoadingProgress(completed: number, total: number): void {
+    if (this.loading) {
+      this.loading.message = `Carregando ${completed}/${total}`;
+    }
+  }
+
+  private async flushPendingCameraFiles(): Promise<void> {
+    const batch = this.pendingCameraFiles;
+    if (!batch.length) {
+      return;
+    }
+    this.pendingCameraFiles = [];
+    await this.uploadFilesBatch(batch);
+  }
+
+  /** Após cada captura: Sim abre de novo; Não processa todas as fotos acumuladas. */
   private async promptCaptureAnotherPhoto(): Promise<void> {
     const alert = await this.alertController.create({
       header: 'Capturar mais?',
-      message: 'Deseja tirar ou adicionar outra foto pela câmera?',
+      message: 'Deseja tirar ou adicionar outra foto pela câmera? As fotos só serão enviadas quando terminar.',
       buttons: [
-        { text: 'Não', role: 'cancel' },
         {
           text: 'Sim',
           handler: () => {
             setTimeout(() => document.getElementById('inputCamera')?.click(), 150);
           }
+        },
+        {
+          text: 'Não',
+          handler: () => {
+            void this.flushPendingCameraFiles();
+          }
         }
-      ]
+      ],
+      backdropDismiss: false
     });
     await alert.present();
   }

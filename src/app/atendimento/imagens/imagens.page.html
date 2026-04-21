@@ -17,11 +17,6 @@
 </ion-header>
 
 <ion-content class="ion-padding" *ngIf="model">
-    <div *ngIf="uploadInProgress" class="upload-progress-banner">
-        <ion-progress-bar [value]="uploadProgressRatio"></ion-progress-bar>
-        <p class="upload-progress-text">Enviando imagens: {{ uploadCurrent }} de {{ uploadTotal }}</p>
-    </div>
-
     <div *ngIf="reorder && model!.imagens && model!.imagens.length > 0">
         <ion-reorder-group #reorderGroup (ionItemReorder)="doReorder($event)" disabled="false">
             <ion-reorder *ngFor="let item of model!.imagens; let i = index">
@@ -64,8 +59,8 @@
 
     <ion-row class="ion-align-items-center" style="height: 100%">
         <ion-col>
-            <div *ngIf="!model.imagens || model.imagens.length == 0" id="txt-imagens">
-                Nenhuma imagem cadastrada para este caso. 
+            <div *ngIf="(!model.imagens || model.imagens.length === 0) && !imagesProcessing" id="txt-imagens">
+                Nenhuma imagem cadastrada para este caso.
             </div>
         </ion-col>
     </ion-row>
@@ -83,7 +78,8 @@
         <ion-grid class="ion-no-padding">
             <ion-row class="ion-padding-horizontal ion-padding-bottom">
                 <ion-col size="12">
-                    <ion-button (click)="selecionarImagens()" color="primary" expand="block" title="Selecionar Vários">
+                    <ion-button (click)="selecionarImagens()" color="primary" expand="block"
+                                title="Selecionar Vários" [disabled]="imagesProcessing">
                         Adicionar Imagem(ns)
                     </ion-button>
                 </ion-col>

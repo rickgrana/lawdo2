@@ -325,7 +325,7 @@ export class AtendimentoVisualizarPage implements OnInit {
       return;
     }
     this.hideLoader();
-    this.presentAlertSalvo('Laudo gerado. Baixando...');
+    await this.showAlert('Documento gerado. Por favor, Lembre-se de revisa-lo e fazer as devidas complementações');
   }
 
   private async exportarParaGoogleDrive(): Promise<void> {
@@ -345,7 +345,7 @@ export class AtendimentoVisualizarPage implements OnInit {
     this.hideLoader();
     const pasta = this.imageService.getDriveImagesLocationLabel(this.model!);
     const caminhoCompleto = `${pasta} / ${nomeArquivo}`;
-    this.presentAlertSalvo(`Salvo no Google Drive em:\n${caminhoCompleto}`, 5000);
+    await this.showAlert(`Documento gerado. Por favor, Lembre-se de revisa-lo e fazer as devidas complementações\nSalvo no Google Drive em:\n${caminhoCompleto}`);
   }
 
   async showAlert(msg: string){

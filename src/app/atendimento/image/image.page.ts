@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, Input, ElementRef, inject, CUSTOM_ELEMENTS_SCHEMA  } from '@angular/core';
+import { Component, OnInit, ViewChild, Input, ElementRef, inject, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef } from '@angular/core';
 import { AtendimentoBasePage } from '../atendimento-base.page';
 import { ImageService } from 'src/app/services/image.service';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonInput,
@@ -44,6 +44,7 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
   /** Overlay sobre a imagem durante deteção remota (arma / manchas). */
   detectionBusy = false;
   detectionMessage = '';
+  private detectionResultObjectUrl: string | null = null;
 
 
   @ViewChild("image", { static: true }) public imageElement!: ElementRef<HTMLImageElement>;
@@ -53,6 +54,7 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
   protected imageService = inject(ImageService);
   protected firearmDetectionService = inject(FirearmDetectionService);
   protected bloodstainDetectionService = inject(BloodstainDetectionService);
+  private cdr = inject(ChangeDetectorRef);
   private actionSheetController = inject(ActionSheetController);
 
   constructor() {
@@ -79,10 +81,10 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
           }
         },
         {
-          text: 'Identificar perfurações',
+          text: 'Identificar PAF no tórax',
           icon: 'sparkles-outline',
           handler: () => {
-            void this.firearmDetection();
+            void this.confirmFirearmDetection();
           }
         },
         {
@@ -346,22 +348,58 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
     this.model!.imagens.splice(index, 1);
   }
 
-  private beginDetection(message: string): void {
+  private async beginDetection(message: string): Promise<void> {
     this.detectionMessage = message;
     this.detectionBusy = true;
+    this.cdr.detectChanges();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   }
 
-  private finishDetection(): void {
+  private async finishDetection(): Promise<void> {
     this.detectionBusy = false;
     this.detectionMessage = '';
+    this.cdr.detectChanges();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  }
+
+  private async applyDetectionResultImage(blob: Blob): Promise<void> {
+    const nextObjectUrl = URL.createObjectURL(blob);
+    this.detectionResultObjectUrl = nextObjectUrl;
+
+    this.imageSource = nextObjectUrl;
+    this.cdr.detectChanges();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  }
+
+  private async confirmFirearmDetection(): Promise<void> {
+    const alert = await this.alertController.create({
+      backdropDismiss: false,
+      header: 'Confirmação',
+      message: 'A identificação de perfurações por arma de fogo deve ser realizada em imagem que contenha apenas a região anterior do tórax da vítima. Deseja continuar?',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Continuar',
+          handler: () => {
+            void this.firearmDetection();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
   async firearmDetection() {
-    this.beginDetection('Identificando perfurações...');
+    await this.beginDetection('Identificando perfurações...');
 
     try {
       const response = await this.firearmDetectionService.detect(this.imageSource);
       const blob = response.blob;
+      let detectionResultMessage = '';
 
       if (this.legenda.length > 0) {
         this.legenda = this.legenda + ' - ';
@@ -370,52 +408,33 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
       const q = response.quantidade;
       if (q === 0) {
         this.legenda = this.legenda + 'Nenhuma perfuração por arma de fogo detectada';
+        detectionResultMessage = 'Nenhuma perfuração foi identificada. Verifique se a imagem contém apenas a região do tórax e tente novamente';
       } else if (q === 1) {
         this.legenda = this.legenda + '1 perfuração por arma de fogo detectada';
+        detectionResultMessage = 'Identificação concluída. As marcações indicam o grau de certeza da IA em sua identificação.';
       } else {
         this.legenda = this.legenda + `${q} perfurações por arma de fogo detectadas`;
+        detectionResultMessage = 'Identificação concluída. As marcações indicam o grau de certeza da IA em sua identificação.';
       }
+      this.cdr.detectChanges();
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
-      const img = new Image();
-      const objectUrl = URL.createObjectURL(blob);
-
-      img.onload = async () => {
-        URL.revokeObjectURL(objectUrl);
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d')!;
-
-        // mantém proporção
-        const targetHeight = 500;
-        const scale = targetHeight / img.height;
-        const targetWidth = img.width * scale;
-
-        canvas.width = targetWidth;
-        canvas.height = targetHeight;
-
-        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-        // JPEG base64
-        const src = canvas.toDataURL('image/jpeg', 0.9);
-
-        this.imageSource = src;
-        this.finishDetection();
-      };
-
-      img.onerror = async () => {
-        URL.revokeObjectURL(objectUrl);
-        this.finishDetection();
-        this.presentError('Erro ao exibir o resultado da detecção.');
-      };
-
-      img.src = objectUrl;
+      try {
+        await this.applyDetectionResultImage(blob);
+        await this.finishDetection();
+        await this.presentAlertSalvo(detectionResultMessage);
+      } catch (error: any) {
+        await this.finishDetection();
+        this.presentError('Erro ao exibir o resultado da detecção: ' + error.message);
+      }
     } catch (error: any) {
-      this.finishDetection();
+      await this.finishDetection();
       this.presentError('Erro ao tentar identificar perfurações: ' + error.message);
     }
   }
 
   async bloodstainDetection() {
-    this.beginDetection('Identificando manchas de sangue...');
+    await this.beginDetection('Identificando manchas de sangue...');
 
     try {
       const response = await this.bloodstainDetectionService.detect(this.imageSource);
@@ -454,18 +473,18 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
         const src = canvas.toDataURL('image/jpeg', 0.9);
 
         this.imageSource = src;
-        this.finishDetection();
+        await this.finishDetection();
       };
 
       img.onerror = async () => {
         URL.revokeObjectURL(objectUrl);
-        this.finishDetection();
+        await this.finishDetection();
         this.presentError('Erro ao exibir o resultado da detecção.');
       };
 
       img.src = objectUrl;
     } catch (error: any) {
-      this.finishDetection();
+      await this.finishDetection();
       this.presentError('Erro ao tentar identificar manchas de sangue: ' + error.message);
     }
   }

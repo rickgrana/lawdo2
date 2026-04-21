@@ -13,8 +13,9 @@
             <ion-row>
                 <ion-col  size-sm="12" size-md="12">
                     <ion-list>
-                        <ion-list-header position="floating" color="light">
-                            Identificação
+                        <ion-list-header class="secao-titulo secao-titulo--identificacao" position="floating">
+                            <ion-icon class="secao-titulo-icone" name="id-card-outline" aria-hidden="true"></ion-icon>
+                            <span class="secao-titulo-texto">Identificação</span>
                         </ion-list-header>
                         <ion-row>
                             <ion-col  size-xs="12" size-md="12">
@@ -87,8 +88,9 @@
             <ion-row>
                 <ion-col  size-sm="12" size-md="12">
                     <ion-list>
-                        <ion-list-header position="floating" color="light">
-                            Características Físicas
+                        <ion-list-header class="secao-titulo secao-titulo--caracteristicas" position="floating">
+                            <ion-icon class="secao-titulo-icone" name="body-outline" aria-hidden="true"></ion-icon>
+                            <span class="secao-titulo-texto">Características Físicas</span>
                         </ion-list-header>
                     </ion-list>
                 </ion-col>
@@ -236,18 +238,21 @@
                         <ion-input #localizacao
                             label="Localização"
                             labelPlacement="floating"
-                            placeholder="Descreva aonde o corpo se situava no local" formControlName="localizacao"></ion-input>
+                            placeholder="Descreva aonde o corpo se situava no local" formControlName="localizacao">                        </ion-input>
                     </ion-item>
                 </ion-col>
+            </ion-row>
 
-                <ion-col  size-sm="12" size-md="12">
-                    <ion-list>
-                        <ion-list-header position="floating" color="light">
-                                Vestimentas
+            <ion-row class="secao-form-largura-total">
+                <ion-col size="12">
+                    <ion-list class="secao-form-lista-cheia">
+                        <ion-list-header class="secao-titulo secao-titulo--vestimentas" position="floating">
+                                <ion-icon class="secao-titulo-icone" name="shirt-outline" aria-hidden="true"></ion-icon>
+                                <span class="secao-titulo-texto">Vestimentas</span>
                         </ion-list-header>
 
-                        <ion-row>
-                            <ion-col  size-xs="12" size-md="6">
+                        <ion-row class="secao-form-largura-total">
+                            <ion-col size="12" size-md="6">
                                 <ion-item>
                                     <ion-input
                                         label="Vestimenta inferior"
@@ -256,7 +261,7 @@
                                 </ion-item>
                             </ion-col>
 
-                            <ion-col  size-xs="12" size-md="6">
+                            <ion-col size="12" size-md="6">
                                 <ion-item>
                                     <ion-input
                                         label="Vestimenta Superior"
@@ -265,7 +270,7 @@
                                 </ion-item>
                             </ion-col>
 
-                            <ion-col  size-xs="12" size-md="6">
+                            <ion-col size="12" size-md="6">
                                 <ion-item>
                                     <ion-input
                                         label="Calçados"
@@ -274,7 +279,7 @@
                                 </ion-item>
                             </ion-col>
 
-                            <ion-col  size-xs="12" size-md="6">
+                            <ion-col size="12" size-md="6">
                                 <ion-item>
                                     <ion-input
                                         label="Cabeça"
@@ -285,59 +290,110 @@
                         </ion-row>
                     </ion-list>
                 </ion-col>
+            </ion-row>
 
-                <ion-list-header position="floating" color="light">
-                    Perinecroscopia
-                </ion-list-header>
-
-                <ion-col  size="12">
-                    <ion-item>
-                        <ion-textarea
-                            label="Condições"
-                            labelPlacement="floating"
-                            formControlName="condicoes">
-                        </ion-textarea>
-                    </ion-item>
-                </ion-col>
-
+            <ion-row class="secao-form-largura-total">
                 <ion-col size="12">
-                    <ion-item>
-                        <ion-textarea
-                            label="Pertences"
-                            labelPlacement="floating"
-                            formControlName="pertences"
-                            placeholder="Você pode digitar 'nada' caso queira informar que a vítima não tinha pertences.">
-                        </ion-textarea>
-                    </ion-item>
+                    <ion-list-header class="secao-titulo secao-titulo--pertences" position="floating">
+                        <ion-icon class="secao-titulo-icone" name="bag-handle-outline" aria-hidden="true"></ion-icon>
+                        <span class="secao-titulo-texto">Pertences</span>
+                    </ion-list-header>
+                    <div formArrayName="pertencesItems">
+                        <ion-row *ngFor="let _ of pertencesItems.controls; let i = index" [formGroupName]="i" class="presente-bloco">
+                            <ion-col size="12" class="presente-toolbar">
+                                <ion-button type="button" fill="clear" color="danger" size="small" (click)="removerPertence(i)" [attr.aria-label]="'Remover pertence ' + (i + 1)">
+                                    <ion-icon name="trash-outline" slot="start"></ion-icon>
+                                    Remover
+                                </ion-button>
+                            </ion-col>
+                            <ion-col size="12" size-md="2">
+                                <ion-item>
+                                    <ion-input
+                                        type="number"
+                                        inputmode="numeric"
+                                        min="1"
+                                        label="Quantidade"
+                                        labelPlacement="floating"
+                                        formControlName="quantidade">
+                                    </ion-input>
+                                </ion-item>
+                            </ion-col>
+                            <ion-col size="12" size-md="10">
+                                <ion-item>
+                                    <ion-input
+                                        label="Descrição"
+                                        labelPlacement="floating"
+                                        formControlName="descricao"
+                                        placeholder="Ex.: bolsa de couro; use 'nada' se não houver pertences">
+                                    </ion-input>
+                                </ion-item>
+                            </ion-col>
+                        </ion-row>
+                    </div>
+                    <ion-row>
+                        <ion-col size="12" class="acoes-presentes">
+                            <ion-button type="button" fill="outline" size="small" expand="block" (click)="adicionarPertence()">
+                                Adicionar pertence
+                            </ion-button>
+                        </ion-col>
+                    </ion-row>
                 </ion-col>
+            </ion-row>
 
-                <ion-col  size="12">
-                    <ion-item>
-                        <ion-textarea
-                            label="Tatuagens"
-                            labelPlacement="floating"
-                            formControlName="tatuagens"
-                            placeholder="Informe as regiões das tatuagens, separando-as por vírgulas">
-                        </ion-textarea>
-                    </ion-item>
-                </ion-col>
-                <ion-col  size="12">
-                    <ion-item>
-                        <ion-textarea
-                            label="Observações"
-                            labelPlacement="floating"
-                            formControlName="observacoes"
-                            placeholder="Utilize ponto-e-vírgula para separar diferentes anotações">
-                        </ion-textarea>
-                    </ion-item>
+            <ion-row class="secao-form-largura-total">
+                <ion-col size="12">
+                    <ion-list-header class="secao-titulo secao-titulo--tatuagens" position="floating">
+                        <ion-icon class="secao-titulo-icone" name="color-palette-outline" aria-hidden="true"></ion-icon>
+                        <span class="secao-titulo-texto">Tatuagens</span>
+                    </ion-list-header>
+                    <div formArrayName="tatuagensItems">
+                        <ion-row *ngFor="let _ of tatuagensItems.controls; let i = index" [formGroupName]="i" class="presente-bloco">
+                            <ion-col size="12" class="presente-toolbar">
+                                <ion-button type="button" fill="clear" color="danger" size="small" (click)="removerTatuagem(i)" [attr.aria-label]="'Remover tatuagem ' + (i + 1)">
+                                    <ion-icon name="trash-outline" slot="start"></ion-icon>
+                                    Remover
+                                </ion-button>
+                            </ion-col>
+                            <ion-col size="12" size-md="4">
+                                <ion-item>
+                                    <ion-select
+                                        label="Região"
+                                        labelPlacement="floating"
+                                        formControlName="regiao"
+                                        okText="Selecionar"
+                                        cancelText="Fechar">
+                                        <ion-select-option *ngFor="let regiao of regioesTatuagem" [value]="regiao">{{ regiao }}</ion-select-option>
+                                    </ion-select>
+                                </ion-item>
+                            </ion-col>
+                            <ion-col size="12" size-md="8">
+                                <ion-item>
+                                    <ion-input
+                                        label="Descrição"
+                                        labelPlacement="floating"
+                                        formControlName="descricao"
+                                        placeholder="Ex.: desenho tribal preto">
+                                    </ion-input>
+                                </ion-item>
+                            </ion-col>
+                        </ion-row>
+                    </div>
+                    <ion-row>
+                        <ion-col size="12" class="acoes-presentes">
+                            <ion-button type="button" fill="outline" size="small" expand="block" (click)="adicionarTatuagem()">
+                                Adicionar tatuagem
+                            </ion-button>
+                        </ion-col>
+                    </ion-row>
                 </ion-col>
             </ion-row>
         </ion-grid>
 
         <ion-grid>
             <ion-row>
-                <ion-list-header position="floating" color="light">
-                    Ferimentos
+                <ion-list-header class="secao-titulo secao-titulo--ferimentos" position="floating">
+                    <ion-icon class="secao-titulo-icone" name="bandage-outline" aria-hidden="true"></ion-icon>
+                    <span class="secao-titulo-texto">Ferimentos</span>
                 </ion-list-header>
                 <ion-col size-xs="4" size-md="2" class="img-container img-cabeca">
                     <ion-item (click)="abrirMapa(MapaVisao.CABECA_LD)">
@@ -363,6 +419,25 @@
                     <ion-item (click)="abrirMapa(MapaVisao.CORPO_VERSO)">
                         <ion-img src="/assets/mapas/corpo-verso/corpo-verso.png" title="Corpo (Verso)"></ion-img>
                     </ion-item>      
+                </ion-col>
+            </ion-row>
+
+            <ion-row class="secao-form-largura-total">
+                <ion-col size="12">
+                    <ion-list-header class="secao-titulo secao-titulo--outras" position="floating">
+                        <ion-icon class="secao-titulo-icone" name="document-text-outline" aria-hidden="true"></ion-icon>
+                        <span class="secao-titulo-texto">Outras informações</span>
+                    </ion-list-header>
+                </ion-col>
+                <ion-col size="12">
+                    <ion-item>
+                        <ion-textarea
+                            label="Observações"
+                            labelPlacement="floating"
+                            formControlName="observacoes"
+                            placeholder="Utilize ponto-e-vírgula para separar diferentes anotações">
+                        </ion-textarea>
+                    </ion-item>
                 </ion-col>
             </ion-row>
         </ion-grid>

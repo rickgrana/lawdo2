@@ -1,7 +1,7 @@
 import { Secao } from '../../secao'; 
 import { Paragraph, TextRun} from 'docx';
 import { NumberHelper } from 'src/app/extensions/numberHelper';
-import { Vitima } from 'src/app/models/vitima.model';
+import { formatarPertenceParaLaudo, obterPertencesItensParaDocumento, obterTatuagensItensParaDocumento, Vitima } from 'src/app/models/vitima.model';
 import { MapaTipoVestigio } from 'src/app/atendimento/vitima/mapa/mapa-ferramenta.enum';
 import { MapaVisao } from 'src/app/atendimento/vitima/mapa/mapa-visao.enum';
 import { REGIOES_CABECA_ANTERIOR } from 'src/app/const/regioes-cabeca-anterior';
@@ -73,9 +73,10 @@ export class SecaoPerinecroVitima extends Secao{
         }
 
         // PERTENCES DA VITIMA
-        if(this.vitima.pertences.length > 0){
+        const pertencesLista = obterPertencesItensParaDocumento(this.vitima);
+        if(pertencesLista.length > 0){
 
-            if(this.vitima.pertences.trim().toUpperCase() == 'NADA'){
+            if(pertencesLista.length === 1 && pertencesLista[0].descricao.trim().toUpperCase() == 'NADA'){
                 retorno = retorno.concat([
                     new Paragraph ({
                         style: 'Normal',
@@ -105,7 +106,7 @@ export class SecaoPerinecroVitima extends Secao{
                     })
                 ]);
 
-                this.vitima.pertences.split(",").forEach((pertence) => {
+                pertencesLista.forEach((pertence) => {
                     retorno = retorno.concat([
                         new Paragraph ({
                             style: 'Normal',
@@ -114,7 +115,7 @@ export class SecaoPerinecroVitima extends Secao{
                             },
                             children: [
                                 new TextRun({
-                                    text: pertence.trim().toUpperCase()
+                                    text: formatarPertenceParaLaudo(pertence)
                                 }),
                                 new TextRun(';')
                             ],
@@ -126,57 +127,48 @@ export class SecaoPerinecroVitima extends Secao{
 
 
         // TATUAGENS DA VITIMA
-        if(this.vitima.tatuagens.length > 0){
-
-            const qtde = this.vitima.tatuagens.split(",").length;
-
-            if(qtde == 1){
-                retorno = retorno.concat([
-                    new Paragraph ({
-                        style: 'Normal',
-                        bullet: {
-                            level: 0,
-                        },
-                        children: [
-                            new TextRun({
-                                text: 'A presença de TATUAGEM ' + this.vitima.tatuagens,
-                            }),
-                        ],
-                    })
-                ]);
-            }else{
-
-                retorno = retorno.concat([
-                    new Paragraph ({
-                        style: 'Normal',
-                        bullet: {
-                            level: 0,
-                        },
-                        children: [
-                            new TextRun({
-                                text: 'A presença de TATUAGEM nas seguintes regiões:'
-                            }),
-                        ],
-                    })
-                ]);
-             
-                this.vitima.tatuagens.split(",").forEach((tatoo) => {
-                    retorno = retorno.concat([
-                        new Paragraph ({
-                            style: 'Normal',
-                            bullet: {
-                                level: 1,
-                            },
-                            children: [
-                                new TextRun({
-                                    text: tatoo.trim().toUpperCase()
-                                }),
-                                new TextRun(';')
-                            ],
+        const tatuagensLista = obterTatuagensItensParaDocumento(this.vitima);
+        if(tatuagensLista.length > 0){
+            retorno = retorno.concat([
+                new Paragraph ({
+                    style: 'Normal',
+                    bullet: {
+                        level: 0,
+                    },
+                    children: [
+                        new TextRun({
+                            text: 'A presença das seguintes TATUAGENS na vítima:'
                         }),
-                    ]);
-                });
-            }
+                    ],
+                })
+            ]);
+         
+            tatuagensLista.forEach((item) => {
+                const regiao = item.regiao.trim();
+                const descricao = item.descricao.trim();
+                let linha = '';
+                if (regiao.length > 0 && descricao.length > 0) {
+                    linha = descricao.toUpperCase() + ', NA REGIÃO ' + this.getPreposicaoRegiao(regiao) + ' ' + regiao.toUpperCase();
+                } else if (regiao.length > 0) {
+                    linha = 'NA REGIÃO ' + this.getPreposicaoRegiao(regiao) + ' ' + regiao.toUpperCase();
+                } else {
+                    linha = descricao.toUpperCase();
+                }
+                retorno = retorno.concat([
+                    new Paragraph ({
+                        style: 'Normal',
+                        bullet: {
+                            level: 1,
+                        },
+                        children: [
+                            new TextRun({
+                                text: linha
+                            }),
+                            new TextRun(';')
+                        ],
+                    }),
+                ]);
+            });
         }
 
 
@@ -208,6 +200,33 @@ export class SecaoPerinecroVitima extends Secao{
 
     private normalizarNomeRegiao(nomeRegiao: string): string {
         return nomeRegiao.replace(/^Região\s+/i, '').trim();
+    }
+
+    private getPreposicaoRegiao(regiao: string): 'DA' | 'DO' {
+        const regiaoNorm = regiao
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
+
+        const femininas = [
+            'testa', 'face', 'nuca', 'orelha', 'regiao', 'clavicula', 'costela',
+            'axila', 'mao', 'virilha', 'coxa', 'perna'
+        ];
+        if (femininas.some((r) => regiaoNorm.includes(r))) {
+            return 'DA';
+        }
+
+        const masculinas = [
+            'couro cabeludo', 'pescoco', 'ombro', 'peito', 'abdomen', 'dorso',
+            'braco', 'cotovelo', 'antebraco', 'punho', 'dedos', 'quadril',
+            'joelho', 'tornozelo', 'pe'
+        ];
+        if (masculinas.some((r) => regiaoNorm.includes(r))) {
+            return 'DO';
+        }
+
+        return regiaoNorm.endsWith('a') ? 'DA' : 'DO';
     }
 
     private getCabecalhoTipoVestigio(tipo: MapaTipoVestigio, totalVestigios: number): string {

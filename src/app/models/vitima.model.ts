@@ -1,9 +1,21 @@
 import { Cabelo } from './cabelo.model';
 import {Atendimento } from './atendimento.model';
 import { Base } from './base.model';
+import { NumberHelper } from '../extensions/numberHelper';
 import { MapaTipoVestigio } from '../atendimento/vitima/mapa/mapa-ferramenta.enum';
 import { MapaRegiao, parseMapaRegiao } from '../atendimento/vitima/mapa/mapa-regiao.enum';
 import { MapaVisao, parseMapaVisao } from '../atendimento/vitima/mapa/mapa-visao.enum';
+
+/** Pertence cadastrado na vítima (quantidade + descrição livre). */
+export interface PertenceVitima {
+    quantidade: number;
+    descricao: string;
+}
+
+export interface TatuagemVitima {
+    regiao: string;
+    descricao: string;
+}
 
 export interface VitimaVestigioCoordenada {
     x: number;
@@ -48,8 +60,10 @@ export class Vitima extends Base {
     };
 
     pertences   = '';
+    pertencesLista: PertenceVitima[] = [];
 
     tatuagens   = '';
+    tatuagensLista: TatuagemVitima[] = [];
 
     paf_frente = '';
     paf_costas = '';
@@ -106,7 +120,11 @@ export class Vitima extends Base {
         this.vestes.calcados         = this.getValue(data.vestes.calcados);
 
         this.pertences              = this.getValue(data.pertences);
+        this.pertencesLista         = normalizarPertencesLista(data.pertencesLista, this.pertences);
+        this.pertences              = serializarPertencesParaCampoTexto(this.pertencesLista);
         this.tatuagens              = this.getValue(data.tatuagens);
+        this.tatuagensLista         = normalizarTatuagensLista(data.tatuagensLista, this.tatuagens);
+        this.tatuagens              = serializarTatuagensParaCampoTexto(this.tatuagensLista);
 
         this.paf_frente              = this.getValue(data.paf_frente);
         this.paf_costas              = this.getValue(data.paf_costas);
@@ -254,7 +272,9 @@ export class Vitima extends Base {
               inferior: this.vestes.inferior,
             },
             pertences: this.pertences,
+            pertencesLista: this.pertencesLista,
             tatuagens: this.tatuagens,
+            tatuagensLista: this.tatuagensLista,
             paf_frente: this.paf_frente,
             paf_costas: this.paf_costas,
             paf_mapa_marcacoes: this.paf_mapa_marcacoes,
@@ -266,6 +286,198 @@ export class Vitima extends Base {
     }
 
 
+}
+
+/** Lista normalizada para laudo/exportação (legado + campo atual). */
+export function obterPertencesItensParaDocumento(vitima: Vitima): PertenceVitima[] {
+    return normalizarPertencesLista(vitima.pertencesLista, vitima.pertences);
+}
+
+/** Linha para laudo: `01 (uma) BOLSA …` com numeral por extenso e gênero inferido pela descrição. */
+export function formatarPertenceParaLaudo(item: PertenceVitima): string {
+    let q = Math.floor(Number(item.quantidade));
+    if (!Number.isFinite(q) || q < 1) {
+        q = 1;
+    }
+
+    const descricao = String(item.descricao ?? '').trim();
+    const gen = inferirGeneroDescricaoPertence(descricao);
+
+    let numeral: string;
+    let extenso: string;
+
+    if (q <= 99) {
+        numeral = q.toString().padStart(2, '0');
+        extenso = NumberHelper.getExtenso(q, gen);
+    } else {
+        numeral = String(q);
+        extenso = String(q);
+    }
+
+    return `${numeral} (${extenso}) ${descricao.toUpperCase()}`;
+}
+
+export function obterTatuagensItensParaDocumento(vitima: Vitima): TatuagemVitima[] {
+    return normalizarTatuagensLista(vitima.tatuagensLista, vitima.tatuagens);
+}
+
+function inferirGeneroDescricaoPertence(descricao: string): 'M' | 'F' {
+    const primeira = primeiroTokenPalavra(descricao);
+    const p = primeira.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+    if (!p.length) {
+        return 'M';
+    }
+
+    const femininosPorSufixo = ['ção', 'são', 'gem', 'agem', 'ência', 'ância', 'itude', 'oria', 'ismo'];
+    if (femininosPorSufixo.some((s) => p.endsWith(s))) {
+        return 'F';
+    }
+
+    const mascTerminadosEmA = ['dia', 'mapa', 'radio', 'problema', 'clima', 'sistema', 'plasma', 'tema', 'programa'];
+    if (mascTerminadosEmA.includes(p)) {
+        return 'M';
+    }
+
+    if (p.endsWith('a')) {
+        return 'F';
+    }
+    if (p.endsWith('o')) {
+        return 'M';
+    }
+
+    return 'M';
+}
+
+function primeiroTokenPalavra(descricao: string): string {
+    const tokens = descricao.trim().split(/\s+/).filter((t) => t.length > 0);
+    for (const bruto of tokens) {
+        const t = bruto.replace(/^[^a-zA-ZÀ-ÿ0-9]+/i, '').replace(/[^a-zA-ZÀ-ÿ0-9]+$/i, '');
+        if (!t.length || /^\d+$/.test(t)) {
+            continue;
+        }
+        return t;
+    }
+    return '';
+}
+
+function normalizarPertencesLista(rawLista: unknown, rawTexto: unknown): PertenceVitima[] {
+    if (Array.isArray(rawLista) && rawLista.length > 0) {
+        const out: PertenceVitima[] = [];
+        for (const el of rawLista) {
+            if (typeof el === 'string') {
+                const item = pertenceParseLegadoTexto(el.trim());
+                if (item.descricao.length > 0) {
+                    out.push(item);
+                }
+                continue;
+            }
+            if (el && typeof el === 'object') {
+                const o = el as Record<string, unknown>;
+                const qRaw = Number(o['quantidade'] ?? o['qtd'] ?? 1);
+                const q = Number.isFinite(qRaw) && qRaw > 0 ? Math.floor(qRaw) : 1;
+                const d = String(o['descricao'] ?? '').trim();
+                if (d.length > 0) {
+                    out.push({ quantidade: q, descricao: d });
+                }
+            }
+        }
+        if (out.length > 0) {
+            return out;
+        }
+    }
+
+    return String(rawTexto ?? '')
+        .split(',')
+        .map((parte) => parte.trim())
+        .filter((parte) => parte.length > 0)
+        .map((parte) => pertenceParseLegadoTexto(parte));
+}
+
+function pertenceParseLegadoTexto(texto: string): PertenceVitima {
+    const m = texto.match(/^(\d+)\s*[x×]\s*(.+)$/i);
+    if (m) {
+        const q = parseInt(m[1], 10);
+        const descricao = String(m[2] ?? '').trim();
+        return {
+            quantidade: Number.isFinite(q) && q > 0 ? q : 1,
+            descricao,
+        };
+    }
+    return { quantidade: 1, descricao: texto.trim() };
+}
+
+/** Campo texto legado (lista separada por vírgulas; quantidade > 1 como `Nx descrição`). */
+export function serializarPertencesParaCampoTexto(items: PertenceVitima[]): string {
+    return items
+        .filter((i) => String(i.descricao ?? '').trim().length > 0)
+        .map((i) => {
+            const q = Math.floor(Number(i.quantidade));
+            const qOk = Number.isFinite(q) && q > 0 ? q : 1;
+            const d = String(i.descricao ?? '').trim();
+            return qOk > 1 ? `${qOk}x ${d}` : d;
+        })
+        .join(', ');
+}
+
+export function serializarTatuagensParaCampoTexto(items: TatuagemVitima[]): string {
+    return items
+        .map((i) => ({ regiao: String(i.regiao ?? '').trim(), descricao: String(i.descricao ?? '').trim() }))
+        .filter((i) => i.regiao.length > 0 || i.descricao.length > 0)
+        .map((i) => {
+            if (i.regiao.length > 0 && i.descricao.length > 0) {
+                return i.regiao + ': ' + i.descricao;
+            }
+            return i.regiao.length > 0 ? i.regiao : i.descricao;
+        })
+        .join(', ');
+}
+
+function normalizarTatuagensLista(rawLista: unknown, rawTexto: unknown): TatuagemVitima[] {
+    if (Array.isArray(rawLista) && rawLista.length > 0) {
+        const out: TatuagemVitima[] = [];
+        for (const el of rawLista) {
+            if (typeof el === 'string') {
+                const item = parseTatuagemLegadaTexto(el);
+                if (item.regiao.length > 0 || item.descricao.length > 0) {
+                    out.push(item);
+                }
+                continue;
+            }
+            if (el && typeof el === 'object') {
+                const o = el as Record<string, unknown>;
+                const regiao = String(o['regiao'] ?? '').trim();
+                const descricao = String(o['descricao'] ?? '').trim();
+                if (regiao.length > 0 || descricao.length > 0) {
+                    out.push({ regiao, descricao });
+                }
+            }
+        }
+        if (out.length > 0) {
+            return out;
+        }
+    }
+
+    return String(rawTexto ?? '')
+        .split(',')
+        .map((item) => parseTatuagemLegadaTexto(item))
+        .filter((item) => item.regiao.length > 0 || item.descricao.length > 0);
+}
+
+function parseTatuagemLegadaTexto(raw: string): TatuagemVitima {
+    const texto = String(raw ?? '').trim();
+    if (!texto.length) {
+        return { regiao: '', descricao: '' };
+    }
+
+    const idxDoisPontos = texto.indexOf(':');
+    if (idxDoisPontos > -1) {
+        return {
+            regiao: texto.slice(0, idxDoisPontos).trim(),
+            descricao: texto.slice(idxDoisPontos + 1).trim(),
+        };
+    }
+
+    return { regiao: texto, descricao: '' };
 }
 
 function normalizarVestigios(raw: unknown): VitimaVestigio[] {

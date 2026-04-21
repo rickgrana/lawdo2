@@ -1,3 +1,188 @@
+.ion-list-header.secao-titulo {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.55rem 0.75rem;
+  margin-bottom: 0.35rem;
+  border-radius: 8px;
+}
+
+.secao-titulo-icone {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+.secao-titulo-texto {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.secao-titulo--identificacao {
+  background: rgba(var(--ion-color-primary-rgb), 0.14);
+  border-left: 4px solid var(--ion-color-primary);
+
+  .secao-titulo-icone,
+  .secao-titulo-texto {
+    color: var(--ion-color-primary-shade, var(--ion-color-primary));
+  }
+}
+
+.secao-titulo--caracteristicas {
+  background: rgba(var(--ion-color-secondary-rgb), 0.14);
+  border-left: 4px solid var(--ion-color-secondary);
+
+  .secao-titulo-icone,
+  .secao-titulo-texto {
+    color: var(--ion-color-secondary-shade, var(--ion-color-secondary));
+  }
+}
+
+.secao-titulo--vestimentas {
+  background: rgba(var(--ion-color-tertiary-rgb), 0.14);
+  border-left: 4px solid var(--ion-color-tertiary);
+
+  .secao-titulo-icone,
+  .secao-titulo-texto {
+    color: var(--ion-color-tertiary-shade, var(--ion-color-tertiary));
+  }
+}
+
+.secao-titulo--pertences {
+  background: rgba(var(--ion-color-success-rgb), 0.14);
+  border-left: 4px solid var(--ion-color-success);
+
+  .secao-titulo-icone,
+  .secao-titulo-texto {
+    color: var(--ion-color-success-shade, var(--ion-color-success));
+  }
+}
+
+.secao-titulo--tatuagens {
+  background: rgba(var(--ion-color-warning-rgb), 0.14);
+  border-left: 4px solid var(--ion-color-warning);
+
+  .secao-titulo-icone,
+  .secao-titulo-texto {
+    color: var(--ion-color-warning-shade, var(--ion-color-warning));
+  }
+}
+
+.secao-titulo--outras {
+  background: rgba(var(--ion-color-danger-rgb), 0.14);
+  border-left: 4px solid var(--ion-color-danger);
+
+  .secao-titulo-icone,
+  .secao-titulo-texto {
+    color: var(--ion-color-danger-shade, var(--ion-color-danger));
+  }
+}
+
+.secao-titulo--ferimentos {
+  background: rgba(var(--ion-color-medium-rgb), 0.14);
+  border-left: 4px solid var(--ion-color-medium);
+
+  .secao-titulo-icone,
+  .secao-titulo-texto {
+    color: var(--ion-color-medium-shade, var(--ion-color-medium));
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .ion-list-header.secao-titulo {
+    &.secao-titulo--identificacao {
+      background: rgba(var(--ion-color-primary-rgb), 0.22);
+    }
+
+    &.secao-titulo--caracteristicas {
+      background: rgba(var(--ion-color-secondary-rgb), 0.22);
+    }
+
+    &.secao-titulo--vestimentas {
+      background: rgba(var(--ion-color-tertiary-rgb), 0.22);
+    }
+
+    &.secao-titulo--pertences {
+      background: rgba(var(--ion-color-success-rgb), 0.22);
+    }
+
+    &.secao-titulo--tatuagens {
+      background: rgba(var(--ion-color-warning-rgb), 0.22);
+    }
+
+    &.secao-titulo--outras {
+      background: rgba(var(--ion-color-danger-rgb), 0.22);
+    }
+
+    &.secao-titulo--ferimentos {
+      background: rgba(var(--ion-color-medium-rgb), 0.22);
+    }
+  }
+}
+
+/* Vestimentas / Pertences: linha inteira no grid, inclusive em telas estreitas */
+.secao-form-largura-total {
+  width: 100%;
+}
+
+.secao-form-lista-cheia {
+  width: 100%;
+  margin-inline: 0;
+}
+
+.secao-form-lista-cheia ion-row {
+  width: 100%;
+}
+
+/* Mesmo visual da seção Presentes em Preservação — faixa lateral por cor */
+.presente-bloco {
+  --presente-stripe: var(--ion-color-primary);
+
+  position: relative;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.5rem 0.75rem 0.75rem;
+  border-bottom: 1px solid var(--ion-color-light, #e0e0e0);
+  border-radius: 0 6px 6px 0;
+  background: var(--ion-item-background, var(--ion-background-color, #fff));
+  box-shadow: inset 4px 0 0 0 var(--presente-stripe);
+}
+
+.presente-bloco:nth-child(5n + 1) {
+  --presente-stripe: var(--ion-color-primary);
+}
+
+.presente-bloco:nth-child(5n + 2) {
+  --presente-stripe: var(--ion-color-secondary);
+}
+
+.presente-bloco:nth-child(5n + 3) {
+  --presente-stripe: var(--ion-color-tertiary);
+}
+
+.presente-bloco:nth-child(5n + 4) {
+  --presente-stripe: var(--ion-color-success);
+}
+
+.presente-bloco:nth-child(5n + 5) {
+  --presente-stripe: var(--ion-color-warning);
+}
+
+.presente-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.25rem;
+}
+
+.acoes-presentes {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.acoes-presentes ion-button {
+  width: 100%;
+  margin: 0;
+}
+
 .img-container {
   position: relative;
   cursor: zoom-in;

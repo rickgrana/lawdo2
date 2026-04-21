@@ -13,6 +13,7 @@ import { mailOutline, mailSharp, paperPlaneOutline, paperPlaneSharp,
     addCircle,
     list,
     home,
+    star,
     settingsOutline} from 'ionicons/icons';
 import { AuthenticationService } from './authentication.service';
 import { AtendimentoService } from './services/atendimento.service';
@@ -43,7 +44,7 @@ export class AppComponent {
     });
 
     addIcons({ mailOutline, mailSharp, paperPlaneOutline, paperPlaneSharp,
-      heartOutline, heartSharp, archiveOutline, archiveSharp,
+      heartOutline, heartSharp, archiveOutline, archiveSharp, star,
       trashOutline, trashSharp, warningOutline, warningSharp, bookmarkOutline, bookmarkSharp,
       peopleSharp, peopleOutline, person, businessOutline, addCircle, list, home, settingsOutline}
     );

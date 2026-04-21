@@ -81,6 +81,19 @@
               </ion-label>
             </ion-item>
 
+            <ion-item-divider *ngIf="usuario">
+                <ion-label>
+                    Outros
+                  </ion-label>
+            </ion-item-divider>
+
+            <ion-item  href="https://forms.gle/cwrw22bMJYQbKNbh6" target="_blank" *ngIf="usuario">
+              <ion-icon slot="start" color="warning" name="star"></ion-icon>
+              <ion-label>
+                Avaliar o sistema
+              </ion-label>
+            </ion-item>
+
           </ion-menu-toggle>
         </ion-list>
       </ion-content>

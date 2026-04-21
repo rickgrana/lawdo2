@@ -20,7 +20,7 @@ const BASE = process.env.LAWDO_BASE_URL || 'http://localhost:8100';
 
 /**
  * Depois do botão «Atendimentos» (login gravado) e ao abrir o tour com `.auth`, dá tempo ao Firebase,
- * IndexedDB e `profileReady$`. Variável opcional: LAWDO_POST_LOGIN_MS (por defeito 5000).
+ * IndexedDB e `profileReady$`. Variável opcional: LAWDO_POST_LOGIN_MS (por padrão 5000).
  */
 const POST_LOGIN_SETTLE_MS = Math.max(0, Number(process.env.LAWDO_POST_LOGIN_MS || 5000));
 
@@ -28,7 +28,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * Home com `usuario`: botão «Atendimentos»; sem sessão: «ENTRAR». Usado no tour após restaurar `.auth`.
- * LAWDO_SESSION_WAIT_MS — timeout máximo (por defeito 120 s).
+ * LAWDO_SESSION_WAIT_MS — timeout máximo (por padrão 120 s).
  */
 async function waitForHomeLoggedIn(page) {
   const ms = Number(process.env.LAWDO_SESSION_WAIT_MS || 120000);

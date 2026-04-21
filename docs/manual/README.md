@@ -27,14 +27,14 @@ As imagens ficam em `images/telas/capturas/` com nomes `01-inicio.png` … `23-l
 ### Requisitos
 
 1. **Node.js** compatível com o projeto (≥ 20.19).
-2. **Lawdo a correr** na mesma máquina (por defeito os scripts apontam para **`http://localhost:8100`**, igual ao **`ionic serve`** típico):
+2. **Lawdo a correr** na mesma máquina (por padrão os scripts apontam para **`http://localhost:8100`**, igual ao **`ionic serve`** típico):
    ```bash
    export PATH="$HOME/.nvm/versions/node/v24.12.0/bin:$PATH"   # exemplo
    ionic serve
    # ou explicitamente:
    # npx ionic serve --host localhost --port 8100
    ```
-   Use **sempre o mesmo host no browser e na variável**: `localhost` está nos domínios autorizados do Firebase por defeito; **`127.0.0.1` não** — provoca `auth/unauthorized-domain` até o adicionar na consola Firebase (ou até usar URLs com `localhost`).
+   Use **sempre o mesmo host no browser e na variável**: `localhost` está nos domínios autorizados do Firebase por padrão; **`127.0.0.1` não** — provoca `auth/unauthorized-domain` até o adicionar na consola Firebase (ou até usar URLs com `localhost`).
    Se usar **`ng serve`** na porta **4200**, defina antes de capturar:
    ```bash
    export LAWDO_BASE_URL=http://localhost:4200
@@ -58,7 +58,7 @@ O script cria um **atendimento de teste** no Firebase (protocolo gerado ao acaso
 
 Variáveis opcionais:
 
-- `LAWDO_BASE_URL` — por defeito `http://localhost:8100`. Para `ng serve` na 4200: `export LAWDO_BASE_URL=http://localhost:4200`. Se servir só em `127.0.0.1`, defina o mesmo URL aqui **e** acrescente `127.0.0.1` em Firebase → Authentication → Authorized domains.
+- `LAWDO_BASE_URL` — por padrão `http://localhost:8100`. Para `ng serve` na 4200: `export LAWDO_BASE_URL=http://localhost:4200`. Se servir só em `127.0.0.1`, defina o mesmo URL aqui **e** acrescente `127.0.0.1` em Firebase → Authentication → Authorized domains.
 
 ### Linux / WSL: erro `libnspr4.so: cannot open shared object file`
 
@@ -124,7 +124,7 @@ Depois volte a correr `npm run screenshots:login` ou `npm run screenshots`.
 Causas frequentes:
 
 1. **Google Chrome instalado no sistema** — O script tenta usar o canal `chrome` (Chrome real). Instale **Google Chrome para Linux** (pacote `.deb` oficial) ou, em último caso, o fluxo recai no Chromium do Playwright (onde o login Google costuma falhar ou fechar o popup).
-2. **Domínio não autorizado no Firebase** (`auth/unauthorized-domain`) — Em [Firebase Console](https://console.firebase.google.com) → projeto **periam** → **Authentication** → **Settings** → **Authorized domains**, deve constar o **host exacto** que usa no URL (por defeito **`localhost`**). **`127.0.0.1` é outro domínio**: se abrir o Lawdo em `http://127.0.0.1:8100`, tem de acrescentar **`127.0.0.1`** à lista (ou preferir `http://localhost:8100` nos scripts e no browser).
+2. **Domínio não autorizado no Firebase** (`auth/unauthorized-domain`) — Em [Firebase Console](https://console.firebase.google.com) → projeto **periam** → **Authentication** → **Settings** → **Authorized domains**, deve constar o **host exacto** que usa no URL (por padrão **`localhost`**). **`127.0.0.1` é outro domínio**: se abrir o Lawdo em `http://127.0.0.1:8100`, tem de acrescentar **`127.0.0.1`** à lista (ou preferir `http://localhost:8100` nos scripts e no browser).
 3. **`LAWDO_PLAYWRIGHT_NO_CHROME=1`** — Força só o Chromium empacotado (útil para depuração): `LAWDO_PLAYWRIGHT_NO_CHROME=1 npm run screenshots:login`.
 
 ## Só tela inicial sem login

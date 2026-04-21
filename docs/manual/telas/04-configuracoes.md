@@ -2,7 +2,7 @@
 
 Serve para dizer **em que pasta do Google Drive** quer guardar as **fotografias** dos atendimentos.
 
-Toque em **Escolher pasta…** e selecione no Drive. Se não mudar nada, o texto na página explica qual é a pasta **por defeito**. O programa pode criar **subpastas por ano** do protocolo.
+Toque em **Escolher pasta…** e selecione no Drive. Se não mudar nada, o texto na página explica qual é a pasta **por padrão**. O programa pode criar **subpastas por ano** do protocolo.
 
 A primeira vez pode ser preciso autorizar outra vez o Google a **listar pastas**.
 

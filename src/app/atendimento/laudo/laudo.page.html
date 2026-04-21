@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button></ion-back-button>
     </ion-buttons>
-    <ion-title>Laudo</ion-title>
+    <ion-title>Numeração do Laudo</ion-title>
   </ion-toolbar>
 </ion-header>
   
@@ -13,16 +13,18 @@
         <ion-row>
             <ion-col  size-xs="6" size-md="2">
                 <ion-item>
-                    <ion-input label="Nº Laudo" labelPlacement="floating" placeholder="XXXXX" formControlName="numero" ></ion-input>
+                    <ion-input label="Ano" labelPlacement="floating" placeholder="XXXX" formControlName="ano" ></ion-input>
                 </ion-item>
             </ion-col>
 
             <ion-col  size-xs="6" size-md="2">
                 <ion-item>
-                    <ion-input label="Ano" labelPlacement="floating" placeholder="XXXX" formControlName="ano" ></ion-input>
+                    <ion-input label="Número" labelPlacement="floating" placeholder="XXXXX" formControlName="numero" ></ion-input>
                 </ion-item>
             </ion-col>
-
+        </ion-row>
+            
+        <ion-row>
             <ion-col  size-xs="12" size-md="4">
             <ion-item>
                 <ion-label position="floating" color="primary">Data da Emissão</ion-label>

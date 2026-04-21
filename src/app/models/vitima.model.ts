@@ -61,18 +61,6 @@ export class Vitima extends Base {
 
     vestigios: VitimaVestigio[] = [];
 
-    /*vestigios = new Map([
-        ['cabeca_frente', new Vestigio()],
-        ['cabeca_verso', new Visao()],
-        ['cabeca_esquerda', new Visao()],
-        ['cabeca_direita', new Visao()],
-        ['corpo_frente', new Visao()],
-        ['corpo_verso', new Visao()],
-        ['corpo_esquerda', new Visao()],
-        ['corpo_direita', new Visao()],
-    ]);*/
-
-
     static override loadFrom(record: any){
         const model = new Vitima();
         model.isNew = false;

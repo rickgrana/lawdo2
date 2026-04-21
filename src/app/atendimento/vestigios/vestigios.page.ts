@@ -16,6 +16,7 @@ import {
   IonToolbar,
   IonBadge,
   ModalController,
+  ActionSheetController,
   AlertController,
   ToastController,
   ViewWillEnter,
@@ -65,6 +66,7 @@ export class VestigiosPage implements ViewWillEnter {
   constructor(
     private atendimentoService: AtendimentoService,
     private modalController: ModalController,
+    private actionSheetController: ActionSheetController,
     private alertController: AlertController,
     private toastController: ToastController,
   ) {
@@ -77,12 +79,14 @@ export class VestigiosPage implements ViewWillEnter {
 
   private rebuildGrupos() {
     const vestigios = this.atendimentoService.model?.fields?.vestigios || [];
-    this.grupos = CATEGORIAS_VESTIGIOS.map((categoria) => ({
-      ...categoria,
-      itens: vestigios
-        .map((vestigio: any, index: number) => ({ vestigio, index }))
-        .filter((item) => resolveCategoriaKey(item.vestigio) === categoria.key),
-    }));
+    this.grupos = CATEGORIAS_VESTIGIOS
+      .map((categoria) => ({
+        ...categoria,
+        itens: vestigios
+          .map((vestigio: any, index: number) => ({ vestigio, index }))
+          .filter((item) => resolveCategoriaKey(item.vestigio) === categoria.key),
+      }))
+      .filter((grupo) => grupo.itens.length > 0);
   }
 
   trackByGrupo(_i: number, g: CategoriaVestigio & { itens: VestigioGrupoLinha[] }) {
@@ -114,12 +118,31 @@ export class VestigiosPage implements ViewWillEnter {
   }
 
   async abrirFormularioCadastro() {
-    const padrao = this.categorias[0]?.key ?? VestigioCategoria.Fisicos;
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Categoria do vestigio',
+      buttons: [
+        ...this.categorias.map((categoria) => ({
+          text: categoria.nome,
+          handler: () => {
+            void this.abrirFormularioCadastroComCategoria(categoria.key);
+          },
+        })),
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+      ],
+    });
+
+    await actionSheet.present();
+  }
+
+  private async abrirFormularioCadastroComCategoria(categoriaKey: VestigioCategoria) {
     const { VestigioFormPage } = await import('./vestigio-form.page');
     const modal = await this.modalController.create({
       component: VestigioFormPage,
       componentProps: {
-        categoriaContext: padrao,
+        categoriaContext: categoriaKey,
         vestigioEditIndex: null,
       },
       cssClass: 'vestigio-form-modal',

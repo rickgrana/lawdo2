@@ -45,10 +45,20 @@ export class Documento{
         return this.capitulos.shift() ?? '';
     }
 
+    /** Nome do .docx na exportação: anos do laudo e do protocolo com 2 dígitos (ex.: 26). */
     getNomeArquivo(){
-        return this.atendimento.fields.laudo.ano + '-' + this.atendimento.fields.laudo.numero + 
-                '--' +
-                this.atendimento.fields.protocolo.ano + '-' + this.atendimento.fields.protocolo.numero;
+        const anoLaudo = Documento.ano2DigitosNomeArquivo(this.atendimento.fields.laudo?.ano);
+        const anoProto = Documento.ano2DigitosNomeArquivo(this.atendimento.fields.protocolo?.ano);
+        return `${anoLaudo}-${this.atendimento.fields.laudo.numero}--${anoProto}-${this.atendimento.fields.protocolo.numero}`;
+    }
+
+    /** Últimos 2 dígitos do ano (AAAA ou AA → AA). */
+    private static ano2DigitosNomeArquivo(ano: string | number | null | undefined): string {
+        const d = String(ano ?? '').replace(/\D/g, '');
+        if (!d.length) {
+            return '00';
+        }
+        return d.length >= 2 ? d.slice(-2) : d.padStart(2, '0');
     }
 
     proximoNumeroFigura(): number {

@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { Auth } from '@angular/fire/auth';
 import { Atendimento, imagemEstaNoGoogleDrive, Imagem } from '../models/atendimento.model';
 import { AuthenticationService } from '../authentication.service';
 import { DEFAULT_DRIVE_IMAGE_FOLDER } from '../models/user.model';
@@ -12,9 +13,11 @@ const FOLDER_MIME = 'application/vnd.google-apps.folder';
 export class ImageService {
 
   private readonly authService = inject(AuthenticationService);
+  /** UID está disponível assim que há sessão Firebase Auth; `user$` pode atrasar e não deve disparar invalidação “falsa”. */
+  private readonly firebaseAuth = inject(Auth);
 
-  /** Cache de pastas Drive por sessão (invalidado quando muda o prefixo do token ou a pasta raiz configurada). */
-  private folderCacheTokenPrefix = '';
+  /** Cache de pastas Drive por sessão (invalidado quando muda o utilizador Firebase ou a pasta raiz configurada — não quando o token OAuth renova). */
+  private folderCacheAuthUid = '';
   private rootConfigKeyCached: string | null = null;
   /** Pasta pai onde entram as subpastas `{ano}-{protocolo}` (ID fixo ou pasta criada/resolvida por nome na raiz). */
   private rootParentIdResolved: string | null = null;
@@ -31,7 +34,7 @@ export class ImageService {
   /** Caminho lógico: `lawdo/{ano-protocolo}/arquivo` — pasta raiz configurável (padrão `lawdo`). */
   async upload(atendimento: Atendimento, fileName: string, blobData: Blob): Promise<{ driveFileId: string }> {
     const token = await this.authService.getGoogleDriveAccessToken();
-    this.invalidateFolderCacheIfNeeded(token);
+    this.invalidateFolderCacheIfNeeded();
 
     const anoProtocolo = this.pastaAnoProtocolo(atendimento);
     const parentId = await this.ensureAnoProtocoloFolder(token, anoProtocolo);
@@ -47,7 +50,7 @@ export class ImageService {
    */
   async uploadLaudoDocx(atendimento: Atendimento, blob: Blob, fileBaseName: string): Promise<{ driveFileId: string }> {
     const token = await this.authService.getGoogleDriveAccessToken();
-    this.invalidateFolderCacheIfNeeded(token);
+    this.invalidateFolderCacheIfNeeded();
 
     const anoProtocolo = this.pastaAnoProtocolo(atendimento);
     const parentId = await this.ensureAnoProtocoloFolder(token, anoProtocolo);
@@ -64,7 +67,7 @@ export class ImageService {
    */
   async uploadAtendimentoInformacaoTxt(atendimento: Atendimento, textBody: string): Promise<void> {
     const token = await this.authService.getGoogleDriveAccessToken();
-    this.invalidateFolderCacheIfNeeded(token);
+    this.invalidateFolderCacheIfNeeded();
 
     const segment = this.pastaAnoProtocolo(atendimento);
     const parentId = await this.ensureAnoProtocoloFolder(token, segment);
@@ -205,7 +208,7 @@ export class ImageService {
     }
     try {
       const token = await this.authService.getGoogleDriveAccessToken();
-      this.invalidateFolderCacheIfNeeded(token);
+      this.invalidateFolderCacheIfNeeded();
       const rootId = await this.resolveRootParentId(token);
       const folderId = await this.findFolderIdByName(token, rootId, from);
       if (!folderId) {
@@ -246,7 +249,7 @@ export class ImageService {
     }
     try {
       const token = await this.authService.getGoogleDriveAccessToken();
-      this.invalidateFolderCacheIfNeeded(token);
+      this.invalidateFolderCacheIfNeeded();
       const rootId = await this.resolveRootParentId(token);
       const folderId = await this.findFolderIdByName(token, rootId, folderSeg);
       if (!folderId) {
@@ -282,10 +285,16 @@ export class ImageService {
     return listJson.files?.[0]?.id ?? null;
   }
 
-  private invalidateFolderCacheIfNeeded(accessToken: string): void {
-    const prefix = accessToken.slice(0, 16);
-    if (prefix !== this.folderCacheTokenPrefix) {
-      this.folderCacheTokenPrefix = prefix;
+  /**
+   * Limpa caches quando muda o utilizador (logout / outra conta).
+   * Usa `Auth.currentUser.uid` em vez do perfil Firestore (`user$`): quando o utilizador guarda já na
+   * página de identificação, `user$` pode passar de vazio para carregado e invalidar caches no meio
+   * do fluxo do Drive — apagar `folderCreationLocks` permitia criar duas pastas com o mesmo nome.
+   */
+  private invalidateFolderCacheIfNeeded(): void {
+    const uid = this.firebaseAuth.currentUser?.uid ?? '';
+    if (uid !== this.folderCacheAuthUid) {
+      this.folderCacheAuthUid = uid;
       this.rootConfigKeyCached = null;
       this.rootParentIdResolved = null;
       this.anoProtocoloFolderIds.clear();
@@ -315,7 +324,8 @@ export class ImageService {
       this.rootConfigKeyCached = key;
       this.rootParentIdResolved = null;
       this.anoProtocoloFolderIds.clear();
-      this.folderCreationLocks.clear();
+      // Não limpar `folderCreationLocks` aqui: se a chave muda ao carregar `driveImageFolderId` do Firestore
+      // no meio de um guardar, apagar locks permitia duas criações paralelas da mesma pasta.
     }
   }
 

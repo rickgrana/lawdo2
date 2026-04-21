@@ -5,6 +5,7 @@ import { IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton,
     IonImg, IonGrid, IonRow, IonCol, IonButton, IonIcon, IonContent } from '@ionic/angular/standalone';
 import { AuthenticationService } from '../authentication.service';
 import { AtendimentoService } from '../services/atendimento.service';
+import { MessageService } from '../services/message.service';
 import { Router } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
 import { filter, take, firstValueFrom } from 'rxjs';
@@ -25,6 +26,7 @@ export class HomePage implements OnInit {
   constructor(
     private authService: AuthenticationService,
     private atendimentoService: AtendimentoService,
+    private messageService: MessageService,
     private router: Router
   ) {
     this.auth.onAuthStateChanged((user: any) => {
@@ -55,6 +57,10 @@ export class HomePage implements OnInit {
   }
 
   async novoAtendimento() {
+    const ok = await this.messageService.confirmNovoAtendimentoPrivacidade();
+    if (!ok) {
+      return;
+    }
     this.atendimentoService.prepararNovoAtendimento();
     await this.router.navigate(['atendimento/identificacao']);
     this.atendimentoService.notificarIdentificacaoRecarregar();

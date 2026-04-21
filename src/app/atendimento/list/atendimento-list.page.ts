@@ -98,6 +98,10 @@ export class ListAtendimentosPage implements OnInit {
   }
 
   async novo() {
+    const ok = await this.messageService.confirmNovoAtendimentoPrivacidade();
+    if (!ok) {
+      return;
+    }
     this.atendimentoService.prepararNovoAtendimento();
     await this.router.navigate(['atendimento/identificacao']);
     this.atendimentoService.notificarIdentificacaoRecarregar();

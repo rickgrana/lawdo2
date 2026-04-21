@@ -18,7 +18,10 @@ bootstrapApplication(AppComponent, {
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideHttpClient(),
-    provideIonicAngular(),
+    provideIonicAngular({
+      /** Necessário para `IonicSafeString` / HTML em alerts (ex.: aviso Novo Atendimento com ícones). */
+      innerHTMLTemplatesEnabled: true,
+    }),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideFirestore(() => getFirestore()),

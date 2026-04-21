@@ -18,109 +18,64 @@
   font-weight: 600;
 }
 
-.secao-titulo--identificacao {
-  background: rgba(var(--ion-color-primary-rgb), 0.14);
-  border-left: 4px solid var(--ion-color-primary);
+.ion-list-header.secao-titulo[class*='secao-titulo--'] {
+  background: rgba(var(--sec-rgb), 0.14);
+  border-left: 4px solid var(--sec);
 
   .secao-titulo-icone,
   .secao-titulo-texto {
-    color: var(--ion-color-primary-shade, var(--ion-color-primary));
+    color: var(--sec-fg);
   }
+}
+
+.secao-titulo--identificacao {
+  --sec-rgb: var(--ion-color-primary-rgb);
+  --sec: var(--ion-color-primary);
+  --sec-fg: var(--ion-color-primary-shade, var(--ion-color-primary));
 }
 
 .secao-titulo--caracteristicas {
-  background: rgba(var(--ion-color-secondary-rgb), 0.14);
-  border-left: 4px solid var(--ion-color-secondary);
-
-  .secao-titulo-icone,
-  .secao-titulo-texto {
-    color: var(--ion-color-secondary-shade, var(--ion-color-secondary));
-  }
+  --sec-rgb: var(--ion-color-secondary-rgb);
+  --sec: var(--ion-color-secondary);
+  --sec-fg: var(--ion-color-secondary-shade, var(--ion-color-secondary));
 }
 
 .secao-titulo--vestimentas {
-  background: rgba(var(--ion-color-tertiary-rgb), 0.14);
-  border-left: 4px solid var(--ion-color-tertiary);
-
-  .secao-titulo-icone,
-  .secao-titulo-texto {
-    color: var(--ion-color-tertiary-shade, var(--ion-color-tertiary));
-  }
+  --sec-rgb: var(--ion-color-tertiary-rgb);
+  --sec: var(--ion-color-tertiary);
+  --sec-fg: var(--ion-color-tertiary-shade, var(--ion-color-tertiary));
 }
 
 .secao-titulo--pertences {
-  background: rgba(var(--ion-color-success-rgb), 0.14);
-  border-left: 4px solid var(--ion-color-success);
-
-  .secao-titulo-icone,
-  .secao-titulo-texto {
-    color: var(--ion-color-success-shade, var(--ion-color-success));
-  }
+  --sec-rgb: var(--ion-color-success-rgb);
+  --sec: var(--ion-color-success);
+  --sec-fg: var(--ion-color-success-shade, var(--ion-color-success));
 }
 
 .secao-titulo--tatuagens {
-  background: rgba(var(--ion-color-warning-rgb), 0.14);
-  border-left: 4px solid var(--ion-color-warning);
-
-  .secao-titulo-icone,
-  .secao-titulo-texto {
-    color: var(--ion-color-warning-shade, var(--ion-color-warning));
-  }
+  --sec-rgb: var(--ion-color-warning-rgb);
+  --sec: var(--ion-color-warning);
+  --sec-fg: var(--ion-color-warning-shade, var(--ion-color-warning));
 }
 
 .secao-titulo--outras {
-  background: rgba(var(--ion-color-danger-rgb), 0.14);
-  border-left: 4px solid var(--ion-color-danger);
-
-  .secao-titulo-icone,
-  .secao-titulo-texto {
-    color: var(--ion-color-danger-shade, var(--ion-color-danger));
-  }
+  --sec-rgb: var(--ion-color-danger-rgb);
+  --sec: var(--ion-color-danger);
+  --sec-fg: var(--ion-color-danger-shade, var(--ion-color-danger));
 }
 
 .secao-titulo--ferimentos {
-  background: rgba(var(--ion-color-medium-rgb), 0.14);
-  border-left: 4px solid var(--ion-color-medium);
-
-  .secao-titulo-icone,
-  .secao-titulo-texto {
-    color: var(--ion-color-medium-shade, var(--ion-color-medium));
-  }
+  --sec-rgb: var(--ion-color-medium-rgb);
+  --sec: var(--ion-color-medium);
+  --sec-fg: var(--ion-color-medium-shade, var(--ion-color-medium));
 }
 
 @media (prefers-color-scheme: dark) {
-  .ion-list-header.secao-titulo {
-    &.secao-titulo--identificacao {
-      background: rgba(var(--ion-color-primary-rgb), 0.22);
-    }
-
-    &.secao-titulo--caracteristicas {
-      background: rgba(var(--ion-color-secondary-rgb), 0.22);
-    }
-
-    &.secao-titulo--vestimentas {
-      background: rgba(var(--ion-color-tertiary-rgb), 0.22);
-    }
-
-    &.secao-titulo--pertences {
-      background: rgba(var(--ion-color-success-rgb), 0.22);
-    }
-
-    &.secao-titulo--tatuagens {
-      background: rgba(var(--ion-color-warning-rgb), 0.22);
-    }
-
-    &.secao-titulo--outras {
-      background: rgba(var(--ion-color-danger-rgb), 0.22);
-    }
-
-    &.secao-titulo--ferimentos {
-      background: rgba(var(--ion-color-medium-rgb), 0.22);
-    }
+  .ion-list-header.secao-titulo[class*='secao-titulo--'] {
+    background: rgba(var(--sec-rgb), 0.22);
   }
 }
 
-/* Vestimentas / Pertences: linha inteira no grid, inclusive em telas estreitas */
 .secao-form-largura-total {
   width: 100%;
 }
@@ -134,10 +89,8 @@
   width: 100%;
 }
 
-/* Mesmo visual da seção Presentes em Preservação — faixa lateral por cor */
 .presente-bloco {
   --presente-stripe: var(--ion-color-primary);
-
   position: relative;
   margin-bottom: 0.75rem;
   padding: 0.5rem 0.5rem 0.75rem 0.75rem;
@@ -150,19 +103,15 @@
 .presente-bloco:nth-child(5n + 1) {
   --presente-stripe: var(--ion-color-primary);
 }
-
 .presente-bloco:nth-child(5n + 2) {
   --presente-stripe: var(--ion-color-secondary);
 }
-
 .presente-bloco:nth-child(5n + 3) {
   --presente-stripe: var(--ion-color-tertiary);
 }
-
 .presente-bloco:nth-child(5n + 4) {
   --presente-stripe: var(--ion-color-success);
 }
-
 .presente-bloco:nth-child(5n + 5) {
   --presente-stripe: var(--ion-color-warning);
 }
@@ -188,7 +137,6 @@
   cursor: zoom-in;
 }
 
-/* Mapas de cabeça são mais baixos que os de corpo — alinhar ao centro na vertical (ex.: mesma linha em md+) */
 .img-container.img-cabeca {
   display: flex;
   flex-direction: column;
@@ -200,35 +148,27 @@
   display: block;
 }
 
-/* Ícone centralizado e oculto */
 .hover-icon {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  
   font-size: 28px;
   color: white;
-
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-/* Fundo escurecido opcional */
 .img-container::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-/* Hover */
-.img-container:hover .hover-icon {
-  opacity: 1;
-}
-
+.img-container:hover .hover-icon,
 .img-container:hover::after {
   opacity: 1;
 }

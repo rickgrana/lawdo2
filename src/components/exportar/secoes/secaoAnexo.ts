@@ -72,6 +72,36 @@ export class SecaoAnexo extends Secao {
     return false;
   }
 
+  /**
+   * Total de figuras citado no laudo: fotos do apêndice + croquis exportados (uma por visão com marcação)
+   * + mapa de coordenada geográfica quando `coordenadasParaApendice` se aplica.
+   */
+  static contagemImagensLaudo(atendimento: Atendimento): number {
+    let n = atendimento.imagens.length;
+    n += SecaoAnexo.contarCroquisPorVitimas(atendimento.fields.vitimas);
+    if (SecaoAnexo.coordenadasParaApendice(atendimento)) {
+      n += 1;
+    }
+    return n;
+  }
+
+  /** Mesma regra de `getBlocosCroquiUmaVitima`: uma imagem rasterizada por visão com marcações. */
+  private static contarCroquisPorVitimas(vitimas: Vitima[]): number {
+    let n = 0;
+    for (const vitima of vitimas) {
+      const marcacoes = obterMarcacoesMapaVitima(vitima);
+      if (marcacoes.length === 0) {
+        continue;
+      }
+      for (const visao of ORDEM_VISAO_MAPA) {
+        if (marcacoes.some((m) => m.visao === visao)) {
+          n += 1;
+        }
+      }
+    }
+    return n;
+  }
+
   override async runInternal(): Promise<any[]> {
     const blocos: any[] = [];
     let indiceApendice = 1;

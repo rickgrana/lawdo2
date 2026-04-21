@@ -1,6 +1,7 @@
 import { DateTimeHelper } from 'src/app/extensions/dateTimeHelper';
 import { Secao } from '../secao'; 
 import { Paragraph, TextRun, PageNumber} from 'docx';
+import { SecaoAnexo } from './secaoAnexo';
 
 export class SecaoAssinatura extends Secao{
 
@@ -8,8 +9,36 @@ export class SecaoAssinatura extends Secao{
 
         let model = this.documento.atendimento;
         let artigo = this.documento.perito.getArtigo();
+        const numImagens = SecaoAnexo.contagemImagensLaudo(model);
+        const textoImagens =
+            numImagens === 1 ? '1 imagem' : `${numImagens} imagens`;
 
         return [
+            new Paragraph ({
+              style: 'padrao',
+              keepNext: true,
+              children: [
+                new TextRun({
+                  text:
+                    'Não havendo mais nada a informar encerra-se o presente Laudo que, ' +
+                    'elaborado em ',
+                }),
+                new TextRun({
+                  children: [PageNumber.TOTAL_PAGES],
+                }),
+                new TextRun({
+                  text:
+                    ' laudas devidamente numeradas, contendo ' +
+                    textoImagens +
+                    ', segue assinado pel' +
+                    artigo +
+                    ' signatári' +
+                    artigo +
+                    '.',
+                }),
+              ],
+            }),
+
             new Paragraph ({
               style: 'data_e_hora',
               keepNext: true,

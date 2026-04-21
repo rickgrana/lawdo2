@@ -1,10 +1,12 @@
 import { Component, inject, OnInit , ViewChild} from '@angular/core';
+import { Capacitor } from '@capacitor/core';
 import { ImageService } from '../../services/image.service';
 import { AtendimentoBasePage } from '../atendimento-base.page';
 import { imagemEstaNoGoogleDrive } from 'src/app/models/atendimento.model';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonSpinner, IonReorder,
     IonReorderGroup,
-    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonProgressBar, IonNote } from '@ionic/angular/standalone';
+    IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonProgressBar, IonNote,
+    Platform, ActionSheetController } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FirearmDetectionService } from 'src/app/services/firearm-detection.service';
 
@@ -22,7 +24,9 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
 
   protected imageService = inject(ImageService);
   protected firearmDetectionService = inject(FirearmDetectionService);
-  
+  private platform = inject(Platform);
+  private actionSheetController = inject(ActionSheetController);
+
   @ViewChild("reorderGroup", { read: IonReorderGroup, static: true}) reorderGroup!: IonReorderGroup;
 
   reorder = false;
@@ -48,8 +52,38 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
     return this.imageService.getDriveImagesLocationLabel(this.model);
   }
 
-  selecionarImagens(){
-    document.getElementById("arquivo")!.click();
+  /** Em mobile/nativo: escolher galeria ou câmera; no desktop mantém só o seletor de ficheiros (múltiplos). */
+  private shouldOfferSourceChoice(): boolean {
+    if (Capacitor.isNativePlatform()) {
+      return true;
+    }
+    return this.platform.is('mobile') || this.platform.is('ios') || this.platform.is('android');
+  }
+
+  async selecionarImagens(): Promise<void> {
+    if (this.shouldOfferSourceChoice()) {
+      const sheet = await this.actionSheetController.create({
+        header: 'Adicionar imagens',
+        buttons: [
+          {
+            text: 'Galeria',
+            handler: () => {
+              document.getElementById('inputGaleria')?.click();
+            }
+          },
+          {
+            text: 'Câmera',
+            handler: () => {
+              document.getElementById('inputCamera')?.click();
+            }
+          },
+          { text: 'Cancelar', role: 'cancel' }
+        ]
+      });
+      await sheet.present();
+      return;
+    }
+    document.getElementById('inputGaleria')?.click();
   }
 
   abrirImagens() {
@@ -107,7 +141,15 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
     });
   }
 
-  async onSelectFile(event: Event) {
+  async onSelectGallery(event: Event): Promise<void> {
+    await this.processSelectedFiles(event, false);
+  }
+
+  async onSelectCamera(event: Event): Promise<void> {
+    await this.processSelectedFiles(event, true);
+  }
+
+  private async processSelectedFiles(event: Event, fromCamera: boolean): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = input.files;
 
@@ -126,6 +168,8 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
     } else {
       await this.presentLoading();
     }
+
+    let addedCount = 0;
 
     try {
       const imagens: Array<{ src: string; nome: string; driveFileId: string } | null> =
@@ -157,6 +201,7 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
         if (!img) {
           continue;
         }
+        addedCount++;
         this.model.imagens.push({
           imagem: img.src,
           legenda: '',
@@ -176,7 +221,28 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
       if (!showBatchProgress) {
         await this.hideLoader();
       }
+      if (fromCamera && addedCount > 0 && filesAmount === 1) {
+        await this.promptCaptureAnotherPhoto();
+      }
     }
+  }
+
+  /** No iOS/WebView uma captura devolve só um ficheiro; perguntamos para repetir e somar várias fotos. */
+  private async promptCaptureAnotherPhoto(): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Capturar mais?',
+      message: 'Deseja tirar ou adicionar outra foto pela câmera?',
+      buttons: [
+        { text: 'Não', role: 'cancel' },
+        {
+          text: 'Sim',
+          handler: () => {
+            setTimeout(() => document.getElementById('inputCamera')?.click(), 150);
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   async salvarImagem(n: number, src: string) {

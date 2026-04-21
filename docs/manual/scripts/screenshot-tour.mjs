@@ -576,7 +576,7 @@ async function tour() {
       'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
     const tmpImg = path.join(OUT, '_tiny.png');
     fs.writeFileSync(tmpImg, Buffer.from(tinyPng, 'base64'));
-    await page.locator('#arquivo').setInputFiles(tmpImg);
+    await page.locator('#inputGaleria').setInputFiles(tmpImg);
     await wait(4500);
     await shot(page, '20-imagens.png');
 

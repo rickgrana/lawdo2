@@ -70,7 +70,12 @@
         </ion-col>
     </ion-row>
 
-    <input type="file" (change)="onSelectFile($event)" id="arquivo" accept="image/*" multiple="multiple" capture="environment" style="visibility: hidden"/>
+    <!-- Galeria: sem capture para permitir multi-seleção e biblioteca de fotos em mobile -->
+    <input type="file" id="inputGaleria" accept="image/*" multiple
+           (change)="onSelectGallery($event)" style="visibility: hidden"/>
+    <!-- Câmera traseira; multiple ajuda em alguns browsers Android -->
+    <input type="file" id="inputCamera" accept="image/*" capture="environment" multiple
+           (change)="onSelectCamera($event)" style="visibility: hidden"/>
 </ion-content>
 
 <ion-footer *ngIf="!reorder">

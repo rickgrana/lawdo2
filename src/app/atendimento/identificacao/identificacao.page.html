@@ -43,7 +43,17 @@
       <ion-row>
         <ion-col size-xs="6" size-md="2">
           <ion-item>
-            <ion-input label="Ano" required labelPlacement="floating" placeholder="XXXX" formControlName="protocoloAno"></ion-input>
+            <ion-input
+              label="Ano"
+              required
+              labelPlacement="floating"
+              placeholder="AAAA"
+              formControlName="protocoloAno"
+              inputmode="numeric"
+              maxlength="4"
+              (ionInput)="onProtocoloAnoIonInput($event)"
+              (ionBlur)="completarAnoProtocoloBlur()"
+            ></ion-input>
           </ion-item>
         </ion-col>
 
@@ -54,9 +64,12 @@
               required 
               label="Protocolo"
               labelPlacement="floating"
-              placeholder="XXXXX"
+              placeholder="000000"
               formControlName="protocolo"
-              (ionBlur)="completarComZeros('protocolo')"
+              inputmode="numeric"
+              maxlength="6"
+              (ionInput)="onProtocoloIonInput($event)"
+              (ionBlur)="completarProtocoloBlur()"
               class="input-protocolo"
             ></ion-input>
 

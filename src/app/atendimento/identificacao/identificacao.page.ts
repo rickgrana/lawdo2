@@ -9,7 +9,17 @@ import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFo
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonSelectOption, IonModal, IonDatetimeButton,
     Platform,
     ViewWillEnter } from '@ionic/angular/standalone';
-import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { AuthenticationService } from 'src/app/authentication.service';
 import { AtendimentoService } from 'src/app/services/atendimento.service';
 import { filter, map, Observable, startWith } from 'rxjs';
@@ -56,6 +66,9 @@ type ProtocoloIdentPatch = Partial<{
 })
 export class IdentificacaoPage implements OnInit, ViewWillEnter {
   @ViewChild('protocoloInput', { read: IonInput }) private protocoloInput?: IonInput;
+
+  private static readonly PROTOCOLO_DIGITOS = 6;
+  private static readonly ANO_MIN = 1900;
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly platform = inject(Platform);
@@ -141,6 +154,43 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
       field: 'coordenadas.long',
       rules: Validators.compose([])
     }
+  };
+
+  /** Exato 6 dígitos numéricos (permite menos antes do blur com padding). */
+  private readonly protocoloValidatorFn: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+    const raw = String(control.value ?? '').replace(/\D/g, '');
+    if (!raw.length) {
+      return null;
+    }
+    if (raw.length > IdentificacaoPage.PROTOCOLO_DIGITOS) {
+      return { protocoloDigitos: true };
+    }
+    const padded = raw.padStart(IdentificacaoPage.PROTOCOLO_DIGITOS, '0');
+    return padded.length === IdentificacaoPage.PROTOCOLO_DIGITOS ? null : { protocoloDigitos: true };
+  };
+
+  /** Ano em 4 dígitos ou 2 dígitos (YY); não superior ao ano atual (≥ 1900). Ignora estado incompleto enquanto digita. */
+  private readonly anoProtocoloValidatorFn: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+    const raw = String(control.value ?? '').replace(/\D/g, '');
+    if (!raw.length) {
+      return null;
+    }
+    // Um dígito (“2…”) ou três (“202…”) — ainda incompleto para ano completo de 4 dígitos
+    if (raw.length === 1 || raw.length === 3) {
+      return null;
+    }
+    const y = this.resolverAnoProtocoloNumero(control.value);
+    if (y === null) {
+      return { anoInvalido: true };
+    }
+    const cur = new Date().getFullYear();
+    if (y > cur) {
+      return { anoFuturo: true };
+    }
+    if (y < IdentificacaoPage.ANO_MIN) {
+      return { anoAntigo: true };
+    }
+    return null;
   };
 
   loadingProtocolo = false;
@@ -237,17 +287,23 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
     const coords = f.coordenadas ?? { lat: 0, long: 0 };
     const proto = f.protocolo ?? { numero: '', ano: '' };
     const protocoloNumero =
-      proto.numero != null && proto.numero !== '' ? String(proto.numero) : '';
+      proto.numero != null && proto.numero !== ''
+        ? IdentificacaoPage.normalizeProtocoloExistente(String(proto.numero))
+        : '';
     const protocoloAnoVal =
-      proto.ano != null && proto.ano !== '' ? String(proto.ano) : '';
+      proto.ano != null && proto.ano !== '' ? String(proto.ano).replace(/\D/g, '').slice(0, 4) : '';
 
     this.form = this.formBuilder.group({
       tipoExame: new FormControl<string>(f.tipoExame ?? '', Validators.required),
       data: new FormControl<string|null>(f.data, Validators.required),
       hora: new FormControl<string>(f.hora ?? '', Validators.required),
 
-      protocolo: new FormControl<string>(protocoloNumero, Validators.required),
-      protocoloAno: new FormControl<string>(protocoloAnoVal, Validators.required),
+      protocolo: new FormControl<string>(protocoloNumero, {
+        validators: [Validators.required, this.protocoloValidatorFn],
+      }),
+      protocoloAno: new FormControl<string>(protocoloAnoVal, {
+        validators: [Validators.required, this.anoProtocoloValidatorFn],
+      }),
       cidade: new FormControl<string>(f.endereco?.cidade ?? '', Validators.required),
       bairro: new FormControl<string>(f.endereco?.bairro ?? ''),
 
@@ -287,6 +343,17 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
   }
 
   async salvar(record: any) {
+    if (!this.form.disabled) {
+      this.completarProtocoloBlur();
+      this.completarAnoProtocoloBlur();
+    }
+    if (!this.form.valid) {
+      await this.messageService.presentErro(
+        'Protocolo: somente números, 6 dígitos. Ano: 4 dígitos (ou 2 para o ano), não superior ao ano atual.'
+      );
+      return;
+    }
+    record = { ...record, ...this.form.getRawValue() };
 
     let segmentoDriveAnterior: string | null = null;
     if (!this.model!.isNew) {
@@ -342,7 +409,8 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
     } else {
       await this.presentLoading();
       try {
-        await this.atendimentoService.updateIdentificacao(this.model!);
+        // Renomear pasta no Drive antes do mirror: senão o mirror cria uma pasta nova com o nome novo
+        // enquanto a antiga ainda existe com o nome antigo (duplicata no mesmo nível).
         if (segmentoDriveAnterior !== null) {
           const novoSeg = this.imageService.buildAnoProtocoloSegment(
             this.model!.fields.protocolo?.ano,
@@ -353,12 +421,11 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
               segmentoDriveAnterior,
               novoSeg
             );
-            // Remove snapshot antigo (pode ter ficado com nome anterior após renomear pasta).
             await this.imageService.deleteAtendimentoJsonSnapshotIfExists(segmentoDriveAnterior, novoSeg);
-            // Caso a pasta antiga ainda exista separada, remove também nela.
             await this.imageService.deleteAtendimentoJsonSnapshotIfExists(segmentoDriveAnterior, segmentoDriveAnterior);
           }
         }
+        await this.atendimentoService.updateIdentificacao(this.model!);
         await this.hideLoader();
         this.form.markAsPristine();
         await this.presentAlertSalvo('Dados alterados com sucesso');
@@ -711,17 +778,101 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
     return patch;
   }
 
-  completarComZeros(controlName: string) {
-    const control = this.form.get(controlName);
-    if (!control) return;
+  private static normalizeProtocoloExistente(raw: string): string {
+    const d = raw.replace(/\D/g, '');
+    if (!d.length) {
+      return '';
+    }
+    const trimmed =
+      d.length > IdentificacaoPage.PROTOCOLO_DIGITOS
+        ? d.slice(0, IdentificacaoPage.PROTOCOLO_DIGITOS)
+        : d;
+    return trimmed.padStart(IdentificacaoPage.PROTOCOLO_DIGITOS, '0');
+  }
 
-    const valor = (control.value ?? '').toString().replace(/\D/g, '');
+  /** Converte entrada em ano inteiro (YYYY ou YY com século relativo ao ano atual). */
+  private resolverAnoProtocoloNumero(value: unknown): number | null {
+    const raw = String(value ?? '').replace(/\D/g, '');
+    if (!raw.length) {
+      return null;
+    }
+    const cur = new Date().getFullYear();
+    const cent = Math.floor(cur / 100) * 100;
+    if (raw.length <= 2) {
+      const yy = parseInt(raw.padStart(2, '0'), 10);
+      if (!Number.isFinite(yy)) {
+        return null;
+      }
+      let y = cent + yy;
+      if (y > cur) {
+        y -= 100;
+      }
+      return y;
+    }
+    if (raw.length < 4) {
+      return null;
+    }
+    const y = parseInt(raw.slice(0, 4), 10);
+    return Number.isFinite(y) ? y : null;
+  }
 
-    if (!valor) return;
+  onProtocoloIonInput(ev: Event): void {
+    const control = this.form.get('protocolo');
+    if (!control || control.disabled) {
+      return;
+    }
+    const detail = (ev as CustomEvent<{ value?: string | null }>).detail?.value ?? '';
+    const digits = String(detail).replace(/\D/g, '').slice(0, IdentificacaoPage.PROTOCOLO_DIGITOS);
+    const prev = String(control.value ?? '').replace(/\D/g, '').slice(0, IdentificacaoPage.PROTOCOLO_DIGITOS);
+    if (digits !== prev) {
+      control.setValue(digits, { emitEvent: true });
+    }
+  }
 
-    const valorFormatado = valor.padStart(6, '0');
+  onProtocoloAnoIonInput(ev: Event): void {
+    const control = this.form.get('protocoloAno');
+    if (!control || control.disabled) {
+      return;
+    }
+    const detail = (ev as CustomEvent<{ value?: string | null }>).detail?.value ?? '';
+    const digits = String(detail).replace(/\D/g, '').slice(0, 4);
+    const prev = String(control.value ?? '').replace(/\D/g, '').slice(0, 4);
+    if (digits !== prev) {
+      control.setValue(digits, { emitEvent: true });
+    }
+  }
 
-    control.setValue(valorFormatado, { emitEvent: false });
+  /** Protocolo com exatamente 6 dígitos, zeros à esquerda. */
+  completarProtocoloBlur(): void {
+    const control = this.form.get('protocolo');
+    if (!control || control.disabled) {
+      return;
+    }
+    let valor = String(control.value ?? '').replace(/\D/g, '');
+    if (!valor.length) {
+      return;
+    }
+    if (valor.length > IdentificacaoPage.PROTOCOLO_DIGITOS) {
+      valor = valor.slice(0, IdentificacaoPage.PROTOCOLO_DIGITOS);
+    }
+    control.setValue(valor.padStart(IdentificacaoPage.PROTOCOLO_DIGITOS, '0'), { emitEvent: true });
+  }
+
+  /** Normaliza ano para string com 4 dígitos (ex.: YY → ano completo). */
+  completarAnoProtocoloBlur(): void {
+    const control = this.form.get('protocoloAno');
+    if (!control || control.disabled) {
+      return;
+    }
+    const y = this.resolverAnoProtocoloNumero(control.value);
+    if (y === null) {
+      return;
+    }
+    const cur = new Date().getFullYear();
+    if (y > cur || y < IdentificacaoPage.ANO_MIN) {
+      return;
+    }
+    control.setValue(String(y), { emitEvent: true });
   }
 
   private coordToInput(v: number | undefined): string {

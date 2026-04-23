@@ -6,7 +6,7 @@ import { Veiculo } from '../models/veiculo.model';
 import { Quesito } from '../models/quesito.model';
 import { map } from 'rxjs/operators';
 import { collectionData, Firestore } from '@angular/fire/firestore';
-import { collection, getDocs, limit, orderBy, query, startAfter, where, doc, addDoc, Timestamp, updateDoc, deleteField, DocumentReference } from 'firebase/firestore';
+import { collection, getDocs, limit, orderBy, query, startAfter, where, doc, addDoc, Timestamp, updateDoc, deleteField } from 'firebase/firestore';
 import { ImageService } from './image.service';
 import { MapaVisao, parseMapaVisao } from '../atendimento/vitima/mapa/mapa-visao.enum';
 import { REGIOES_CABECA_ANTERIOR } from '../const/regioes-cabeca-anterior';
@@ -121,8 +121,6 @@ export class AtendimentoService {
 
   async create(atendimento: Atendimento) {
   // return this.firestore.collection('atendimentos').add(atendimento.rawData());'
-    await this.ensureProtocoloUnico(atendimento);
-
     const atendimentosRef = collection(this.firestore, 'atendimentos');
 
     const data = new Date(atendimento.fields.data);
@@ -155,8 +153,6 @@ export class AtendimentoService {
   }
 
   async updateIdentificacao(atendimento: Atendimento) {
-    await this.ensureProtocoloUnico(atendimento, atendimento.id);
-
     const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
 
     const data = new Date(atendimento.fields.data);
@@ -187,51 +183,6 @@ export class AtendimentoService {
 
   getAtendimentoDoc(id: string) {
     return doc(this.firestore, 'atendimentos', id);
-  }
-
-  /**
-   * Impede dois atendimentos do mesmo perito com o mesmo ano e número de protocolo.
-   * @param excludeAtendimentoId ao editar, o próprio documento é ignorado
-   */
-  private async ensureProtocoloUnico(
-    atendimento: Atendimento,
-    excludeAtendimentoId?: string
-  ): Promise<void> {
-    const peritoRef = atendimento.fields.perito as DocumentReference | undefined;
-    if (!peritoRef?.path) {
-      throw new Error('Perito não definido.');
-    }
-    const ano = String(atendimento.fields.protocolo?.ano ?? '').trim();
-    const numero = String(atendimento.fields.protocolo?.numero ?? '').trim();
-    if (!ano || !numero) {
-      return;
-    }
-    const duplicado = await this.existeOutroAtendimentoComProtocolo(
-      peritoRef,
-      ano,
-      numero,
-      excludeAtendimentoId
-    );
-    if (duplicado) {
-      throw new Error('Já existe um atendimento com este ano e número de protocolo.');
-    }
-  }
-
-  private async existeOutroAtendimentoComProtocolo(
-    peritoRef: DocumentReference,
-    ano: string,
-    numero: string,
-    excludeAtendimentoId?: string
-  ): Promise<boolean> {
-    const q = query(
-      this.getRef(),
-      where('perito', '==', peritoRef),
-      where('protocolo.ano', '==', ano),
-      where('protocolo.numero', '==', numero),
-      limit(8)
-    );
-    const snap = await getDocs(q);
-    return snap.docs.some((d) => d.id !== excludeAtendimentoId);
   }
 
   async updateRequisicao(atendimento: Atendimento) {

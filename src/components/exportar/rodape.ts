@@ -6,6 +6,7 @@ import { Paragraph, TextRun, Footer,
     from 'docx';
 
 import { ImageHelper } from './helper/imageHelper';
+import { ESPACO_ENTRE_LINHAS_1 } from './styles';
 
 export abstract class Rodape{
 
@@ -17,6 +18,7 @@ export abstract class Rodape{
         return new Footer({ // The standard default header
             children: [
                 new Paragraph({
+                    spacing: { ...ESPACO_ENTRE_LINHAS_1 },
                     children: [
                         new ImageRun({
                             data: dataFaixa,

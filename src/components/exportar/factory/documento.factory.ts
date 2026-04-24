@@ -1,5 +1,4 @@
-import { Document } from 'docx';
-import { convertMillimetersToTwip } from 'docx';
+import { Document, LineRuleType, convertMillimetersToTwip } from 'docx';
 //import { UpdateFields } from 'docx/src/file/settings/update-fields';
 
 import { Atendimento } from 'src/app/models/atendimento.model'; 
@@ -45,6 +44,21 @@ export class DocumentoFactory{
 
             styles: {
                 default: {
+                    document: {
+                        paragraph: {
+                            spacing: { line: 360, lineRule: LineRuleType.AUTO },
+                        },
+                    },
+                    listParagraph: {
+                        paragraph: {
+                            spacing: { line: 360, lineRule: LineRuleType.AUTO },
+                        },
+                    },
+                    footnoteText: {
+                        paragraph: {
+                            spacing: { line: 240, lineRule: LineRuleType.AUTO },
+                        },
+                    },
                 },
                 paragraphStyles: ESTILOS_PARAGRAFOS,
             },

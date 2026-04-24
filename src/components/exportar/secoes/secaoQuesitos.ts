@@ -1,5 +1,7 @@
-import { Paragraph, TextRun } from 'docx';
+import { Paragraph, TextRun, convertMillimetersToTwip } from 'docx';
 import { SecaoNumerada } from '../secaoNumerada';
+
+const RECUO_ESQUERDO_QUESITO_MM = 25;
 
 export class SecaoQuesitos extends SecaoNumerada{
 
@@ -24,17 +26,19 @@ export class SecaoQuesitos extends SecaoNumerada{
               new Paragraph ({
                   style: 'quesito_identificacao',
                   keepNext: true,
+                  indent: { left: convertMillimetersToTwip(RECUO_ESQUERDO_QUESITO_MM), firstLine: 0 },
                   children: [
                       /* art. 14 §3 I: quesito na íntegra, em negrito, entre aspas */
-                      new TextRun({ text: '"' + item.pergunta + '"', bold: true}),
+                      new TextRun({ text: '"' + item.pergunta + '"', bold: true, font: 'Times New Roman', size: 24 }),
                   ]
               }),
     
               new Paragraph ({
                 style: 'quesito_resposta',
+                indent: { left: convertMillimetersToTwip(RECUO_ESQUERDO_QUESITO_MM), firstLine: 0 },
                 spacing: { after: index < this.documento.atendimento.quesitos.length ? 360 : 0 },
                 children: [
-                    new TextRun(item.resposta ?? ''),
+                    new TextRun({ text: item.resposta ?? '', font: 'Times New Roman', size: 24 }),
                 ]
               })
           ]);

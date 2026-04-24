@@ -28,8 +28,8 @@ export const NUMBERING =
             },
             {
                 level: 1,
-                format: LevelFormat.UPPER_LETTER,
-                text: "%1. %2 - ",
+                format: LevelFormat.DECIMAL,
+                text: "%1.%2 - ",
                 suffix: LevelSuffix.NOTHING,
                 alignment: AlignmentType.START,
                 style: {

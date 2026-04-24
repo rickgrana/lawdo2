@@ -15,6 +15,7 @@ import {
 } from 'docx';
 
 import { ImageHelper } from '../helper/imageHelper';
+import { ESPACO_ENTRE_LINHAS_1 } from '../styles';
 import { ImageCell } from '../helper/imageCell';
 import { ImageParagraph } from '../helper/ImageParagraph';
 import { NumberHelper } from 'src/app/extensions/numberHelper';
@@ -223,7 +224,7 @@ export class SecaoAnexo extends Secao {
         ImageParagraph.paragrafoLegendaFigura(legendaFigura, this.documento.proximoNumeroFigura()),
         new Paragraph({
           alignment: AlignmentType.CENTER,
-          spacing: { before: 80, after: 0 },
+          spacing: { before: 80, after: 0, ...ESPACO_ENTRE_LINHAS_1 },
           children: [
             new TextRun({
               text: 'Fonte do mapa: © OpenStreetMap contributors, © CARTO',
@@ -413,6 +414,7 @@ export class SecaoAnexo extends Secao {
                     spacing: {
                       before: primeiraLinha ? espacoAntes : undefined,
                       after: spacingAfter,
+                      ...ESPACO_ENTRE_LINHAS_1,
                     },
                     children: runsItem(t1),
                   }),
@@ -424,7 +426,7 @@ export class SecaoAnexo extends Secao {
                 children: [
                   new Paragraph({
                     alignment: AlignmentType.CENTER,
-                    spacing: { after: spacingAfter },
+                    spacing: { after: spacingAfter, ...ESPACO_ENTRE_LINHAS_1 },
                     children: runsItem(t2),
                   }),
                 ],
@@ -446,6 +448,7 @@ export class SecaoAnexo extends Secao {
                     spacing: {
                       before: primeiraLinha ? espacoAntes : undefined,
                       after: spacingAfter,
+                      ...ESPACO_ENTRE_LINHAS_1,
                     },
                     children: runsItem(t1),
                   }),

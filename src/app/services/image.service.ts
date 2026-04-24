@@ -369,6 +369,28 @@ export class ImageService {
     return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   }
 
+  /**
+   * Mensagens compreensíveis quando a API Drive recusa a operação (permissões, pasta, sessão).
+   */
+  private driveRequestFailed(operation: string, status: number, body: string): never {
+    if (status === 401) {
+      throw new Error(
+        'Não foi possível aceder ao Google Drive (sessão expirada ou inválida). Termine sessão e volte a entrar, ou autorize novamente o acesso ao Google.'
+      );
+    }
+    if (status === 403) {
+      throw new Error(
+        'Não tem permissão suficiente no Google Drive para guardar o documento. Confirme que a pasta nas Configurações é sua ou que tem permissão de escrita; em pastas partilhadas, peça acesso de edição ao proprietário.'
+      );
+    }
+    if (status === 404) {
+      throw new Error(
+        'Pasta ou local no Google Drive não encontrado. Nas Configurações, verifique a pasta de destino ou o ID da pasta.'
+      );
+    }
+    throw new Error(`Drive (${operation}): ${status} ${body}`);
+  }
+
   private async findOrCreateFolder(token: string, parentId: string, name: string): Promise<string> {
     const lockKey = JSON.stringify([parentId, name]);
     let pending = this.folderCreationLocks.get(lockKey);
@@ -394,7 +416,7 @@ export class ImageService {
     const listRes = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!listRes.ok) {
       const err = await listRes.text().catch(() => '');
-      throw new Error(`Drive (listar pasta): ${listRes.status} ${err}`);
+      this.driveRequestFailed('listar pasta', listRes.status, err);
     }
     const listJson = await listRes.json() as { files?: { id: string }[] };
     const existing = listJson.files?.[0]?.id;
@@ -416,7 +438,7 @@ export class ImageService {
     });
     if (!createRes.ok) {
       const err = await createRes.text().catch(() => '');
-      throw new Error(`Drive (criar pasta): ${createRes.status} ${err}`);
+      this.driveRequestFailed('criar pasta', createRes.status, err);
     }
     const created = await createRes.json() as { id: string };
     return created.id;
@@ -458,7 +480,7 @@ export class ImageService {
 
     if (!res.ok) {
       const err = await res.text().catch(() => '');
-      throw new Error(`Drive (upload): ${res.status} ${err}`);
+      this.driveRequestFailed('upload', res.status, err);
     }
     const data = await res.json() as { id: string };
     return data.id;
@@ -513,7 +535,7 @@ export class ImageService {
 
     if (!res.ok) {
       const err = await res.text().catch(() => '');
-      throw new Error(`Drive (atualizar TXT): ${res.status} ${err}`);
+      this.driveRequestFailed('atualizar ficheiro', res.status, err);
     }
   }
 }

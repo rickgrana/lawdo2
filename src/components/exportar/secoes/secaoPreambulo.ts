@@ -17,14 +17,14 @@ export class SecaoPreambulo extends Secao{
                 children: [
 
                         new TextRun(
-                            '\n' + ((diaReceb == '01')?'Ao primeiro dia': 'Aos ' +  DateTimeHelper.getDiaExtenso(diaReceb) +
+                            ((diaReceb == '01')?'Ao primeiro dia': 'Aos ' +  DateTimeHelper.getDiaExtenso(diaReceb) +
                                 ' dias') + ' do mês de ' + DateTimeHelper.getMesExtenso(mesReceb) +
                                 ' do ano de ' + anoReceb
                         +
                         ', nesta cidade de ' + this.documento.perito.unidade.cidade + ' - ' + this.documento.perito.corporacao.uf + ', ' +
                         'no ' + this.documento.perito.unidade.nome + ' - ' + this.documento.perito.unidade.sigla + 
                         ', em conformidade com a legislação ' +
-                        'e com os dispositivos regulamentares vigentes, pelo(a) Diretor(a) '
+                        'e com os dispositivos regulamentares vigentes, pelo(a) Diretor(a) Perito Criminal '
                     ),
 
                     /* art. 15 §1: nomes em maiúsculas, sem negrito */
@@ -41,21 +41,7 @@ export class SecaoPreambulo extends Secao{
                     }),
 
                     new TextRun(
-                        ' para atender ocorrência protocolada sob número '
-                    ),
-
-                    new TextRun({
-                        text: this.documento.atendimento.fields.protocolo.numero + '/' + this.documento.atendimento.fields.protocolo.ano,  bold: true
-                    }),
-
-                    new TextRun(
-                        ((this.documento.atendimento.fields.requisicao.numero.length > 0)?
-                            ', a fim de descrever com veracidade e com ' +
-                            'todas as minúcias o que encontrar, bem como responder aos quesitos formulados pela autoridade policial ' +
-                            'requisitante, os quais se encontram transcritos e respondidos em tópico específico deste documento.'
-                        :
-                            ', a fim de descrever com veracidade e com todas as minúcias o que encontrar, e bem assim esclarecer tudo quanto possa interessar.'
-                        )
+                        ' para proceder a exames periciais, descrevendo com veracidade e com todas as minúcias o que encontrar, descobrir e observar, bem como responder aos quesitos formulados pela autoridade requisitante, os quais se encontram transcritos e respondidos em tópico específico deste documento. '
                     )
                 ],
             })

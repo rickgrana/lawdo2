@@ -1,5 +1,5 @@
 import { Secao } from '../../secao'; 
-import { Paragraph, TextRun} from 'docx';
+import { Paragraph, TextRun, convertMillimetersToTwip } from 'docx';
 import { NumberHelper } from 'src/app/extensions/numberHelper';
 import { formatarPertenceParaLaudo, obterPertencesItensParaDocumento, obterTatuagensItensParaDocumento, Vitima } from 'src/app/models/vitima.model';
 import { MapaTipoVestigio } from 'src/app/atendimento/vitima/mapa/mapa-ferramenta.enum';
@@ -10,6 +10,8 @@ import { REGIOES_CORPO_FRENTE } from 'src/app/const/regioes-corpo-frente';
 import { REGIOES_CORPO_VERSO } from 'src/app/const/regioes-corpo-verso';
 
 export class SecaoPerinecroVitima extends Secao{
+    /** Subalíneas: 2,5 cm além do recuo da alínea (total: 5,0 cm da margem esquerda). */
+    private static readonly RECUO_SUBALINEA_TWIP = convertMillimetersToTwip(50);
 
     private vitima!: Vitima;
     
@@ -26,6 +28,14 @@ export class SecaoPerinecroVitima extends Secao{
     override async runInternal(): Promise<any[]> {
 
         let retorno: any[] = [];
+        let indiceMarcacao = 0;
+        const proximaAlinea = () => {
+            indiceMarcacao += 1;
+            return this.formatarMarcadorMinusculo(indiceMarcacao);
+        };
+        const proximoMarcador = () => {
+            return proximaAlinea() + ') ';
+        };
 
         let model = this.documento.atendimento;
     
@@ -51,7 +61,7 @@ export class SecaoPerinecroVitima extends Secao{
         ]);
 
 
-        const paragrafosVestigios = await this.getParagrafosVestigiosPorTipo();
+        const paragrafosVestigios = await this.getParagrafosVestigiosPorTipo(proximaAlinea);
         if(paragrafosVestigios.length > 0){
             retorno = retorno.concat(paragrafosVestigios);
         }
@@ -59,13 +69,10 @@ export class SecaoPerinecroVitima extends Secao{
         if(this.documento.atendimento.isSuicidio){
             retorno = retorno.concat([
                 new Paragraph ({
-                    style: 'Normal',
-                    bullet: {
-                        level: 0,
-                    },
+                    style: 'ListParagraph',
                     children: [
                         new TextRun({
-                            text: 'A presença na VÍTIMA de sulco único ascendente e oblíquo na região do pescoço, com borda superior mais alta que a inferior, com interrupção na parte posterior da cabeça;',
+                            text: proximoMarcador() + 'A presença na VÍTIMA de sulco único ascendente e oblíquo na região do pescoço, com borda superior mais alta que a inferior, com interrupção na parte posterior da cabeça;',
                         }),
                     ],
                 })
@@ -79,43 +86,35 @@ export class SecaoPerinecroVitima extends Secao{
             if(pertencesLista.length === 1 && pertencesLista[0].descricao.trim().toUpperCase() == 'NADA'){
                 retorno = retorno.concat([
                     new Paragraph ({
-                        style: 'Normal',
-                        bullet: {
-                            level: 0,
-                        },
+                        style: 'ListParagraph',
                         children: [
                             new TextRun({
-                                text: 'A AUSÊNCIA de PERTENCES com a vítima;',
+                                text: proximoMarcador() + 'A AUSÊNCIA de PERTENCES com a vítima;',
                             }),
                         ],
                     })
                 ]);
             }else{
-
+                const alineaPertences = proximaAlinea();
                 retorno = retorno.concat([
                     new Paragraph ({
-                        style: 'Normal',
-                        bullet: {
-                            level: 0,
-                        },
+                        style: 'ListParagraph',
                         children: [
                             new TextRun({
-                                text: 'A presença dos seguintes PERTENCES com a vítima:',
+                                text: alineaPertences + ') ' + 'A presença dos seguintes PERTENCES com a vítima:',
                             }),
                         ],
                     })
                 ]);
 
-                pertencesLista.forEach((pertence) => {
+                pertencesLista.forEach((pertence, i) => {
                     retorno = retorno.concat([
                         new Paragraph ({
-                            style: 'Normal',
-                            bullet: {
-                                level: 1,
-                            },
+                            style: 'ListParagraph',
+                            indent: { left: SecaoPerinecroVitima.RECUO_SUBALINEA_TWIP, firstLine: 0 },
                             children: [
                                 new TextRun({
-                                    text: formatarPertenceParaLaudo(pertence)
+                                    text: alineaPertences + '.' + String(i + 1) + ') ' + formatarPertenceParaLaudo(pertence)
                                 }),
                                 new TextRun(';')
                             ],
@@ -129,21 +128,19 @@ export class SecaoPerinecroVitima extends Secao{
         // TATUAGENS DA VITIMA
         const tatuagensLista = obterTatuagensItensParaDocumento(this.vitima);
         if(tatuagensLista.length > 0){
+            const alineaTatuagens = proximaAlinea();
             retorno = retorno.concat([
                 new Paragraph ({
-                    style: 'Normal',
-                    bullet: {
-                        level: 0,
-                    },
+                    style: 'ListParagraph',
                     children: [
                         new TextRun({
-                            text: 'A presença das seguintes TATUAGENS na vítima:'
+                            text: alineaTatuagens + ') ' + 'A presença das seguintes TATUAGENS na vítima:'
                         }),
                     ],
                 })
             ]);
          
-            tatuagensLista.forEach((item) => {
+            tatuagensLista.forEach((item, i) => {
                 const regiao = item.regiao.trim();
                 const descricao = item.descricao.trim();
                 let linha = '';
@@ -156,13 +153,11 @@ export class SecaoPerinecroVitima extends Secao{
                 }
                 retorno = retorno.concat([
                     new Paragraph ({
-                        style: 'Normal',
-                        bullet: {
-                            level: 1,
-                        },
+                        style: 'ListParagraph',
+                        indent: { left: SecaoPerinecroVitima.RECUO_SUBALINEA_TWIP, firstLine: 0 },
                         children: [
                             new TextRun({
-                                text: linha
+                                text: alineaTatuagens + '.' + String(i + 1) + ') ' + linha
                             }),
                             new TextRun(';')
                         ],
@@ -173,20 +168,32 @@ export class SecaoPerinecroVitima extends Secao{
 
 
         // OBSERVAÇÕES DA VITIMA
-        if(this.vitima.observacoes.length > 0){
-
-            this.vitima.observacoes.split(";").forEach((item) => {
+        const observacoesItens = this.vitima.observacoes
+            .split(';')
+            .map((item) => item.trim())
+            .filter((item) => item.length > 0);
+        if (observacoesItens.length > 0) {
+            const alineaObservacoes = proximaAlinea();
+            retorno = retorno.concat([
+                new Paragraph({
+                    style: 'ListParagraph',
+                    children: [
+                        new TextRun({
+                            text: alineaObservacoes + ') ' + 'Observações quanto à vítima:',
+                        }),
+                    ],
+                }),
+            ]);
+            observacoesItens.forEach((item, i) => {
                 retorno = retorno.concat([
-                    new Paragraph ({
-                        style: 'Normal',
-                        bullet: {
-                            level: 0,
-                        },
+                    new Paragraph({
+                        style: 'ListParagraph',
+                        indent: { left: SecaoPerinecroVitima.RECUO_SUBALINEA_TWIP, firstLine: 0 },
                         children: [
                             new TextRun({
-                                text: item.trim()
+                                text: alineaObservacoes + '.' + String(i + 1) + ') ' + item,
                             }),
-                            new TextRun(';')
+                            new TextRun(';'),
                         ],
                     }),
                 ]);
@@ -234,7 +241,7 @@ export class SecaoPerinecroVitima extends Secao{
         const totalExtenso = NumberHelper.getExtenso(totalVestigios, 'M');
 
         if(tipo === MapaTipoVestigio.PAF){
-            return 'A presença de ' +
+            return 'a presença de ' +
                 totalVestigios.toString().padStart(2, '0') +
                 ' (' + totalExtenso + ') ' +
                 'ferimento' + (plural ? 's' : '') +
@@ -247,7 +254,7 @@ export class SecaoPerinecroVitima extends Secao{
         }
 
         if(tipo === MapaTipoVestigio.FACA){
-            return 'A presença de ' +
+            return 'a presença de ' +
                 totalVestigios.toString().padStart(2, '0') +
                 ' (' + totalExtenso + ') ' +
                 'ferimento' + (plural ? 's' : '') +
@@ -256,7 +263,7 @@ export class SecaoPerinecroVitima extends Secao{
         }
 
         if(tipo === MapaTipoVestigio.TACO){
-            return 'A presença de ' +
+            return 'a presença de ' +
                 totalVestigios.toString().padStart(2, '0') +
                 ' (' + totalExtenso + ') ' +
                 'les' + (plural ? 'ões' : 'ão') +
@@ -264,7 +271,7 @@ export class SecaoPerinecroVitima extends Secao{
                 ' por instrumento CONTUNDENTE, nas seguintes quantidades e regiões:';
         }
 
-        return 'A presença de ' +
+        return 'a presença de ' +
             totalVestigios.toString().padStart(2, '0') +
             ' (' + totalExtenso + ') ' +
             'hematoma' + (plural ? 's' : '') +
@@ -315,7 +322,7 @@ export class SecaoPerinecroVitima extends Secao{
         return REGIOES_CORPO_FRENTE.get(codigoRegiao) ?? codigoRegiao;
     }
 
-    async getParagrafosVestigiosPorTipo(): Promise<any[]> {
+    async getParagrafosVestigiosPorTipo(proximaAlinea: () => string): Promise<any[]> {
         const secoes: any[] = [];
         const tiposOrdem = [
             MapaTipoVestigio.PAF,
@@ -361,16 +368,14 @@ export class SecaoPerinecroVitima extends Secao{
             if (totalVestigios === 0) {
                 continue;
             }
+            const alineaAssunto = proximaAlinea();
 
             secoes.push(
                 new Paragraph({
-                    style: 'padrao',
-                    bullet: {
-                        level: 0,
-                    },
+                    style: 'ListParagraph',
                     children: [
                         new TextRun({
-                            text: this.getCabecalhoTipoVestigio(tipo, totalVestigios),
+                            text: alineaAssunto + ') ' + this.getCabecalhoTipoVestigio(tipo, totalVestigios),
                         }),
                     ],
                 })
@@ -387,13 +392,11 @@ export class SecaoPerinecroVitima extends Secao{
 
                 secoes.push(
                     new Paragraph({
-                        style: 'Normal',
-                        bullet: {
-                            level: 1,
-                        },
+                        style: 'ListParagraph',
+                        indent: { left: SecaoPerinecroVitima.RECUO_SUBALINEA_TWIP, firstLine: 0 },
                         children: [
                             new TextRun({
-                                text: qtde.toString().padStart(2, '0') +
+                                text: alineaAssunto + '.' + String(i + 1) + ') ' + qtde.toString().padStart(2, '0') +
                                     ' (' + NumberHelper.getExtenso(qtde, 'F') + ') ' +
                                     termoItem + ' na região '
                             }),
@@ -408,6 +411,17 @@ export class SecaoPerinecroVitima extends Secao{
         }
 
         return secoes;
+    }
+
+    private formatarMarcadorMinusculo(indice: number): string {
+        let n = indice;
+        let out = '';
+        while (n > 0) {
+            n -= 1;
+            out = String.fromCharCode(97 + (n % 26)) + out;
+            n = Math.floor(n / 26);
+        }
+        return out || 'a';
     }
 
 }

@@ -2,7 +2,19 @@ import { SecaoSubExames } from './secaoSubExames';
 import { Paragraph, TextRun} from 'docx';
 import { Atendimento, PresenteNoLocal } from 'src/app/models/atendimento.model';
 
-function paragrafoPresenteDocx(p: PresenteNoLocal): Paragraph {
+/** Marcador de alínea em minúsculas: a, b, …, z, aa, … (como na perinecroscopia). */
+function formatarMarcadorAlinea(indice: number): string {
+    let n = indice;
+    let out = '';
+    while (n > 0) {
+        n -= 1;
+        out = String.fromCharCode(97 + (n % 26)) + out;
+        n = Math.floor(n / 26);
+    }
+    return out || 'a';
+}
+
+function paragrafoPresenteDocx(marcadorAlinea: string, p: PresenteNoLocal): Paragraph {
     const nome = (p.nome || '').trim();
     const cargo = (p.cargo || '').trim();
     const orgao = (p.orgao || '').trim();
@@ -23,12 +35,9 @@ function paragrafoPresenteDocx(p: PresenteNoLocal): Paragraph {
     }
     const inner = parts.length ? parts.join(', ') : '—';
     return new Paragraph({
-        style: 'Normal',
-        bullet: {
-            level: 1,
-        },
+        style: 'ListParagraph',
         children: [
-            new TextRun({ text: nome || '—', bold: true }),
+            new TextRun({ text: marcadorAlinea + (nome || '—'), bold: true }),
             new TextRun({ text: ' (' + inner + ');' }),
         ],
     });
@@ -90,6 +99,11 @@ export class SecaoIsolamento extends SecaoSubExames{
         let model = this.documento.atendimento;
         const artigo = this.documento.perito.getArtigo() as 'o' | 'a';
         const qPresentes = contarItensListaPresentes(model);
+        let indiceAlineaPresentes = 0;
+        const proximoMarcadorAlinea = () => {
+            indiceAlineaPresentes += 1;
+            return formatarMarcadorAlinea(indiceAlineaPresentes) + ') ';
+        };
 
         let retorno = [
             new Paragraph ({
@@ -110,7 +124,7 @@ export class SecaoIsolamento extends SecaoSubExames{
                 if (!(p.nome?.trim() || p.cargo?.trim() || p.origem?.trim() || p.veiculo?.trim())) {
                     continue;
                 }
-                retorno = retorno.concat([paragrafoPresenteDocx(p)]);
+                retorno = retorno.concat([paragrafoPresenteDocx(proximoMarcadorAlinea(), p)]);
             }
         } else {
 
@@ -118,12 +132,9 @@ export class SecaoIsolamento extends SecaoSubExames{
 
             retorno = retorno.concat([
                 new Paragraph ({
-                    style: 'Normal',
-                    bullet: {
-                        level: 1,
-                    },
+                    style: 'ListParagraph',
                     children: [
-                        new TextRun({ text: model.fields.equipes.pm.representante, bold: true }),
+                        new TextRun({ text: proximoMarcadorAlinea() + model.fields.equipes.pm.representante, bold: true }),
                         new TextRun({ text: ' (Polícia Militar, '}),
                         new TextRun({ text: model.fields.equipes.pm.origem }),
                         new TextRun({ text: ', VTR Nº'}),
@@ -185,11 +196,11 @@ export class SecaoIsolamento extends SecaoSubExames{
 
             retorno = retorno.concat([
                 new Paragraph ({
-                    style: 'Normal',
-                    bullet: {
-                        level: 1,
-                    },
-                    children: equipe_pc
+                    style: 'ListParagraph',
+                    children: [
+                        new TextRun({ text: proximoMarcadorAlinea() }),
+                        ...equipe_pc,
+                    ],
                 }),
             ]);
         }

@@ -1,6 +1,7 @@
 import { Documento } from './documento'; 
 
-import { Paragraph, TextRun, Header, Media, ImageRun} from 'docx';
+import { Paragraph, TextRun, Header, Media, ImageRun } from 'docx';
+import { ESPACO_ENTRE_LINHAS_1 } from './styles';
 
 import {ImageHelper} from './helper/imageHelper';
 
@@ -13,6 +14,7 @@ export abstract class Cabecalho{
         return new Header({ 
             children: [
                 new Paragraph({
+                    spacing: { ...ESPACO_ENTRE_LINHAS_1 },
                     children: [
                         new ImageRun({
                             data: img,
@@ -32,7 +34,7 @@ export abstract class Cabecalho{
                         })
                     ]
                 }),
-                new Paragraph({})
+                new Paragraph({ spacing: { ...ESPACO_ENTRE_LINHAS_1 } })
             ]
         });
       }

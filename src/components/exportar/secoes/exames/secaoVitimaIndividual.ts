@@ -21,58 +21,78 @@ export class SecaoVitimaIndividual extends Secao{
 
         let model = this.documento.atendimento;
         let artigo = this.documento.perito.getArtigo();
+        const vitima = this.getVitima();
+        const textoValido = (valor: unknown): string => String(valor ?? '').trim();
+        const temTexto = (valor: unknown): boolean => textoValido(valor).length > 0;
 
         // CADAVER
         const retorno: any[] = [];
 
         retorno.push(new TextRun({ text: 'O cadáver doravante denominado de '}));
 
-        retorno.push(new TextRun({ text: this.getVitima().index, bold: true}));
+        retorno.push(new TextRun({ text: vitima.index, bold: true}));
 
-        if (!this.getVitima().identificada) {
+        if (!vitima.identificada) {
             retorno.push(new TextRun({ text: ', sem identificação no momento da realização do exame', bold: true}));
         } else{
-            if (this.getVitima().identificada == 'Não reconhecida') {
+            if (vitima.identificada == 'Não reconhecida') {
                 retorno.push(new TextRun({ text: ', sem reconhecimento no momento da realização do exame', bold: true}));
             }else{
-            retorno.push(new TextRun({ text: ', ' + (this.getVitima()!.identificada as string)!.toLowerCase() + 
+            retorno.push(new TextRun({ text: ', ' + (vitima.identificada as string)!.toLowerCase() + 
                         ' no local como sendo referente a '}));
-            retorno.push(new TextRun({ text: this.getVitima().nome.toUpperCase(), bold: true}));
+            retorno.push(new TextRun({ text: vitima.nome.toUpperCase(), bold: true}));
             }
         }
 
-        retorno.push(new TextRun({ text: ', tratava-se de '}));
-        retorno.push(new TextRun({ text: this.getVitima().porte.toUpperCase(), bold: true}));
+        if (temTexto(vitima.porte)) {
+            retorno.push(new TextRun({ text: ', tratava-se de '}));
+            retorno.push(new TextRun({ text: textoValido(vitima.porte).toUpperCase(), bold: true}));
+        }
 
-        retorno.push(new TextRun({ text: ', do sexo '}));
-        retorno.push(new TextRun({ text: this.getVitima().getSexoText().toUpperCase(), bold: true}));
+        const sexo = textoValido(vitima.getSexoText());
+        if (sexo) {
+            retorno.push(new TextRun({ text: ', do sexo '}));
+            retorno.push(new TextRun({ text: sexo.toUpperCase(), bold: true}));
+        }
 
-        if (this.getVitima().rg.length) {
+        if (temTexto(vitima.rg)) {
         retorno.push(new TextRun({ text: ', RG Nº', bold: true}));
-        retorno.push(new TextRun({ text: this.getVitima().rg, bold: true}));
+        retorno.push(new TextRun({ text: textoValido(vitima.rg), bold: true}));
         }
 
-        if (this.getVitima().idade) {
-            retorno.push(new TextRun({ text: ', ' + this.getVitima().idade + ' anos', bold: true}));
+        if (vitima.idade) {
+            retorno.push(new TextRun({ text: ', ' + vitima.idade + ' anos', bold: true}));
         }
 
-        retorno.push(new TextRun({ text: ', de tez '}));
-        retorno.push(new TextRun({ text: this.getVitima().etnia.toLowerCase()}));
+        if (temTexto(vitima.etnia)) {
+            retorno.push(new TextRun({ text: ', de tez '}));
+            retorno.push(new TextRun({ text: textoValido(vitima.etnia).toLowerCase()}));
+        }
 
-        retorno.push(new TextRun({ text: ', cabelos '}));
-        retorno.push(new TextRun({ text: this.getVitima().cabelo.cor.toLowerCase()}));
+        const cabeloCor = textoValido(vitima.cabelo.cor).toLowerCase();
+        const cabeloTipo = textoValido(vitima.cabelo.tipo).toLowerCase();
+        const cabeloComprimento = textoValido(vitima.cabelo.comprimento).toLowerCase();
+        if (cabeloCor || cabeloTipo || cabeloComprimento) {
+            let textoCabelo = ', cabelos';
+            if (cabeloCor) {
+                textoCabelo += ' ' + cabeloCor;
+            }
+            if (cabeloTipo) {
+                textoCabelo += ' ' + cabeloTipo;
+            }
+            if (cabeloComprimento) {
+                textoCabelo += ' de tamanho ' + cabeloComprimento;
+            }
+            retorno.push(new TextRun({ text: textoCabelo }));
+        }
 
-        retorno.push(new TextRun({ text: ' '}));
-        retorno.push(new TextRun({ text: this.getVitima().cabelo.tipo.toLowerCase()}));
+        if (temTexto(vitima.estatura)) {
+            retorno.push(new TextRun({ text: ', com estatura ' + textoValido(vitima.estatura).toLowerCase()}));
+        }
 
-        retorno.push(new TextRun({ text: ' de tamanho '}));
-        retorno.push(new TextRun({ text: this.getVitima().cabelo.comprimento.toLowerCase()}));
-
-        retorno.push(new TextRun({ text: ', com estatura '}));
-        retorno.push(new TextRun({ text: this.getVitima().estatura.toLowerCase()}));
-
-        retorno.push(new TextRun({ text: ' e compleição física '}));
-        retorno.push(new TextRun({ text: this.getVitima().complfisica.toLowerCase()}));
+        if (temTexto(vitima.complfisica)) {
+            retorno.push(new TextRun({ text: ', compleição física ' + textoValido(vitima.complfisica).toLowerCase()}));
+        }
 
         retorno.push(new TextRun({ text: '. '}));
 
@@ -86,7 +106,7 @@ export class SecaoVitimaIndividual extends Secao{
         if (this.getVitima().vestes.superior.length) {
             retorno.push(new TextRun({ text: this.getVitima().vestes.superior + ', '}));
         }else{
-            retorno.push(new TextRun({ text:  'com o dorso despido, '}));
+            retorno.push(new TextRun({ text:  'encontrava-se com o dorso despido, '}));
         }
 
         if (this.getVitima().vestes.inferior.length) {
@@ -114,9 +134,20 @@ export class SecaoVitimaIndividual extends Secao{
                     style: 'padrao',
                     children: [
                         new TextRun({
-                            text: 'O corpo da vítima encontrava-se em posição ' + this.getVitima().posicao.toLowerCase() + 
-                                ' e em estado de ' +  this.getVitima().estado.toLowerCase() + ', ' +
-                                this.getVitima().localizacao + '.'
+                            text: (() => {
+                                const descricao: string[] = [];
+                                if (temTexto(vitima.posicao)) {
+                                    descricao.push('em posição ' + textoValido(vitima.posicao).toLowerCase());
+                                }
+                                if (temTexto(vitima.estado)) {
+                                    descricao.push('em estado de ' + textoValido(vitima.estado).toLowerCase());
+                                }
+                                if (temTexto(vitima.localizacao)) {
+                                    descricao.push(textoValido(vitima.localizacao));
+                                }
+                                const sufixo = descricao.length ? ' ' + descricao.join(', ') : '';
+                                return 'O corpo da vítima encontrava-se' + sufixo + '.';
+                            })()
                         }),
                     ]
                 }),

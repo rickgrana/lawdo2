@@ -1,8 +1,14 @@
-import { AlignmentType, TabStopType} from 'docx';
+import { AlignmentType, LineRuleType } from 'docx';
 import { convertMillimetersToTwip } from "docx";
 
 /** Recuo da primeira linha do parágrafo (Portaria 003/2017-DPTC/AM, art. 7): 2,5 cm */
 const RECUO_PRIMEIRA_LINHA_MM = 25;
+
+/** Corpo do laudo: espaçamento 1,5 entre linhas (múltiplo automático do Word). */
+export const ESPACO_ENTRE_LINHAS_15 = { line: 360, lineRule: LineRuleType.AUTO } as const;
+
+/** Cabeçalho, rodapé, notas de rodapé, citações longas, ilustrações e respectivas legendas: simples. */
+export const ESPACO_ENTRE_LINHAS_1 = { line: 240, lineRule: LineRuleType.AUTO } as const;
 
 export const ESTILOS_PARAGRAFOS = [
         {
@@ -19,7 +25,8 @@ export const ESTILOS_PARAGRAFOS = [
                 color: "000000"
             },
             paragraph: {
-                alignment: AlignmentType.RIGHT
+                alignment: AlignmentType.RIGHT,
+                spacing: { ...ESPACO_ENTRE_LINHAS_1 },
             },
         },
 
@@ -36,7 +43,7 @@ export const ESTILOS_PARAGRAFOS = [
             paragraph: {
                 indent: { firstLine: convertMillimetersToTwip(RECUO_PRIMEIRA_LINHA_MM)},
                 alignment: AlignmentType.JUSTIFIED,
-                spacing: { line: 360, before: 0, after: 0 },
+                spacing: { before: 0, after: 0, ...ESPACO_ENTRE_LINHAS_15 },
             },
         } ,
 
@@ -54,7 +61,7 @@ export const ESTILOS_PARAGRAFOS = [
             paragraph: {
                 indent: { left: convertMillimetersToTwip(RECUO_PRIMEIRA_LINHA_MM), firstLine: 0 },
                 alignment: AlignmentType.JUSTIFIED,
-                spacing: { line: 360, before: 0, after: 180 },
+                spacing: { before: 0, after: 180, ...ESPACO_ENTRE_LINHAS_1 },
             },
         },
 
@@ -73,7 +80,7 @@ export const ESTILOS_PARAGRAFOS = [
                     firstLine: 0,
                 },
                 alignment: AlignmentType.JUSTIFIED,
-                spacing: { line: 360, before: 0, after: 0 },
+                spacing: { before: 0, after: 0, ...ESPACO_ENTRE_LINHAS_15 },
             },
         },
 
@@ -85,7 +92,7 @@ export const ESTILOS_PARAGRAFOS = [
             quickFormat: true,
             paragraph: {
                 alignment: AlignmentType.RIGHT,
-                spacing: { before: 360, after: convertMillimetersToTwip(40) }
+                spacing: { before: 360, after: convertMillimetersToTwip(40), ...ESPACO_ENTRE_LINHAS_15 },
             },
         },
 
@@ -102,9 +109,10 @@ export const ESTILOS_PARAGRAFOS = [
             paragraph: {
                 indent: { 
                     firstLine: 0,
-                    left: convertMillimetersToTwip(15), 
+                    left: convertMillimetersToTwip(RECUO_PRIMEIRA_LINHA_MM), 
                 },
-                spacing: { before: 220, after: convertMillimetersToTwip(5) } 
+                alignment: AlignmentType.JUSTIFIED,
+                spacing: { before: 220, after: convertMillimetersToTwip(5), ...ESPACO_ENTRE_LINHAS_15 },
             },
         },
 
@@ -121,7 +129,7 @@ export const ESTILOS_PARAGRAFOS = [
             },
             paragraph: {
                 alignment: AlignmentType.CENTER,
-                spacing: { before: 180 } 
+                spacing: { before: 180, ...ESPACO_ENTRE_LINHAS_15 },
             },
         },
 
@@ -143,9 +151,9 @@ export const ESTILOS_PARAGRAFOS = [
                     left: 0
                 },
                 spacing: { 
-                    line: 360, 
                     before: 60 * 72 * 0.1, 
-                    after: convertMillimetersToTwip(2)
+                    after: convertMillimetersToTwip(2),
+                    ...ESPACO_ENTRE_LINHAS_15,
                 }
             },
         },
@@ -159,7 +167,7 @@ export const ESTILOS_PARAGRAFOS = [
                 indent: { 
                     left: 0
                 },
-                spacing: { line: 360, before: 20 * 72 * 0.1, after: 0 }
+                spacing: { before: 20 * 72 * 0.1, after: 0, ...ESPACO_ENTRE_LINHAS_15 }
             },
         },
 
@@ -168,7 +176,7 @@ export const ESTILOS_PARAGRAFOS = [
             name: "titulo3",
             basedOn: "titulo",
             paragraph: {
-                spacing: { line: 360, before: 20 * 72 * 0.1, after: 0 } 
+                spacing: { before: 20 * 72 * 0.1, after: 0, ...ESPACO_ENTRE_LINHAS_15 } 
             },
         },
 
@@ -177,7 +185,12 @@ export const ESTILOS_PARAGRAFOS = [
             name: "titulo_apendice",
             basedOn: "titulo",
             paragraph: {
-                alignment: AlignmentType.CENTER
+                alignment: AlignmentType.CENTER,
+                spacing: {
+                    before: 60 * 72 * 0.1,
+                    after: convertMillimetersToTwip(2),
+                    ...ESPACO_ENTRE_LINHAS_1,
+                },
             },
         },
 
@@ -192,7 +205,8 @@ export const ESTILOS_PARAGRAFOS = [
                 bold: true
             },
             paragraph: {
-                alignment: AlignmentType.CENTER
+                alignment: AlignmentType.CENTER,
+                spacing: { ...ESPACO_ENTRE_LINHAS_1 },
             },
         },
 
@@ -202,12 +216,13 @@ export const ESTILOS_PARAGRAFOS = [
             basedOn: "legenda",
             run: {
                 font: "Times New Roman",
-                size: 18,
+                /* corpo 11 (meio-pontos, como no art. 11 §3 do número do laudo) */
+                size: 22,
                 bold: true
             },
             paragraph: {
                 alignment: AlignmentType.CENTER,
-                spacing: { line: 360, before: convertMillimetersToTwip(1), after: convertMillimetersToTwip(2) } 
+                spacing: { before: convertMillimetersToTwip(1), after: convertMillimetersToTwip(2), ...ESPACO_ENTRE_LINHAS_1 } 
             },
         },
 
@@ -219,6 +234,7 @@ export const ESTILOS_PARAGRAFOS = [
                 alignment: AlignmentType.CENTER,
                 /* não herdar recuo do parágrafo padrão (títulos centrados) */
                 indent: { firstLine: 0, left: 0 },
+                spacing: { ...ESPACO_ENTRE_LINHAS_15 },
             },
         },
 
@@ -228,7 +244,7 @@ export const ESTILOS_PARAGRAFOS = [
             basedOn: "padrao-centralizado",
             paragraph: {
                 alignment: AlignmentType.CENTER,
-                spacing: { line: 360, before: convertMillimetersToTwip(2) } 
+                spacing: { before: convertMillimetersToTwip(2), ...ESPACO_ENTRE_LINHAS_15 } 
             },
         },
 
@@ -238,7 +254,7 @@ export const ESTILOS_PARAGRAFOS = [
             basedOn: "padrao-centralizado",
             paragraph: {
                 alignment: AlignmentType.CENTER,
-                spacing: { line: 360, after: convertMillimetersToTwip(2) } 
+                spacing: { after: convertMillimetersToTwip(2), ...ESPACO_ENTRE_LINHAS_15 } 
             },
         },
 
@@ -253,7 +269,8 @@ export const ESTILOS_PARAGRAFOS = [
                 size: 16
             },
             paragraph: {
-                alignment: AlignmentType.CENTER
+                alignment: AlignmentType.CENTER,
+                spacing: { ...ESPACO_ENTRE_LINHAS_1 },
             },
         },
 
@@ -268,7 +285,8 @@ export const ESTILOS_PARAGRAFOS = [
                 size: 16
             },
             paragraph: {
-                alignment: AlignmentType.CENTER
+                alignment: AlignmentType.CENTER,
+                spacing: { ...ESPACO_ENTRE_LINHAS_1 },
             },
         },
 
@@ -284,7 +302,8 @@ export const ESTILOS_PARAGRAFOS = [
                 bold: true
             },
             paragraph: {
-                alignment: AlignmentType.RIGHT
+                alignment: AlignmentType.RIGHT,
+                spacing: { ...ESPACO_ENTRE_LINHAS_1 },
             },
         },
 
@@ -295,14 +314,17 @@ export const ESTILOS_PARAGRAFOS = [
             basedOn: "Normal",
             quickFormat: true,
             paragraph: {
-                spacing: { line: 0, before: 0, after: 0 }
+                spacing: { before: 0, after: 0, ...ESPACO_ENTRE_LINHAS_1 }
             },
         },
 
         {
             id: "itens",
             name: "itens",
-            basedOn: "Normal"
+            basedOn: "Normal",
+            paragraph: {
+                spacing: { ...ESPACO_ENTRE_LINHAS_15 },
+            },
         }
         
     ];

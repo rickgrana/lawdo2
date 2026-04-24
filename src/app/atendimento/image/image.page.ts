@@ -13,6 +13,7 @@ import Cropper from 'cropperjs';
 import { FirearmDetectionService } from 'src/app/services/firearm-detection.service';
 import { BloodstainDetectionService } from 'src/app/services/bloodstain-detection.service';
 import { imagemEstaNoGoogleDrive, Imagem } from 'src/app/models/atendimento.model';
+import { formatCoordenadasLatLong } from 'src/app/utils/image-gps.util';
 
 @Component({
   selector: 'app-image',
@@ -121,6 +122,11 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
   
   get imagem() {
     return this.atendimentoService.getImagem();
+  }
+
+  get imagemCoordenadasLinha(): string | null {
+    const m = this.imagem;
+    return m ? formatCoordenadasLatLong(m.lat, m.long) : null;
   }
 
   override ngOnInit() {
@@ -410,6 +416,10 @@ export class ImagePage extends AtendimentoBasePage implements OnInit {
           nome: (this.imagem ? this.imagem.nome : new Date().getTime().toString()),
           colunas: this.colunas
         };
+        if (this.imagem != null && this.imagem.lat != null && this.imagem.long != null) {
+          record.lat = this.imagem.lat;
+          record.long = this.imagem.long;
+        }
 
         if (!this.imagem) {
           this.model!.imagens.push(record);

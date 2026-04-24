@@ -20,6 +20,9 @@ export interface Imagem{
     imagem: string;
     legenda: string;
     colunas?: number;
+    /** Graus decimais (EXIF GPS), se existirem no ficheiro original. */
+    lat?: number;
+    long?: number;
     /**
      * Origem da mídia (implícito):
      * - **Ausente ou vazio** → Firebase Storage legado (`{atendimentoId}/{nome}`).

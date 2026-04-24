@@ -2,13 +2,15 @@ import { Component, inject, OnInit , ViewChild} from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { ImageService } from '../../services/image.service';
 import { AtendimentoBasePage } from '../atendimento-base.page';
-import { imagemEstaNoGoogleDrive } from 'src/app/models/atendimento.model';
+import { imagemEstaNoGoogleDrive, Imagem } from 'src/app/models/atendimento.model';
 import { IonGrid, IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonFooter, IonSpinner, IonReorder,
     IonReorderGroup,
     IonRow, IonCol, IonLabel, IonButton, IonItem, IonBackButton, IonNote,
     Platform, ActionSheetController } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FirearmDetectionService } from 'src/app/services/firearm-detection.service';
+import { readGpsFromImageFile } from 'src/app/utils/image-gps.util';
+import { ensureJpegFileForCanvas } from 'src/app/utils/heic-convert.util';
 
 @Component({
   selector: 'app-imagens',
@@ -108,35 +110,48 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
 
   async resizeImage(src: string, maxHeight = 500, quality = 0.8) {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    if (src.startsWith('http://') || src.startsWith('https://')) {
+      img.crossOrigin = 'anonymous';
+    }
 
     return new Promise<{ base64: string; blob: Blob }>((resolve, reject) => {
       img.onload = async () => {
-        const canvas = document.createElement('canvas');
+        try {
+          const canvas = document.createElement('canvas');
 
-        let width = img.width;
-        let height = img.height;
+          let width = img.width;
+          let height = img.height;
 
-        // resize proporcional pela altura
-        if (height > maxHeight) {
-          width = width * (maxHeight / height);
-          height = maxHeight;
+          // resize proporcional pela altura
+          if (height > maxHeight) {
+            width = width * (maxHeight / height);
+            height = maxHeight;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx!.drawImage(img, 0, 0, width, height);
+
+          const base64 = canvas.toDataURL('image/jpeg', quality);
+          const res = await fetch(base64);
+          const blob = await res.blob();
+
+          resolve({ base64, blob });
+        } catch (e: unknown) {
+          reject(e instanceof Error ? e : new Error(String(e)));
         }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        ctx!.drawImage(img, 0, 0, width, height);
-
-        const base64 = canvas.toDataURL('image/jpeg', quality);
-        const res = await fetch(base64);
-        const blob = await res.blob();
-
-        resolve({ base64, blob });
       };
 
-      img.onerror = reject;
+      img.onerror = () => {
+        reject(
+          new Error(
+            'Não foi possível carregar a imagem para redimensionamento. ' +
+              'Use JPEG, PNG ou WebP, ou confirme que fotos HEIC foram convertidas antes deste passo.',
+          ),
+        );
+      };
       img.src = src;
     });
   }
@@ -173,25 +188,47 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
 
     const filesAmount = files.length;
 
+    let primeiroGpsDoLote: { lat: number; long: number } | null = null;
+    let persistiuImagensOk = false;
+
     this.imagesProcessing = true;
     try {
       await this.presentLoading(`Carregando 0/${filesAmount}`);
 
       try {
-        const imagens: Array<{ src: string; nome: string; driveFileId: string } | null> =
-          new Array(filesAmount).fill(null);
+        const imagens: Array<{
+          src: string;
+          nome: string;
+          driveFileId: string;
+          lat?: number;
+          long?: number;
+        } | null> = new Array(filesAmount).fill(null);
 
         let completed = 0;
         await Promise.all(
           Array.from(files, (file, i) =>
             (async () => {
               try {
-                const dataUrl = await this.readFileAsDataURL(file);
+                const fileForCanvas = await ensureJpegFileForCanvas(file);
+                let coords = await readGpsFromImageFile(file);
+                if (!coords && fileForCanvas !== file) {
+                  coords = await readGpsFromImageFile(fileForCanvas);
+                }
+                const dataUrl = await this.readFileAsDataURL(fileForCanvas);
                 const { base64, blob } = await this.resizeImage(dataUrl as string, 500);
                 const nome = `${Date.now()}-${i}-${Math.random().toString(36).slice(2, 9)}`;
 
                 const { driveFileId } = await this.imageService.upload(this.model!, nome, blob);
-                imagens[i] = { src: base64, nome, driveFileId };
+                const row: { src: string; nome: string; driveFileId: string; lat?: number; long?: number } = {
+                  src: base64,
+                  nome,
+                  driveFileId
+                };
+                if (coords) {
+                  row.lat = coords.lat;
+                  row.long = coords.long;
+                }
+                imagens[i] = row;
               } catch (error: any) {
                 console.error(error);
                 await this.presentError(error?.message ?? String(error));
@@ -207,16 +244,31 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
           if (!img) {
             continue;
           }
-          this.model.imagens.push({
+          if (
+            primeiroGpsDoLote === null &&
+            img.lat != null &&
+            img.long != null &&
+            Number.isFinite(img.lat) &&
+            Number.isFinite(img.long)
+          ) {
+            primeiroGpsDoLote = { lat: img.lat, long: img.long };
+          }
+          const novo: Imagem = {
             imagem: img.src,
             legenda: '',
             nome: img.nome,
             colunas: 0,
             driveFileId: img.driveFileId
-          });
+          };
+          if (img.lat != null && img.long != null) {
+            novo.lat = img.lat;
+            novo.long = img.long;
+          }
+          this.model.imagens.push(novo);
         }
 
         await this.atendimentoService.updateImagens(this.model);
+        persistiuImagensOk = true;
       } catch (error: any) {
         console.error(error);
         await this.presentError(error?.message ?? String(error));
@@ -225,6 +277,68 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
       }
     } finally {
       this.imagesProcessing = false;
+    }
+
+    if (
+      persistiuImagensOk &&
+      primeiroGpsDoLote &&
+      this.model &&
+      this.atendimentoSemCoordenadasGeograficas()
+    ) {
+      await this.promptUsarCoordenadasNoAtendimento(primeiroGpsDoLote);
+    }
+  }
+
+  /** Considera sem georreferenciação quando lat/long são 0 (valor inicial do modelo). */
+  private atendimentoSemCoordenadasGeograficas(): boolean {
+    const c = this.model?.fields?.coordenadas;
+    if (!c) {
+      return true;
+    }
+    const lat = Number(c.lat);
+    const long = Number(c.long);
+    if (!Number.isFinite(lat) || !Number.isFinite(long)) {
+      return true;
+    }
+    return lat === 0 && long === 0;
+  }
+
+  private async promptUsarCoordenadasNoAtendimento(coords: { lat: number; long: number }): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Georreferenciação',
+      message:
+        'Coordenadas detectadas na imagem. Gostaria de usar estas coordenadas para georeferenciar o atendimento?',
+      backdropDismiss: false,
+      buttons: [
+        { text: 'Não', role: 'cancel' },
+        {
+          text: 'Sim',
+          handler: () => {
+            void this.aplicarCoordenadasImagensNoAtendimento(coords);
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async aplicarCoordenadasImagensNoAtendimento(coords: { lat: number; long: number }): Promise<void> {
+    if (!this.model) {
+      return;
+    }
+    this.model.fields.coordenadas.lat = coords.lat;
+    this.model.fields.coordenadas.long = coords.long;
+    await this.presentLoading('A atualizar coordenadas...');
+    try {
+      await this.atendimentoService.updateCoordenadas(this.model, {
+        preencherEnderecoPorGeocodigoSeVazio: true,
+      });
+      await this.presentAlertSalvo('Coordenadas do atendimento atualizadas.');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      await this.presentError(msg);
+    } finally {
+      await this.hideLoader();
     }
   }
 
@@ -304,10 +418,16 @@ export class ImagensPage extends AtendimentoBasePage implements OnInit {
       await this.atendimentoService.update(this.model!).then(async (resp) => {
         await this.hideLoader();
       })
-      .catch(async(error) => {
+      .catch(async (error: unknown) => {
         await this.hideLoader();
         console.log(error);
-        await this.presentError(error.message);
+        const msg =
+          error instanceof Error
+            ? error.message
+            : typeof error === 'object' && error !== null && 'message' in error
+              ? String((error as { message: unknown }).message)
+              : String(error);
+        await this.presentError(msg || 'Erro desconhecido');
       });
     }
 

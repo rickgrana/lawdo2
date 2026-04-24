@@ -33,6 +33,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { DadosProtocolo, PlanilhaService } from '../../services/planilha.service';
+import { reverseGeocodeFromNominatim } from 'src/app/utils/nominatim-reverse-geocode.util';
 import { ImageService } from 'src/app/services/image.service';
 import { locate, search } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
@@ -912,61 +913,19 @@ export class IdentificacaoPage implements OnInit, ViewWillEnter {
   private async buscarEnderecoPorCoordenadas(lat: number, lon: number): Promise<Partial<{
     cidade: string; bairro: string; endereco: string;
   }>> {
-    const url =
-      `https://nominatim.openstreetmap.org/reverse?lat=${encodeURIComponent(String(lat))}` +
-      `&lon=${encodeURIComponent(String(lon))}&format=json`;
-    const res = await fetch(url, {
-      headers: {
-        Accept: 'application/json',
-        'Accept-Language': 'pt-BR,pt;q=0.9'
-      }
-    });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-    const data: { address?: Record<string, string> } = await res.json();
-    const a = data.address ?? {};
-
-    const rua = [
-      a['road'] ?? a['pedestrian'] ?? a['path'],
-      a['house_number']
-    ]
-      .filter((x) => x && String(x).trim().length > 0)
-      .join(', ')
-      .trim();
-
-    const bairro = (
-      a['suburb'] ??
-      a['neighbourhood'] ??
-      a['quarter'] ??
-      a['city_district'] ??
-      ''
-    ).toString().trim();
-
-    const cidadeNome = (
-      a['city'] ??
-      a['town'] ??
-      a['municipality'] ??
-      a['village'] ??
-      a['county'] ??
-      ''
-    ).toString().trim();
-
+    const parts = await reverseGeocodeFromNominatim(lat, lon);
     const out: Partial<{ cidade: string; bairro: string; endereco: string }> = {};
 
-    const cidadeLista = this.matchCidadeNaLista(cidadeNome);
+    const cidadeLista = this.matchCidadeNaLista(parts.cidadeNome ?? '');
     if (cidadeLista) {
       out.cidade = cidadeLista;
     }
-
-    if (bairro) {
-      out.bairro = bairro;
+    if (parts.bairro) {
+      out.bairro = parts.bairro;
     }
-
-    if (rua) {
-      out.endereco = rua;
+    if (parts.logradouro) {
+      out.endereco = parts.logradouro;
     }
-
     return out;
   }
 

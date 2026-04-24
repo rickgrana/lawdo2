@@ -16,6 +16,7 @@ import { REGIOES_CORPO_VERSO } from '../const/regioes-corpo-verso';
 import { Conclusao } from '../interfaces/conclusao.interface';
 import { Observable, Subject } from 'rxjs';
 import { PreservacaoService } from './preservacao.service';
+import { reverseGeocodeFromNominatim } from '../utils/nominatim-reverse-geocode.util';
 
 @Injectable({
   providedIn: 'root'
@@ -177,6 +178,64 @@ export class AtendimentoService {
       },
       dtupdate: Timestamp.now()
     });
+    await this.mirrorAtendimentoTxtAoDrive(atendimento);
+    return out;
+  }
+
+  /** Atualiza `coordenadas` e `dtupdate`; opcionalmente preenche `bairro` e/ou `logradouro` via Nominatim se estiverem vazios. */
+  async updateCoordenadas(
+    atendimento: Atendimento,
+    options?: { preencherEnderecoPorGeocodigoSeVazio?: boolean },
+  ) {
+    const lat = Number(atendimento.fields.coordenadas.lat);
+    const long = Number(atendimento.fields.coordenadas.long);
+
+    const bairroAtual = String(atendimento.fields.endereco.bairro ?? '').trim();
+    const logradouroAtual = String(atendimento.fields.endereco.logradouro ?? '').trim();
+    const precisaBairro = bairroAtual.length === 0;
+    const precisaLogradouro = logradouroAtual.length === 0;
+
+    let enderecoGravar = false;
+    if (
+      options?.preencherEnderecoPorGeocodigoSeVazio &&
+      (precisaBairro || precisaLogradouro) &&
+      Number.isFinite(lat) &&
+      Number.isFinite(long)
+    ) {
+      try {
+        const parts = await reverseGeocodeFromNominatim(lat, long);
+        if (precisaBairro && parts.bairro) {
+          atendimento.fields.endereco.bairro = parts.bairro;
+          enderecoGravar = true;
+        }
+        if (precisaLogradouro && parts.logradouro) {
+          atendimento.fields.endereco.logradouro = parts.logradouro;
+          enderecoGravar = true;
+        }
+      } catch {
+        /* Mantém só as coordenadas se o Nominatim falhar. */
+      }
+    }
+
+    const atendimentoRef = this.getAtendimentoDoc(atendimento.id);
+    const payload: Record<string, unknown> = {
+      coordenadas: {
+        lat: atendimento.fields.coordenadas.lat,
+        long: atendimento.fields.coordenadas.long,
+      },
+      dtupdate: Timestamp.now(),
+    };
+
+    if (enderecoGravar) {
+      payload['endereco'] = {
+        cidade: atendimento.fields.endereco.cidade,
+        bairro: atendimento.fields.endereco.bairro,
+        logradouro: atendimento.fields.endereco.logradouro,
+        pontoref: atendimento.fields.endereco.pontoref,
+      };
+    }
+
+    const out = await this.updateSanitizedDoc(atendimentoRef, payload as any);
     await this.mirrorAtendimentoTxtAoDrive(atendimento);
     return out;
   }

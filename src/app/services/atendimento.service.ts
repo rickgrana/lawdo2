@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AuthenticationService } from '../authentication.service';
-import { Atendimento } from '../models/atendimento.model';
+import { Atendimento, imagemParaFirestore } from '../models/atendimento.model';
 import { Vitima } from '../models/vitima.model';
 import { Veiculo } from '../models/veiculo.model';
 import { Quesito } from '../models/quesito.model';
@@ -617,7 +617,7 @@ export class AtendimentoService {
     
     const out = await this.updateSanitizedDoc(atendimentoRef, {
       dtupdate: Timestamp.now(),
-      imagens: atendimento.imagens
+      imagens: atendimento.imagens.map(imagemParaFirestore)
     });
     await this.mirrorAtendimentoTxtAoDrive(atendimento);
     return out;

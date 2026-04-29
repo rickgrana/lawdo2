@@ -17,6 +17,9 @@ import { Timestamp } from 'firebase/firestore';
 
 export interface Imagem{
     nome: string;
+    /**
+     * Preview em memória (data URL / object URL). **Não** persistir no Firestore — usar `imagemParaFirestore`.
+     */
     imagem: string;
     legenda: string;
     colunas?: number;
@@ -35,6 +38,39 @@ export interface Imagem{
 export function imagemEstaNoGoogleDrive(imagem: Imagem): boolean {
     const id = imagem.driveFileId;
     return typeof id === 'string' && id.trim().length > 0;
+}
+
+/** Só metadados + `driveFileId` para o Firestore (sem bytes / data URL no campo `imagem`). */
+export function imagemParaFirestore(imagem: Imagem): {
+    nome: string;
+    legenda: string;
+    colunas?: number;
+    lat?: number;
+    long?: number;
+    driveFileId?: string;
+} {
+    const row: {
+        nome: string;
+        legenda: string;
+        colunas?: number;
+        lat?: number;
+        long?: number;
+        driveFileId?: string;
+    } = {
+        nome: imagem.nome,
+        legenda: imagem.legenda,
+        colunas: imagem.colunas
+    };
+    if (imagem.lat != null) {
+        row.lat = imagem.lat;
+    }
+    if (imagem.long != null) {
+        row.long = imagem.long;
+    }
+    if (imagemEstaNoGoogleDrive(imagem)) {
+        row.driveFileId = imagem.driveFileId;
+    }
+    return row;
 }
 
 /** Pessoa ou equipe presente no local do exame (preservação). */
@@ -668,18 +704,7 @@ export class Atendimento {
 
         const imagens: any[] = [];
         this.imagens.forEach((imagem) => {
-            /*if(!imagem.colunas){
-                imagem.colunas = 1;
-            }*/
-            const row: { nome: string; legenda: string; colunas?: number; driveFileId?: string } = {
-                nome: imagem.nome,
-                legenda: imagem.legenda,
-                colunas: imagem.colunas
-            };
-            if (imagemEstaNoGoogleDrive(imagem)) {
-                row.driveFileId = imagem.driveFileId;
-            }
-            imagens.push(row);
+            imagens.push(imagemParaFirestore(imagem));
         });
 
         return {

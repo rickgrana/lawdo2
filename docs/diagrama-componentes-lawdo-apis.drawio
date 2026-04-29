@@ -1,0 +1,93 @@
+<mxfile host="app.diagrams.net" modified="2026-04-28T16:42:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="lawdo-apis" name="Lawdo x APIs">
+    <mxGraphModel dx="1800" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Diagrama de Componentes - Ligacao do Lawdo com APIs" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="20" width="1080" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="zone-client" value="Aplicacao Lawdo (cliente)" style="swimlane;horizontal=1;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="120" width="560" height="930" as="geometry" />
+        </mxCell>
+
+        <mxCell id="spa" value="SPA Lawdo&#xa;Angular + Ionic" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="zone-client">
+          <mxGeometry x="160" y="60" width="230" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="svc-auth" value="AuthenticationService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="zone-client">
+          <mxGeometry x="40" y="210" width="210" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-atend" value="AtendimentoService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="zone-client">
+          <mxGeometry x="290" y="210" width="210" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-drive" value="DriveFolderBrowserService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="zone-client">
+          <mxGeometry x="40" y="300" width="210" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-planilha" value="PlanilhaService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="zone-client">
+          <mxGeometry x="290" y="300" width="210" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-firearm" value="FirearmDetectionService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="zone-client">
+          <mxGeometry x="40" y="390" width="210" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-blood" value="BloodstainDetectionService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="zone-client">
+          <mxGeometry x="290" y="390" width="210" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ui-img" value="Tela de Imagens/Exames&#xa;dispara deteccao e upload" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="zone-client">
+          <mxGeometry x="160" y="500" width="230" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="zone-firebase" value="Firebase (backend principal)" style="swimlane;horizontal=1;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="120" width="460" height="440" as="geometry" />
+        </mxCell>
+        <mxCell id="api-auth" value="Firebase Authentication" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="zone-firebase">
+          <mxGeometry x="120" y="60" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="api-firestore" value="Cloud Firestore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="zone-firebase">
+          <mxGeometry x="120" y="150" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="api-functions" value="Cloud Functions (HTTPS)&#xa;buscarDadosProtocolo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="zone-firebase">
+          <mxGeometry x="90" y="240" width="280" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="zone-google" value="Google APIs externas" style="swimlane;horizontal=1;startSize=30;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="700" y="610" width="460" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="api-drive" value="Google Drive API&#xa;pastas e upload de imagens/laudo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="zone-google">
+          <mxGeometry x="90" y="70" width="280" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="api-sheets" value="Google Sheets API&#xa;planilhas SISREX/Registro" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="zone-google">
+          <mxGeometry x="90" y="180" width="280" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="zone-ml" value="Cloud Run (ML APIs)" style="swimlane;horizontal=1;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1230" y="250" width="500" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="api-firearm" value="firearm-detection-api&#xa;POST /predict&#xa;POST /predict/json" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="zone-ml">
+          <mxGeometry x="90" y="80" width="320" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="api-blood" value="bloodstain-detection-api&#xa;POST /predict&#xa;POST /predict/json" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="zone-ml">
+          <mxGeometry x="90" y="240" width="320" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="spa" target="svc-auth" parent="zone-client"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="spa" target="svc-atend" parent="zone-client"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="spa" target="svc-drive" parent="zone-client"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="spa" target="svc-planilha" parent="zone-client"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="ui-img" target="svc-firearm" parent="zone-client"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="ui-img" target="svc-blood" parent="zone-client"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="e7" value="SDK/HTTPS" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="svc-auth" target="api-auth" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e8" value="SDK/HTTPS" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="svc-atend" target="api-firestore" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="svc-planilha" target="api-functions" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" value="REST" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="svc-drive" target="api-drive" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e11" value="REST" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="api-functions" target="api-sheets" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e12" value="HTTP multipart/form-data" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="svc-firearm" target="api-firearm" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e13" value="HTTP multipart/form-data" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=1;" edge="1" source="svc-blood" target="api-blood" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

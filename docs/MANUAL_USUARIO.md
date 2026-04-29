@@ -194,6 +194,42 @@ No painel do atendimento, toque em **Exportar Laudo**.
 
 O Word reúne as secções que preencheu (texto, tabelas, imagens e mapas, conforme o caso).
 
+### 19.1 Resultados da exportação (templates e exemplos)
+
+O processo de exportação monta um `.docx` em três etapas:
+
+1. **Validação mínima**: exige **número** e **ano** do laudo.
+2. **Composição**: cria o documento com cabeçalho, rodapé, estilos, margens e secções.
+3. **Destino**: permite **download local** ou **salvar no Google Drive**.
+
+Templates (secções) usados na geração, em ordem:
+
+- **Requisição**
+- **Título do laudo**
+- **Preâmbulo**
+- **Histórico**
+- **Exames** (local, isolamento, vítimas, veículos, perinecroscopia)
+- **Outros elementos**
+- **Conclusão**
+- **Quesitos e respostas**
+- **Assinatura**
+- **Anexos** (registro fotográfico, croquis por vítima e geolocalização, quando houver)
+
+Regras de inclusão condicional (resumo):
+
+- **Conclusão** só entra se o texto de conclusão estiver preenchido.
+- **Quesitos e respostas** só entra se houver quesitos cadastrados.
+- **Outros elementos** entra em crime contra a vida, ou quando houver texto de dinâmica.
+- **Anexos** entram quando houver imagens, croquis com marcações ou coordenadas válidas.
+
+Exemplos de geração:
+
+- **Numeração no documento**: laudo `123` de `2026` é formatado como `00123-2026`.
+- **Nome do arquivo exportado**: laudo `2026/123` e protocolo `2026/456` gera `26-123--26-456.docx`.
+- **Subtítulo do tipo de exame**: `LOCAL DE SUICÍDIO` aparece no título como `(LOCAL DE SUICÍDIO)`.
+- **Texto dinâmico**: marcadores `<o>` e `<O>` em dinâmica/conclusão são substituídos pelo artigo adequado do perito.
+- **Anexo geográfico**: com coordenadas válidas, é incluído apêndice de geolocalização com mapa e legenda.
+
 ---
 
 ## 20. Concluir ou reabrir um atendimento

@@ -1,0 +1,97 @@
+<mxfile host="app.diagrams.net" agent="Codex">
+  <diagram id="bpmn-yolov8" name="BPMN YOLOv8 v2">
+    <mxGraphModel dx="1717" dy="1097" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="pool" parent="1" style="swimlane;html=1;childLayout=stackLayout;horizontal=1;startSize=30;rounded=0;fillColor=#ffffff;strokeColor=#000000;fontStyle=1;" value="Pipeline de Treinamento YOLOv8 - Notebook" vertex="1">
+          <mxGeometry height="980" width="1680" x="40" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lane1" parent="pool" style="swimlane;html=1;startSize=30;horizontal=0;swimlaneLine=1;fillColor=#f8f9fa;strokeColor=#666666;" value="Preparacao de Ambiente e Dados" vertex="1">
+          <mxGeometry height="300" width="1680" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="lane1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="30" width="30" x="70" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="t1" parent="lane1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Limpar runs e instalar ultralytics" vertex="1">
+          <mxGeometry height="80" width="220" x="140" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="t2" parent="lane1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Montar Google Drive" vertex="1">
+          <mxGeometry height="80" width="180" x="410" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="t3" parent="lane1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Carregar data.yaml do dataset perfuracoes" vertex="1">
+          <mxGeometry height="80" width="260" x="640" y="95" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="lane1" source="start" style="endArrow=block;endFill=1;html=1;" target="t1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="lane1" source="t1" style="endArrow=block;endFill=1;html=1;" target="t2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="lane1" source="t2" style="endArrow=block;endFill=1;html=1;" target="t3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane2" parent="pool" style="swimlane;html=1;startSize=30;horizontal=0;swimlaneLine=1;fillColor=#f8f9fa;strokeColor=#666666;" value="Treinamento e Validacao" vertex="1">
+          <mxGeometry height="330" width="1680" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="t4" parent="lane2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Inicializar YOLO(&#39;yolov8s&#39;)" vertex="1">
+          <mxGeometry height="80" width="220" x="140" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="t5" parent="lane2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Treinar modelo&#xa;epochs=100, imgsz=640, batch=-1, augmentations" vertex="1">
+          <mxGeometry height="100" width="310" x="420" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="d1" parent="lane2" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="Treinamento concluido?" vertex="1">
+          <mxGeometry height="80" width="140" x="780" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="t6" parent="lane2" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Gerar best.pt" vertex="1">
+          <mxGeometry height="80" width="160" x="970" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="t7" parent="lane2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Validar modelo&#xa;conf=0.001, iou=0.7, split=&#39;val&#39;" vertex="1">
+          <mxGeometry height="100" width="260" x="1180" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="lane2" source="t4" style="endArrow=block;endFill=1;html=1;" target="t5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="lane2" source="t5" style="endArrow=block;endFill=1;html=1;" target="d1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="lane2" source="d1" style="endArrow=block;endFill=1;html=1;" target="t6" value="Sim">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="lane2" source="t6" style="endArrow=block;endFill=1;html=1;" target="t7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lane3" parent="pool" style="swimlane;html=1;startSize=30;horizontal=0;swimlaneLine=1;fillColor=#f8f9fa;strokeColor=#666666;" value="Inferencia em Imagem e Pos-processamento" vertex="1">
+          <mxGeometry height="350" width="1680" y="630" as="geometry" />
+        </mxCell>
+        <mxCell id="t8" parent="lane3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Inferencia em imagem" vertex="1">
+          <mxGeometry height="90" width="230" x="220" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="t9" parent="lane3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Salvar saidas&#xa;(bbox, conf, crop)" vertex="1">
+          <mxGeometry height="90" width="200" x="520" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="t10" parent="lane3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Extrair xyxy e recortar objetos&#xa;(Pillow/OpenCV)" vertex="1">
+          <mxGeometry height="90" width="260" x="790" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="lane3" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#000000;strokeWidth=3;" value="" vertex="1">
+          <mxGeometry height="34" width="34" x="1120" y="158" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="lane3" source="t8" style="endArrow=block;endFill=1;html=1;" target="t9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="lane3" source="t9" style="endArrow=block;endFill=1;html=1;" target="t10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="lane3" source="t10" style="endArrow=block;endFill=1;html=1;" target="end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="pool" source="t3" style="endArrow=block;endFill=1;html=1;" target="t4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="pool" source="t7" style="endArrow=block;endFill=1;html=1;" target="t8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
